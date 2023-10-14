@@ -54,38 +54,35 @@ namespace GameTesting
             controller = new ImGuiController(gl = window.CreateOpenGL(), window, input = window.CreateInput());
             gl.ClearColor(Color.DarkCyan);
 
-            float[] vertices =
+            Vertex[] vertexes =
             {
-                -1.0f, -1.0f,  1.0f,
-                1.0f, -1.0f,  1.0f,
-                1.0f,  1.0f,  1.0f,
-                -1.0f,  1.0f,  1.0f,
-                -1.0f, -1.0f, -1.0f,
-                1.0f, -1.0f, -1.0f,
-                1.0f,  1.0f, -1.0f,
-                -1.0f,  1.0f, -1.0f
+                new Vertex(new Vector3(-1.0f, -1.0f, 1.0f),new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(-1.0f, 1.0f, 1.0f),new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(-1.0f, -1.0f, -1.0f),new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(-1.0f, 1.0f, -1.0f),new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3( 1.0f,-1.0f, 1.0f),new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(1.0f,1.0f, 1.0f),new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(1.0f,-1.0f, -1.0f),new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(1.0f,1.0f, -1.0f),new Vector3(0), new Vector2(0))
             };
 
             uint[] indices =
             {
-                0, 1, 2,
-		        2, 3, 0,
-                1, 5, 6,
-                6, 2, 1,
-                7, 6, 5,
-                5, 4, 7,
-                4, 0, 3,
-                3, 7, 4,
-                4, 5, 1,
-                1, 0, 4,
-                3, 2, 6,
-                6, 7, 3
+                1, 2, 0,
+                3, 6, 2,
+                7, 4, 6,
+                5, 0, 4,
+                6, 0, 2,
+                3, 5, 7,
+                1, 3, 2,
+                3, 7, 6,
+                7, 5, 4,
+                5, 1, 0,
+                6, 4, 0,
+                3, 1, 5
             };
 
-            meshes.Add(new Mesh(gl, vertices, indices));
-            meshes.Add(new Mesh(gl, vertices, indices));
-            meshes.Add(new Mesh(gl, vertices, indices));
-            meshes.Add(new Mesh(gl, vertices, indices));
+            meshes.Add(new Mesh(gl, vertexes, indices));
             camera = new Camera(new Vector3(0,0,-2), Quaternion.Identity, Vector3.Zero, 45f);
             shader = new Shader(gl, ShaderPath + @"\Default.vert", ShaderPath + @"\Default.frag");
 
@@ -106,8 +103,6 @@ namespace GameTesting
             
         }
 
-        static Vector3 dir;
-        static bool check;
         static unsafe void OnMouseMove(IMouse mouse, Vector2 position)
         {
             if (LastMousePosition == default) { LastMousePosition = position; }
@@ -137,10 +132,6 @@ namespace GameTesting
             controller.Update((float)dt);
             
             ImGuiNET.ImGui.Begin("GameTesting");
-
-            ImGuiNET.ImGui.SliderFloat3("Ray Direction", ref dir, -1, 1);
-            ImGuiNET.ImGui.Checkbox("Inside", ref check);
-
 
             ImGuiNET.ImGui.Text("Camera");
             ImGuiNET.ImGui.SliderFloat3("Camera Position", ref camera.position, -10, 10);

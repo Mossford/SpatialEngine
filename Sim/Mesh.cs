@@ -1,12 +1,28 @@
 using System;
 using Silk.NET.OpenGL;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace GameTesting
 {
+
+    public struct Vertex
+    {
+        public Vector3 position;
+        public Vector3 normal;
+        public Vector2 uv;
+
+        public Vertex(Vector3 pos, Vector3 nor, Vector2 tex)
+        {
+            position = pos;
+            normal = nor;
+            uv = tex;
+        }
+    }
+
     public class Mesh : IDisposable
     {
-        public float[] vertexes;
+        public Vertex[] vertexes;
         uint[] indices;
         GL gl;
         public uint vao;
@@ -18,10 +34,10 @@ namespace GameTesting
         public Vector3 rotation = Vector3.Zero;
         public Matrix4x4 modelMat;
 
-        public Mesh(GL gl, float[] vertices, uint[] indices)
+        public Mesh(GL gl, Vertex[] vertexes, uint[] indices)
         {
             this.gl = gl;
-            this.vertexes = vertices;
+            this.vertexes = vertexes;
             this.indices = indices;
             BufferGens();
             CreateViewMat();
@@ -49,16 +65,18 @@ namespace GameTesting
             ebo = gl.GenBuffer();
             gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-            fixed (float* buf = vertexes)
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (vertexes.Length * sizeof(float)), buf, BufferUsageARB.StaticDraw);
+            fixed (Vertex* buf = vertexes)
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (vertexes.Length * sizeof(Vertex)), buf, BufferUsageARB.StaticDraw);
             fixed (uint* buf = indices)
                 gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
 
             gl.EnableVertexAttribArray(0);
-            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), (void*) 0);
+            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) 0);
+            gl.EnableVertexAttribArray(1);
+            gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) Marshal.OffsetOf<Vertex>("normal"));
+            gl.EnableVertexAttribArray(2);
+            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) Marshal.OffsetOf<Vertex>("uv"));
             gl.BindVertexArray(0);
-            gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-            gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
         }
 
         public unsafe void DrawMesh()
