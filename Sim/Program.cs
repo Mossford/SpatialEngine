@@ -8,7 +8,6 @@ using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Collections.Generic;
-using GameTestingUtilites;
 
 
 namespace GameTesting
@@ -27,7 +26,6 @@ namespace GameTesting
         static GL gl;
         static Shader shader;
         static List<Mesh> meshes = new List<Mesh>();
-        static BoundingBox boundingBox;
         static Camera camera;
         static string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         static string resourcePath = appPath + @"\res";
@@ -88,7 +86,6 @@ namespace GameTesting
             meshes.Add(new Mesh(gl, vertices, indices));
             meshes.Add(new Mesh(gl, vertices, indices));
             meshes.Add(new Mesh(gl, vertices, indices));
-            boundingBox = new BoundingBox(vertices, meshes[0].position);
             camera = new Camera(new Vector3(0,0,-2), Quaternion.Identity, Vector3.Zero, 45f);
             shader = new Shader(gl, ShaderPath + @"\Default.vert", ShaderPath + @"\Default.frag");
 
@@ -116,8 +113,7 @@ namespace GameTesting
             if (LastMousePosition == default) { LastMousePosition = position; }
             else
             {
-                check = boundingBox.RayInsideBounds(camera.ScreenToWorldCast(position.X, position.Y));
-                dir = camera.ScreenToWorldCast(position.X, position.Y).direction;
+                
             }
         }
 
@@ -131,7 +127,6 @@ namespace GameTesting
                 meshes[i].rotation.Z = MathF.Sin(time * i);
             }*/
             //Console.WriteLine(boundingBox.max + " max " + boundingBox.min + " min");
-            boundingBox.ConstructBoundingBox(meshes[0].vertexes, meshes[0].position);
             
         }
 
@@ -145,8 +140,6 @@ namespace GameTesting
 
             ImGuiNET.ImGui.SliderFloat3("Ray Direction", ref dir, -1, 1);
             ImGuiNET.ImGui.Checkbox("Inside", ref check);
-            ImGuiNET.ImGui.SliderFloat3("BoundboxMAX", ref boundingBox.max, -1, 1);
-            ImGuiNET.ImGui.SliderFloat3("BoundboxMIN", ref boundingBox.min, -1, 1);
 
 
             ImGuiNET.ImGui.Text("Camera");

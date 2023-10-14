@@ -36,7 +36,8 @@ namespace GameTesting
 
         public void CreateViewMat()
         {
-            modelMat = Matrix4x4.Identity * (Matrix4x4.CreateFromAxisAngle(Vector3.UnitX, rotation.X) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, rotation.Y) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, rotation.Z)) * Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position);
+            modelMat = Matrix4x4.Identity;
+            modelMat = Matrix4x4.CreateTranslation(position) * (Matrix4x4.CreateFromAxisAngle(Vector3.UnitX, rotation.X) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, rotation.Y) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, rotation.Z)) * Matrix4x4.CreateScale(scale);
         }
 
         public unsafe void BufferGens()
