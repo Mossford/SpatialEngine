@@ -23,7 +23,7 @@ namespace GameTesting
     public class Mesh : IDisposable
     {
         public Vertex[] vertexes;
-        uint[] indices;
+        public uint[] indices;
         GL gl;
         public uint vao;
         public uint vbo;

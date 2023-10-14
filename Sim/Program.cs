@@ -7,7 +7,9 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 using System.Drawing;
 using System.IO;
 using System.Numerics;
+using System.Diagnostics;
 using System.Collections.Generic;
+using ImGuiNET;
 
 
 namespace GameTesting
@@ -15,9 +17,12 @@ namespace GameTesting
     public class Game
     {
 
+        static bool showWireFrame = false;
+        static uint vertCount;
+        static uint indCount;
+        static float totalTime = 0.0f;
         public const int SCR_WIDTH = 1920;
         public const int SCR_HEIGHT = 1080;
-
 
         static ImGuiController controller;
         static IInputContext input;
@@ -27,11 +32,9 @@ namespace GameTesting
         static Shader shader;
         static List<Mesh> meshes = new List<Mesh>();
         static Camera camera;
-        static string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        static string resourcePath = appPath + @"\res";
-        static string ShaderPath = resourcePath + @"/Shaders";
-
-        static float time = 0;
+        static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        static readonly string resourcePath = appPath + @"\res";
+        static readonly string ShaderPath = resourcePath + @"/Shaders";
 
 
         public static void Main(string[] args)
@@ -83,10 +86,12 @@ namespace GameTesting
             };
 
             meshes.Add(new Mesh(gl, vertexes, indices));
+            vertCount += (uint)meshes[0].vertexes.Length;
+            indCount += (uint)meshes[0].indices.Length;
             camera = new Camera(new Vector3(0,0,-2), Quaternion.Identity, Vector3.Zero, 45f);
             shader = new Shader(gl, ShaderPath + @"\Default.vert", ShaderPath + @"\Default.frag");
 
-            ImGuiNET.ImGui.SetWindowSize(new Vector2(400,600));
+            ImGui.SetWindowSize(new Vector2(400,600));
 
             //input stuffs
             for (int i = 0; i < input.Keyboards.Count; i++)
@@ -114,7 +119,7 @@ namespace GameTesting
 
         static void OnUpdate(double dt) 
         {
-            time += (float)dt;
+            totalTime += (float)dt;
             /*for (int i = 0; i < meshes.Count; i++)
             {
                 meshes[i].rotation.X = MathF.Sin(time * i);
@@ -130,27 +135,16 @@ namespace GameTesting
         static unsafe void OnRender(double dt)
         {   
             controller.Update((float)dt);
-            
-            ImGuiNET.ImGui.Begin("GameTesting");
 
-            ImGuiNET.ImGui.Text("Camera");
-            ImGuiNET.ImGui.SliderFloat3("Camera Position", ref camera.position, -10, 10);
-
-            for (int i = 0; i < meshes.Count; i++)
-            {
-                ImGuiNET.ImGui.Text("Cube " + i);
-                ImGuiNET.ImGui.ColorEdit4("Cube Color", ref color);
-                ImGuiNET.ImGui.SliderFloat3("Cube Position", ref meshes[i].position, 5, -5);
-                ImGuiNET.ImGui.SliderAngle("Cube Rotation X", ref meshes[i].rotation.X, -360, 360);
-                ImGuiNET.ImGui.SliderAngle("Cube Rotation Y", ref meshes[i].rotation.Y, -360, 360);
-                ImGuiNET.ImGui.SliderAngle("Cube Rotation Z", ref meshes[i].rotation.Z, -360, 360);
-                ImGuiNET.ImGui.SliderFloat("Cube Scale", ref meshes[i].scale, -5, 5);
-            }
+            ImGuiMenu(dt);
 
             camera.SetViewMat();
 
             gl.Enable(EnableCap.DepthTest);
             gl.Clear((uint) (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+            gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
+            if(showWireFrame)
+                gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
 
             gl.UseProgram(shader.shader);
             shader.SetUniform("uColor", color);
@@ -165,6 +159,38 @@ namespace GameTesting
             }
 
             controller.Render();
+        }
+
+        static void ImGuiMenu(double deltaTime)
+        {
+            ImGuiWindowFlags window_flags = 0;
+            window_flags |= ImGuiWindowFlags.NoTitleBar;
+            window_flags |= ImGuiWindowFlags.MenuBar;
+
+            ImGui.Begin("SpatialEngine", window_flags);
+
+            ImGui.Text(string.Format("App avg {0:N3} ms/frame ({1:N1} FPS)", deltaTime * 1000, Math.Round(1.0f / deltaTime)));
+            ImGui.Text(string.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
+            ImGui.Text(string.Format("Amount of Spatials: ({0})", meshes.Count));
+            //ImGui.Text(string.Format("Ram Usage: {0:N2}mb", process.PrivateMemorySize64 / 1024.0f / 1024.0f));
+            ImGui.Text(string.Format("Time Open {0:N1} minutes", (totalTime / 60.0f)));
+
+            ImGui.Spacing();
+            ImGui.Checkbox("Wire Frame", ref showWireFrame);
+
+            ImGui.Text("Camera");
+            ImGui.SliderFloat3("Camera Position", ref camera.position, -10, 10);
+
+            for (int i = 0; i < meshes.Count; i++)
+            {
+                ImGui.Text("Cube " + i);
+                ImGui.ColorEdit4("Cube Color", ref color);
+                ImGui.SliderFloat3("Cube Position", ref meshes[i].position, 5, -5);
+                ImGui.SliderAngle("Cube Rotation X", ref meshes[i].rotation.X, -360, 360);
+                ImGui.SliderAngle("Cube Rotation Y", ref meshes[i].rotation.Y, -360, 360);
+                ImGui.SliderAngle("Cube Rotation Z", ref meshes[i].rotation.Z, -360, 360);
+                ImGui.SliderFloat("Cube Scale", ref meshes[i].scale, -5, 5);
+            }
         }
     }
 }
