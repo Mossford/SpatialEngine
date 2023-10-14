@@ -3,7 +3,7 @@ using Silk.NET.OpenGL;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace GameTesting
+namespace SpatialEngine
 {
 
     public struct Vertex
@@ -40,7 +40,6 @@ namespace GameTesting
             this.vertexes = vertexes;
             this.indices = indices;
             BufferGens();
-            CreateViewMat();
         }
 
         ~Mesh()
@@ -50,10 +49,11 @@ namespace GameTesting
             gl.DeleteBuffer(ebo);
         }
 
-        public void CreateViewMat()
+        public Matrix4x4 GetModelMatrix()
         {
             modelMat = Matrix4x4.Identity;
             modelMat = Matrix4x4.CreateTranslation(position) * (Matrix4x4.CreateFromAxisAngle(Vector3.UnitX, rotation.X) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, rotation.Y) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, rotation.Z)) * Matrix4x4.CreateScale(scale);
+            return modelMat;
         }
 
         public unsafe void BufferGens()

@@ -4,7 +4,7 @@ using Silk.NET.OpenGL;
 using System.IO;
 using System.Collections.Generic;
 
-namespace GameTesting
+namespace SpatialEngine
 {
     public class Shader
     {

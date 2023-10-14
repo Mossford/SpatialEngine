@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace GameTesting
+namespace SpatialEngine
 {
     public class Camera
     {
@@ -9,7 +9,6 @@ namespace GameTesting
         public Quaternion rotation;
         public Vector3 target;
         public Vector3 direction;
-        public Matrix4x4 viewMat;
         public float zoom;
 
         public Camera(Vector3 position, Quaternion rotation, Vector3 target, float zoom)
@@ -96,9 +95,9 @@ namespace GameTesting
             return result;
         }
 
-        public void SetViewMat()
+        public Matrix4x4 GetViewMat()
         {
-            viewMat = MatrixLookAt(position, position + new Vector3(0,0,1), Vector3.UnitY); 
+            return MatrixLookAt(position, position + new Vector3(0,0,1), Vector3.UnitY); 
         }
 
         public Matrix4x4 GetProjMat()
