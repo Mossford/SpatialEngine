@@ -97,12 +97,12 @@ namespace SpatialEngine
 
         public Matrix4x4 GetViewMat()
         {
-            return MatrixLookAt(position, position + new Vector3(0,0,1), Vector3.UnitY); 
+            return Matrix4x4.CreateLookAt(position, position + new Vector3(0,0,1), Vector3.UnitY); //MatrixLookAt(position, position + new Vector3(0,0,1), Vector3.UnitY); 
         }
 
         public Matrix4x4 GetProjMat()
         {
-            return MatrixPerspective(MathF.PI / 180 * zoom, 1.77777f, 0.0001f, 100f);
+            return Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 180 * zoom, 1.77777f, 0.1f, 10000.0f); //MatrixPerspective(MathF.PI / 180 * zoom, 1.77777f, 0.0001f, 100f);
         }
         
     }

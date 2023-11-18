@@ -73,9 +73,9 @@ namespace SpatialEngine
             gl.EnableVertexAttribArray(0);
             gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) 0);
             gl.EnableVertexAttribArray(1);
-            gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) Marshal.OffsetOf<Vertex>("normal"));
+            gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (3 * sizeof(float)));
             gl.EnableVertexAttribArray(2);
-            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) Marshal.OffsetOf<Vertex>("uv"));
+            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (6 * sizeof(float)));
             gl.BindVertexArray(0);
         }
 
