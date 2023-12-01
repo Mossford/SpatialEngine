@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Silk.NET.Maths;
 
@@ -46,12 +47,9 @@ namespace SpatialEngine
 
         public void DrawSingle(ref Shader shader, Matrix4x4 view, Matrix4x4 proj)
         {
-            System.Diagnostics.Debug.WriteLine(SpatialObjects.Count);
             for (int i = 0; i < SpatialObjects.Count; i++)
             {
                 shader.SetUniform("uModel", SpatialObjects[i].SO_mesh.modelMat);
-                shader.SetUniform("uView", view);
-                shader.SetUniform("uProj", proj);
                 SpatialObjects[i].SO_mesh.DrawMesh();
             }
         }

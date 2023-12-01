@@ -126,7 +126,10 @@ namespace SpatialEngine
         static void OnUpdate(double dt) 
         {
             totalTime += (float)dt;
-            
+            for (int i = 0; i < scene.SpatialObjects.Count; i++)
+            {
+                scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
+            }
         }
 
         static unsafe void OnRender(double dt)
@@ -142,6 +145,8 @@ namespace SpatialEngine
                 gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
 
             gl.UseProgram(shader.shader);
+            shader.SetUniform("uView", camera.GetViewMat());
+            shader.SetUniform("uProj", camera.GetProjMat());
             scene.DrawSingle(ref shader, camera.GetViewMat(), camera.GetProjMat());
 
             controller.Render();
