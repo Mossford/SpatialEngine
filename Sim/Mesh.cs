@@ -39,21 +39,19 @@ namespace SpatialEngine
             this.gl = gl;
             this.vertexes = vertexes;
             this.indices = indices;
-            BufferGens();
         }
 
         ~Mesh()
         {
-            gl.DeleteVertexArray(vao);
-            gl.DeleteBuffer(vbo);
-            gl.DeleteBuffer(ebo);
+            //gl.DeleteVertexArray(vao);
+            //gl.DeleteBuffer(vbo);
+            //gl.DeleteBuffer(ebo);
         }
 
-        public Matrix4x4 GetModelMatrix()
+        public void SetModelMatrix()
         {
             modelMat = Matrix4x4.Identity;
             modelMat = Matrix4x4.CreateTranslation(position) * (Matrix4x4.CreateFromAxisAngle(Vector3.UnitX, rotation.X) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, rotation.Y) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, rotation.Z)) * Matrix4x4.CreateScale(scale);
-            return modelMat;
         }
 
         public unsafe void BufferGens()
