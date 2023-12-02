@@ -66,12 +66,12 @@ namespace SpatialEngine
             this.scale = scale;
         }
 
-        ~Mesh()
-        {
-            gl.DeleteVertexArray(vao);
-            gl.DeleteBuffer(vbo);
-            gl.DeleteBuffer(ebo);
-        }
+        //~Mesh()
+        //{
+            //gl.DeleteVertexArray(vao);
+            //gl.DeleteBuffer(vbo);
+            //gl.DeleteBuffer(ebo);
+        //}
 
         public void SetModelMatrix()
         {
