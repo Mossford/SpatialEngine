@@ -13,6 +13,10 @@ using ImGuiNET;
 using Silk.NET.Core;
 
 
+//Custom Engine things
+using static SpatialEngine.MeshUtils;
+
+
 namespace SpatialEngine
 {
     public class Game
@@ -61,43 +65,15 @@ namespace SpatialEngine
             gl.Enable(GLEnum.DepthTest | GLEnum.Texture2D | GLEnum.CullFace | GLEnum.DebugOutput);
             gl.DebugMessageCallback(DebugProc, null);
             gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
-
-            Vertex[] vertexes =
-            {
-                new Vertex(new Vector3(-1.0f, -1.0f, 1.0f),new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(-1.0f, 1.0f, 1.0f),new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(-1.0f, -1.0f, -1.0f),new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(-1.0f, 1.0f, -1.0f),new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3( 1.0f,-1.0f, 1.0f),new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(1.0f,1.0f, 1.0f),new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(1.0f,-1.0f, -1.0f),new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(1.0f,1.0f, -1.0f),new Vector3(0), new Vector2(0))
-            };
-
-            uint[] indices =
-            {
-                1, 2, 0,
-                3, 6, 2,
-                7, 4, 6,
-                5, 0, 4,
-                6, 0, 2,
-                3, 5, 7,
-                1, 3, 2,
-                3, 7, 6,
-                7, 5, 4,
-                5, 1, 0,
-                6, 4, 0,
-                3, 1, 5
-            };
             
-            scene.AddSpatialObject(new Mesh(gl, vertexes, indices));
+            scene.AddSpatialObject(CreateSpikerMesh(gl, new Vector3(0,0,0), new Vector3(0,0,0), 0.4f));
             
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
                 vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[i].SO_mesh.indices.Length;
             }
-            camera = new Camera(new Vector3(0,0,-10), Quaternion.Identity, Vector3.Zero, 45f);
+            camera = new Camera(new Vector3(0,0,-10), Quaternion.Identity, Vector3.Zero, 60f);
             shader = new Shader(gl, ShaderPath + @"/Default.vert", ShaderPath + @"/Default.frag");
 
             ImGui.SetWindowSize(new Vector2(400, 600));
