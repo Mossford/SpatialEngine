@@ -45,13 +45,14 @@ namespace SpatialEngine
             idList.Add((uint)id);
         }
 
-        public void DrawSingle(ref Shader shader, Matrix4x4 view, Matrix4x4 proj)
+        public void DrawSingle(ref Shader shader, Matrix4x4 view, Matrix4x4 proj, Vector3 camPos)
         {
-            shader.SetUniform("uView", view);
-            shader.SetUniform("uProj", proj);
+            shader.SetUniform("view", view);
+            shader.SetUniform("projection", proj);
+            shader.SetUniform("viewPos", camPos);
             for (int i = 0; i < SpatialObjects.Count; i++)
             {
-                shader.SetUniform("uModel", SpatialObjects[i].SO_mesh.modelMat);
+                shader.SetUniform("model", SpatialObjects[i].SO_mesh.modelMat);
                 SpatialObjects[i].SO_mesh.DrawMesh();
             }
         }

@@ -19,24 +19,26 @@ using static SpatialEngine.MeshUtils;
 
 namespace SpatialEngine
 {
+
+    public static class Globals
+    {
+        public static GL gl;
+    }
+
     public class Game
     {
-
         static bool showWireFrame = false;
         static uint vertCount;
         static uint indCount;
         static float totalTime = 0.0f;
         public const int SCR_WIDTH = 1920;
         public const int SCR_HEIGHT = 1080;
-
         static ImGuiController controller;
         static IInputContext input;
         private static Vector2 LastMousePosition;
         static IWindow window;
-        static GL gl;
         static Shader shader;
         static Scene scene = new Scene();
-        static Mesh mesh;
         static Camera camera;
         static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         static readonly string resourcePath = appPath + @"/res";
@@ -50,7 +52,8 @@ namespace SpatialEngine
             {
                 Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
                 Title = "GameTesting",
-                VSync = false
+                VSync = false,
+                PreferredDepthBufferBits = 24
             };
             window = Window.Create(options);
             window.Load += OnLoad;
@@ -61,12 +64,16 @@ namespace SpatialEngine
 
         static unsafe void OnLoad() 
         {
-            controller = new ImGuiController(gl = window.CreateOpenGL(), window, input = window.CreateInput());
-            gl.Enable(GLEnum.DepthTest | GLEnum.Texture2D | GLEnum.CullFace | GLEnum.DebugOutput);
-            gl.DebugMessageCallback(DebugProc, null);
-            gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
+            controller = new ImGuiController(Globals.gl = window.CreateOpenGL(), window, input = window.CreateInput());
+            Globals.gl = GL.GetApi(window);
+            Globals.gl.Enable(GLEnum.DepthTest);
+            Globals.gl.Enable(GLEnum.Texture2D);
+            Globals.gl.Enable(GLEnum.CullFace);
+            Globals.gl.Enable(GLEnum.DebugOutput);
+            Globals.gl.DebugMessageCallback(DebugProc, null);
+            Globals.gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
             
-            scene.AddSpatialObject(CreateSpikerMesh(gl, new Vector3(0,0,0), new Vector3(0,0,0), 0.4f));
+            scene.AddSpatialObject(CreateSpikerMesh(new Vector3(0,0,0), new Vector3(0,0,0), 0.3f));
             
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
@@ -74,7 +81,7 @@ namespace SpatialEngine
                 indCount += (uint)scene.SpatialObjects[i].SO_mesh.indices.Length;
             }
             camera = new Camera(new Vector3(0,0,-10), Quaternion.Identity, Vector3.Zero, 60f);
-            shader = new Shader(gl, ShaderPath + @"/Default.vert", ShaderPath + @"/Default.frag");
+            shader = new Shader(Globals.gl, ShaderPath + @"/Default.vert", ShaderPath + @"/Default.frag");
 
             ImGui.SetWindowSize(new Vector2(400, 600));
 
@@ -107,7 +114,7 @@ namespace SpatialEngine
             totalTime += (float)dt;
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                scene.SpatialObjects[i].SO_mesh.rotation = new Vector3(MathF.Sin(totalTime), MathF.Cos(totalTime), 0.0f);
+                scene.SpatialObjects[i].SO_mesh.rotation = new Vector3(MathF.Sin(totalTime), MathF.Sin(totalTime), 0.0f);
                 scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
             }
         }
@@ -118,17 +125,18 @@ namespace SpatialEngine
 
             ImGuiMenu(dt);
 
-            gl.ClearColor(Color.FromArgb(102, 178, 204));
-            gl.Viewport(0,0, (uint)window.Size.X, (uint)window.Size.Y);
+            Globals.gl.ClearColor(Color.FromArgb(102, 178, 204));
+            Globals.gl.Viewport(0,0, (uint)window.Size.X, (uint)window.Size.Y);
 
-            gl.Enable(EnableCap.DepthTest);
-            gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
+            Globals.gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            Globals.gl.DepthFunc(GLEnum.Less);
+            Globals.gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
             if(showWireFrame)
-                gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
+                Globals.gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
 
-            gl.UseProgram(shader.shader);
-            scene.DrawSingle(ref shader, camera.GetViewMat(), camera.GetProjMat(window.Size.X, window.Size.Y));
+            Globals.gl.UseProgram(shader.shader);
+            shader.SetUniform("lightPos", new Vector3(0,10,-10));
+            scene.DrawSingle(ref shader, camera.GetViewMat(), camera.GetProjMat(window.Size.X, window.Size.Y), camera.position);
 
             controller.Render();
         }

@@ -42,7 +42,7 @@ namespace SpatialEngine
 
         public Matrix4x4 GetProjMat(float winX, float winY)
         {
-            return Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 180 * zoom, winX / winY, 0.1f, 10000.0f);
+            return Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 180.0f * zoom, winX / winY, 0.1f, 10000.0f);
         }
         
     }

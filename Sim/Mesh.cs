@@ -34,20 +34,17 @@ namespace SpatialEngine
     {
         public Vertex[] vertexes;
         public uint[] indices;
-        GL gl;
         public uint vao;
         public uint vbo;
         public uint ebo;
         public string modelLocation;
-
         public Vector3 position = Vector3.Zero; 
         public float scale = 1f;
         public Vector3 rotation = Vector3.Zero;
         public Matrix4x4 modelMat;
 
-        public Mesh(GL gl, Vertex[] vertexes, uint[] indices, Vector3 position, Vector3 rotation, float scale)
+        public Mesh(Vertex[] vertexes, uint[] indices, Vector3 position, Vector3 rotation, float scale)
         {
-            this.gl = gl;
             this.vertexes = vertexes;
             this.indices = indices;
             this.position = position;
@@ -55,9 +52,8 @@ namespace SpatialEngine
             this.scale = scale;
         }
 
-        public Mesh(GL gl, string modelLocation, Vertex[] vertexes, uint[] indices, Vector3 position, Vector3 rotation, float scale)
+        public Mesh(string modelLocation, Vertex[] vertexes, uint[] indices, Vector3 position, Vector3 rotation, float scale)
         {
-            this.gl = gl;
             this.modelLocation = modelLocation;
             this.vertexes = vertexes;
             this.indices = indices;
@@ -66,77 +62,81 @@ namespace SpatialEngine
             this.scale = scale;
         }
 
-        //~Mesh()
-        //{
-            //gl.DeleteVertexArray(vao);
-            //gl.DeleteBuffer(vbo);
-            //gl.DeleteBuffer(ebo);
-        //}
+        ~Mesh()
+        {
+            Globals.gl.DeleteVertexArray(vao);
+            Globals.gl.DeleteBuffer(vbo);
+            Globals.gl.DeleteBuffer(ebo);
+        }
 
         public void SetModelMatrix()
         {
             modelMat = Matrix4x4.Identity;
-            modelMat = Matrix4x4.CreateTranslation(position) * (Matrix4x4.CreateFromAxisAngle(Vector3.UnitX, rotation.X) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, rotation.Y) * Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, rotation.Z)) * Matrix4x4.CreateScale(scale);
+            modelMat *= Matrix4x4.CreateTranslation(position);
+            modelMat *= Matrix4x4.CreateFromAxisAngle(Vector3.UnitX, rotation.X);
+            modelMat *= Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, rotation.Y);
+            modelMat *= Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, rotation.Z);
+            modelMat *= Matrix4x4.CreateScale(scale);
         }
 
         public unsafe void BufferGens()
         {
-            vao = gl.GenVertexArray();
-            gl.BindVertexArray(vao);
-            vbo = gl.GenBuffer();
-            gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
-            ebo = gl.GenBuffer();
-            gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
+            vao = Globals.gl.GenVertexArray();
+            Globals.gl.BindVertexArray(vao);
+            vbo = Globals.gl.GenBuffer();
+            Globals.gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+            ebo = Globals.gl.GenBuffer();
+            Globals.gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
             fixed (Vertex* buf = vertexes)
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (vertexes.Length * sizeof(Vertex)), buf, BufferUsageARB.StaticDraw);
+                Globals.gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (vertexes.Length * sizeof(Vertex)), buf, BufferUsageARB.StaticDraw);
             fixed (uint* buf = indices)
-                gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
+                Globals.gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
 
-            gl.EnableVertexAttribArray(0);
-            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) 0);
-            gl.EnableVertexAttribArray(1);
-            gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (3 * sizeof(float)));
-            gl.EnableVertexAttribArray(2);
-            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (6 * sizeof(float)));
-            gl.BindVertexArray(0);
+            Globals.gl.EnableVertexAttribArray(0);
+            Globals.gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) 0);
+            Globals.gl.EnableVertexAttribArray(1);
+            Globals.gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (3 * sizeof(float)));
+            Globals.gl.EnableVertexAttribArray(2);
+            Globals.gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (6 * sizeof(float)));
+            Globals.gl.BindVertexArray(0);
         }
 
         public unsafe void ReGenBuffer()
         {
             Dispose();
-            vao = gl.GenVertexArray();
-            gl.BindVertexArray(vao);
-            vbo = gl.GenBuffer();
-            gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
-            ebo = gl.GenBuffer();
-            gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
+            vao = Globals.gl.GenVertexArray();
+            Globals.gl.BindVertexArray(vao);
+            vbo = Globals.gl.GenBuffer();
+            Globals.gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+            ebo = Globals.gl.GenBuffer();
+            Globals.gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
             fixed (Vertex* buf = vertexes)
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (vertexes.Length * sizeof(Vertex)), buf, BufferUsageARB.StaticDraw);
+                Globals.gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (vertexes.Length * sizeof(Vertex)), buf, BufferUsageARB.StaticDraw);
             fixed (uint* buf = indices)
-                gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
+                Globals.gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
 
-            gl.EnableVertexAttribArray(0);
-            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) 0);
-            gl.EnableVertexAttribArray(1);
-            gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (3 * sizeof(float)));
-            gl.EnableVertexAttribArray(2);
-            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (6 * sizeof(float)));
-            gl.BindVertexArray(0);
+            Globals.gl.EnableVertexAttribArray(0);
+            Globals.gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) 0);
+            Globals.gl.EnableVertexAttribArray(1);
+            Globals.gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (3 * sizeof(float)));
+            Globals.gl.EnableVertexAttribArray(2);
+            Globals.gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*) (6 * sizeof(float)));
+            Globals.gl.BindVertexArray(0);
         }
 
         public unsafe void DrawMesh()
         {
-            gl.BindVertexArray(vao);
-            gl.DrawElements(GLEnum.Triangles, (uint)indices.Length, GLEnum.UnsignedInt, (void*) 0);
+            Globals.gl.BindVertexArray(vao);
+            Globals.gl.DrawElements(GLEnum.Triangles, (uint)indices.Length, GLEnum.UnsignedInt, (void*) 0);
         }
 
         public void Dispose()
         {
-            gl.DeleteVertexArray(vao);
-            gl.DeleteBuffer(vbo);
-            gl.DeleteBuffer(ebo);
+            Globals.gl.DeleteVertexArray(vao);
+            Globals.gl.DeleteBuffer(vbo);
+            Globals.gl.DeleteBuffer(ebo);
         }
 
         public void SubdivideTriangle()
@@ -188,7 +188,7 @@ namespace SpatialEngine
 
     public static class MeshUtils
     {
-        public static Mesh Create2DTriangle(GL gl, Vector3 position, Vector3 rotation)
+        public static Mesh Create2DTriangle(Vector3 position, Vector3 rotation)
         {
             Vertex[] vertxes = new Vertex[3];
             vertxes[0] = new Vertex(new Vector3(-1.0f, -1.0f, 0.0f), new Vector3(0.0f, 0.0f, 1.0f), new Vector2(0.0f, 0.0f));
@@ -199,10 +199,10 @@ namespace SpatialEngine
             {
                 0, 1, 2
             };
-            return new Mesh(gl, ((int)MeshType.TriangleMesh).ToString(), vertxes, indices, position, rotation, 1);
+            return new Mesh(((int)MeshType.TriangleMesh).ToString(), vertxes, indices, position, rotation, 1);
         }
 
-        public static Mesh CreateCubeMesh(GL gl, Vector3 position, Vector3 rotation)
+        public static Mesh CreateCubeMesh(Vector3 position, Vector3 rotation)
         {
             Vertex[] vertexes =
             {
@@ -230,10 +230,10 @@ namespace SpatialEngine
                 6, 4, 0,
                 3, 1, 5
             };
-            return new Mesh(gl, ((int)MeshType.CubeMesh).ToString(), vertexes, indices, position, rotation, 1.0f);;
+            return new Mesh(((int)MeshType.CubeMesh).ToString(), vertexes, indices, position, rotation, 1.0f);;
         }
 
-        public static Mesh CreateSphereMesh(GL gl, Vector3 position, Vector3 rotation, uint subdivideNum)
+        public static Mesh CreateSphereMesh(Vector3 position, Vector3 rotation, uint subdivideNum)
         {
 
             float t = 0.52573111f;
@@ -327,10 +327,10 @@ namespace SpatialEngine
                 indices = newIndices.ToArray();
                 vertexes = newVerts.ToArray();
             }
-            return new Mesh(gl, ((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
+            return new Mesh(((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
         }
 
-        public static Mesh CreateSpikerMesh(GL gl, Vector3 position, Vector3 rotation, float size)
+        public static Mesh CreateSpikerMesh(Vector3 position, Vector3 rotation, float size)
         {
 
             Vertex[] vertexes = 
@@ -421,7 +421,7 @@ namespace SpatialEngine
                 indices = newIndices.ToArray();
                 vertexes = newVerts.ToArray();
             }
-            return new Mesh(gl, ((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
+            return new Mesh(((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
         }
     }
 }
