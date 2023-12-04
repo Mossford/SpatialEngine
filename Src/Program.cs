@@ -41,9 +41,10 @@ namespace SpatialEngine
         static Scene scene = new Scene();
         static Camera camera;
         static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        static readonly string resourcePath = appPath + @"/res";
-        static readonly string ShaderPath = resourcePath + @"/Shaders";
-        static readonly string ImagePath = resourcePath + @"/Images";
+        static readonly string resourcePath = appPath + @"/res/";
+        static readonly string ShaderPath = resourcePath + @"Shaders/";
+        static readonly string ImagePath = resourcePath + @"Images/";
+        static readonly string ModelPath = resourcePath + @"Models/";
 
 
         public static void Main(string[] args)
@@ -73,15 +74,17 @@ namespace SpatialEngine
             Globals.gl.DebugMessageCallback(DebugProc, null);
             Globals.gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
             
-            scene.AddSpatialObject(CreateSpikerMesh(new Vector3(0,0,0), new Vector3(0,0,0), 0.3f));
+            scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), new Vector3(0,0,0), ModelPath + "Floor.obj"));
+            scene.AddSpatialObject(LoadModel(new Vector3(5,2,0), new Vector3(0,0,0), ModelPath + "Bunny.obj"));
+            scene.AddSpatialObject(LoadModel(new Vector3(-5,4,0), new Vector3(0,0,0), ModelPath + "Teapot.obj"));
             
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
                 vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[i].SO_mesh.indices.Length;
             }
-            camera = new Camera(new Vector3(0,0,-10), Quaternion.Identity, Vector3.Zero, 60f);
-            shader = new Shader(Globals.gl, ShaderPath + @"/Default.vert", ShaderPath + @"/Default.frag");
+            camera = new Camera(new Vector3(-33,12,-20), new Quaternion(300, 15, 0, 0), Vector3.Zero, 60f);
+            shader = new Shader(Globals.gl, ShaderPath + "Default.vert", ShaderPath + "Default.frag");
 
             ImGui.SetWindowSize(new Vector2(400, 600));
 
@@ -114,7 +117,7 @@ namespace SpatialEngine
             totalTime += (float)dt;
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                scene.SpatialObjects[i].SO_mesh.rotation = new Vector3(MathF.Sin(totalTime), MathF.Sin(totalTime), 0.0f);
+                //scene.SpatialObjects[i].SO_mesh.rotation = new Vector3(MathF.Sin(totalTime), MathF.Sin(totalTime), 0.0f);
                 scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
             }
         }

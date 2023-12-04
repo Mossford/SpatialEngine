@@ -22,22 +22,20 @@ namespace SpatialEngine
 
         public Vector3 GetCamDir()
         {
-            return Vector3.Normalize(position - target);
+            target.X = -MathF.Sin(rotation.X*(3.14159265358979323846f/180.0f)) * MathF.Cos((rotation.Y)*(3.14159265358979323846f/180.0f));
+            target.Y = -MathF.Sin((rotation.Y)*(3.14159265358979323846f/180.0f));
+            target.Z = MathF.Cos((rotation.X)*(3.14159265358979323846f/180.0f)) * MathF.Cos((rotation.Y)*(3.14159265358979323846f/180.0f));
+            return Vector3.Normalize(target);
         }
 
-        public Vector3 GetCameraRight()
+        public Vector3 GetCameraUp()
         {
-            return Vector3.Normalize(Vector3.Cross(Vector3.UnitY, direction));
-        }
-
-        public Vector3 GetCameraFront()
-        {
-            return Vector3.Cross(Vector3.UnitY, GetCameraRight());
+            return Vector3.Cross(GetCamDir(), Vector3.Normalize(Vector3.Cross(Vector3.UnitY, GetCamDir())));
         }
 
         public Matrix4x4 GetViewMat()
         {
-            return Matrix4x4.CreateLookAt(position, position + new Vector3(0,0,1), Vector3.UnitY);
+            return Matrix4x4.CreateLookAt(position, position + GetCamDir(), GetCameraUp());
         }
 
         public Matrix4x4 GetProjMat(float winX, float winY)

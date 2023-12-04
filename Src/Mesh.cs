@@ -1,8 +1,11 @@
 using System;
 using Silk.NET.OpenGL;
 using System.Numerics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Unicode;
 
 namespace SpatialEngine
 {
@@ -24,6 +27,7 @@ namespace SpatialEngine
     {
         CubeMesh,
         IcoSphereMesh,
+        SpikerMesh,
         TriangleMesh,
         FileMesh,
         First = CubeMesh,
@@ -330,7 +334,7 @@ namespace SpatialEngine
             return new Mesh(((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
         }
 
-        public static Mesh CreateSpikerMesh(Vector3 position, Vector3 rotation, float size)
+        public static Mesh CreateSpikerMesh(Vector3 position, Vector3 rotation, float size, int sphereSubDivide = 2)
         {
 
             Vertex[] vertexes = 
@@ -376,7 +380,7 @@ namespace SpatialEngine
                 9, 8, 1
             };
 
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < sphereSubDivide; i++)
             {
                 List<uint> newIndices = new List<uint>();
                 List<Vertex> newVerts = new List<Vertex>();
@@ -422,6 +426,103 @@ namespace SpatialEngine
                 vertexes = newVerts.ToArray();
             }
             return new Mesh(((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
+        }
+
+        public static Mesh LoadModel(Vector3 position, Vector3 rotation, string modelLocation)
+        {
+            if(!File.Exists(modelLocation))
+            {
+                Console.WriteLine("cannot find model loc");
+                if(modelLocation == "")
+                    return null;
+                switch (Int32.Parse(modelLocation))
+                {
+                case (int)MeshType.CubeMesh:
+                    return CreateCubeMesh(position, rotation);
+                case (int)MeshType.IcoSphereMesh:
+                    return CreateSphereMesh(position, rotation, 3);
+                case (int)MeshType.TriangleMesh:
+                    return Create2DTriangle(position, rotation);
+                case (int)MeshType.SpikerMesh:
+                    return CreateSpikerMesh(position, rotation, 0.3f);
+                }
+            }
+
+
+            string[] lines = File.ReadAllLines(modelLocation);
+            List<Vertex> vertexes = new List<Vertex>();
+            List<uint> indices = new List<uint>();
+            List<Vector2> tmpUV = new List<Vector2>();
+            List<Vector3> tmpNormal = new List<Vector3>();
+            List<Vector3> tmpVertice = new List<Vector3>();
+            List<uint> tmpInd = new List<uint>(), tmpUVInd = new List<uint>(), tmpNormalInd = new List<uint>();
+            Vertex vertex = new Vertex(Vector3.Zero, Vector3.Zero, Vector2.Zero);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                if(line[0] == 'v' && line[1] != 't' && line[1] != 'n')
+                {
+                    line = line.Remove(0, 2);
+                    Console.WriteLine(line);
+                    string[] values = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (values.Length >= 3 && float.TryParse(values[0], out float x) && float.TryParse(values[1], out float y) && float.TryParse(values[2], out float z))
+                    {
+                        tmpVertice.Add(new Vector3(x, y, z));
+                    }
+                }
+                else if(line[0] == 'v' && line[1] == 't' && line[1] != 'n')
+                {
+                    line = line.Remove(0, 3);
+                    string[] values = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (values.Length >= 2 && float.TryParse(values[0], out float x) && float.TryParse(values[1], out float y))
+                    {
+                        tmpUV.Add(new Vector2(x, y));
+                    }
+                }
+                else if(line[0] == 'v' && line[1] != 't' && line[1] == 'n')
+                {
+                    line = line.Remove(0, 3);
+                    string[] values = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (values.Length >= 3 && float.TryParse(values[0], out float x) && float.TryParse(values[1], out float y) && float.TryParse(values[2], out float z))
+                    {
+                        tmpNormal.Add(new Vector3(x, y, z));
+                    }
+                }
+                else if(line[0] == 'f')
+                {
+                    line = line.Remove(0, 2);
+                    line = line.Replace("/", " ");
+                    string[] values = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                    if (values.Length >= 9 &&
+                        uint.TryParse(values[0], out uint ind1) &&
+                        uint.TryParse(values[1], out uint uvind1) &&
+                        uint.TryParse(values[2], out uint norind1) &&
+                        uint.TryParse(values[3], out uint ind2) &&
+                        uint.TryParse(values[4], out uint uvind2) &&
+                        uint.TryParse(values[5], out uint norind2) &&
+                        uint.TryParse(values[6], out uint ind3) &&
+                        uint.TryParse(values[7], out uint uvind3) &&
+                        uint.TryParse(values[8], out uint norind3))
+                    {
+                        tmpInd.Add(ind1); tmpUVInd.Add(uvind1); tmpNormalInd.Add(norind1);
+                        tmpInd.Add(ind2); tmpUVInd.Add(uvind2); tmpNormalInd.Add(norind2);
+                        tmpInd.Add(ind3); tmpUVInd.Add(uvind3); tmpNormalInd.Add(norind3);
+                    }
+                }
+            }
+            for (int i = 0; i < tmpInd.Count; i++)
+            {
+                uint indUv = tmpUVInd[i];
+                uint indNor = tmpNormalInd[i];
+                uint indVert = tmpInd[i];
+                vertex.uv = tmpUV[(int)indUv - 1];
+                vertex.normal = tmpNormal[(int)indNor - 1];
+                vertex.position = tmpVertice[(int)indVert - 1];
+                indices.Add((uint)i);
+                vertexes.Add(vertex);
+            }
+            return new Mesh(modelLocation, vertexes.ToArray(), indices.ToArray(), position, rotation, 1.0f);
         }
     }
 }
