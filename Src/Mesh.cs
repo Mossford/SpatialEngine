@@ -463,7 +463,6 @@ namespace SpatialEngine
                 if(line[0] == 'v' && line[1] != 't' && line[1] != 'n')
                 {
                     line = line.Remove(0, 2);
-                    Console.WriteLine(line);
                     string[] values = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     if (values.Length >= 3 && float.TryParse(values[0], out float x) && float.TryParse(values[1], out float y) && float.TryParse(values[2], out float z))
                     {

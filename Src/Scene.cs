@@ -39,6 +39,8 @@ namespace SpatialEngine
 
         public void AddSpatialObject(Mesh mesh)
         {
+            if(mesh == null)
+                return;
             int id = SpatialObjects.Count;
             SpatialObjects.Add(new SpatialObject(mesh, (uint)id));
             SpatialObjects[id].SO_mesh.BufferGens();
