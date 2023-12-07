@@ -12,14 +12,12 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using ImGuiNET;
 using Silk.NET.Core;
+using System.Linq;
 
 
 //Custom Engine things
 using static SpatialEngine.MeshUtils;
 using static SpatialEngine.Globals;
-using System.Linq;
-using Silk.NET.Input.Extensions;
-using Silk.NET.GLFW;
 
 
 namespace SpatialEngine
