@@ -7,6 +7,7 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 using System.Drawing;
 using System.IO;
 using System.Numerics;
+using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections.Generic;
 using ImGuiNET;
@@ -15,6 +16,10 @@ using Silk.NET.Core;
 
 //Custom Engine things
 using static SpatialEngine.MeshUtils;
+using static SpatialEngine.Globals;
+using System.Linq;
+using Silk.NET.Input.Extensions;
+using Silk.NET.GLFW;
 
 
 namespace SpatialEngine
@@ -23,6 +28,9 @@ namespace SpatialEngine
     public static class Globals
     {
         public static GL gl;
+        public static IWindow window;
+        public static IInputContext input;
+        public static IKeyboard keyboard;
     }
 
     public class Game
@@ -34,12 +42,10 @@ namespace SpatialEngine
         public const int SCR_WIDTH = 1920;
         public const int SCR_HEIGHT = 1080;
         static ImGuiController controller;
-        static IInputContext input;
-        private static Vector2 LastMousePosition;
-        static IWindow window;
+        static Vector2 LastMousePosition;
         static Shader shader;
         static Scene scene = new Scene();
-        static Camera camera;
+        static Player player;
         static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         static readonly string resourcePath = appPath + @"/res/";
         static readonly string ShaderPath = resourcePath + @"Shaders/";
@@ -65,14 +71,15 @@ namespace SpatialEngine
 
         static unsafe void OnLoad() 
         {
-            controller = new ImGuiController(Globals.gl = window.CreateOpenGL(), window, input = window.CreateInput());
-            Globals.gl = GL.GetApi(window);
-            Globals.gl.Enable(GLEnum.DepthTest);
-            Globals.gl.Enable(GLEnum.Texture2D);
-            Globals.gl.Enable(GLEnum.CullFace);
-            Globals.gl.Enable(GLEnum.DebugOutput);
-            Globals.gl.DebugMessageCallback(DebugProc, null);
-            Globals.gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
+            controller = new ImGuiController(gl = window.CreateOpenGL(), window, input = window.CreateInput());
+            keyboard = input.Keyboards.FirstOrDefault();
+            gl = GL.GetApi(window);
+            gl.Enable(GLEnum.DepthTest);
+            gl.Enable(GLEnum.Texture2D);
+            gl.Enable(GLEnum.CullFace);
+            gl.Enable(GLEnum.DebugOutput);
+            gl.DebugMessageCallback(DebugProc, null);
+            gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
             
             scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), new Vector3(0,0,0), ModelPath + "Floor.obj"));
             scene.AddSpatialObject(LoadModel(new Vector3(5,2,0), new Vector3(0,0,0), ModelPath + "Bunny.obj"));
@@ -83,8 +90,8 @@ namespace SpatialEngine
                 vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[i].SO_mesh.indices.Length;
             }
-            camera = new Camera(new Vector3(-33,12,-20), new Quaternion(300, 15, 0, 0), Vector3.Zero, 60f);
-            shader = new Shader(Globals.gl, ShaderPath + "Default.vert", ShaderPath + "Default.frag");
+            player = new Player(15.0f, new Vector3(-33,12,-20), new Vector3(300, 15, 0));
+            shader = new Shader(gl, ShaderPath + "Default.vert", ShaderPath + "Default.frag");
 
             ImGui.SetWindowSize(new Vector2(400, 600));
 
@@ -98,20 +105,31 @@ namespace SpatialEngine
             }
         }
 
+        static bool lockMouse = false;
         static void KeyDown(IKeyboard keyboard, Key key, int keyCode)
         {
-            
+            if(!lockMouse && key == Key.Escape)
+            {
+                input.Mice.FirstOrDefault().Cursor.CursorMode = CursorMode.Raw;
+                lockMouse = true;
+            }
+            else if(lockMouse && key == Key.Escape)
+            {
+                input.Mice.FirstOrDefault().Cursor.CursorMode = CursorMode.Normal;
+                lockMouse = false;
+            }
         }
 
         static unsafe void OnMouseMove(IMouse mouse, Vector2 position)
         {
-            if (LastMousePosition == default) { LastMousePosition = position; }
-            else
-            {
-                
-            }
+            Vector2 mousePosMoved = position - LastMousePosition;
+            LastMousePosition = position;
+            player.Look((int)mousePosMoved.X, (int)mousePosMoved.Y, false, false);
+            LastMousePosition = position;
         }
 
+        static List<int> keysPressed = new List<int>();
+        static float totalTimeUpdate = 0.0f;
         static void OnUpdate(double dt) 
         {
             totalTime += (float)dt;
@@ -120,6 +138,57 @@ namespace SpatialEngine
                 //scene.SpatialObjects[i].SO_mesh.rotation = new Vector3(MathF.Sin(totalTime), MathF.Sin(totalTime), 0.0f);
                 scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
             }
+            if (keyboard.IsKeyPressed(Key.W))
+            {
+                keysPressed.Add((int)Key.W);
+            }
+            if (keyboard.IsKeyPressed(Key.S))
+            {
+                keysPressed.Add((int)Key.S);
+            }
+            if (keyboard.IsKeyPressed(Key.A))
+            {
+                keysPressed.Add((int)Key.A);
+            }
+            if (keyboard.IsKeyPressed(Key.D))
+            {
+                keysPressed.Add((int)Key.D);
+            }
+            if (keyboard.IsKeyPressed(Key.Space))
+            {
+                keysPressed.Add((int)Key.Space);
+            }
+            if (keyboard.IsKeyPressed(Key.ShiftLeft))
+            {
+                keysPressed.Add((int)Key.ShiftLeft);
+            }
+
+            int counter = 0;
+            totalTimeUpdate += (float)dt;
+            while (totalTimeUpdate >= 0.016f)
+            {
+                FixedUpdate((float)dt);
+                counter++;
+
+                if(dt >= 0.016f)
+                {
+                    if(counter == 3)
+                        break;
+                    totalTimeUpdate -= 0.016f;
+                }
+                else
+                {
+                    totalTimeUpdate = 0;
+                    break;
+                }
+            }
+            keysPressed.Clear();
+        }
+
+        static void FixedUpdate(float dt)
+        {
+            player.Movement(0.016f, keysPressed.ToArray());
+            player.UpdatePlayer(0.016f);
         }
 
         static unsafe void OnRender(double dt)
@@ -128,18 +197,18 @@ namespace SpatialEngine
 
             ImGuiMenu(dt);
 
-            Globals.gl.ClearColor(Color.FromArgb(102, 178, 204));
-            Globals.gl.Viewport(0,0, (uint)window.Size.X, (uint)window.Size.Y);
+            gl.ClearColor(Color.FromArgb(102, 178, 204));
+            gl.Viewport(0,0, (uint)window.Size.X, (uint)window.Size.Y);
 
-            Globals.gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            Globals.gl.DepthFunc(GLEnum.Less);
-            Globals.gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
+            gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            gl.DepthFunc(GLEnum.Less);
+            gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
             if(showWireFrame)
-                Globals.gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
+                gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
 
-            Globals.gl.UseProgram(shader.shader);
+            gl.UseProgram(shader.shader);
             shader.SetUniform("lightPos", new Vector3(0,10,-10));
-            scene.DrawSingle(ref shader, camera.GetViewMat(), camera.GetProjMat(window.Size.X, window.Size.Y), camera.position);
+            scene.DrawSingle(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
 
             controller.Render();
         }
@@ -162,7 +231,7 @@ namespace SpatialEngine
             ImGui.Checkbox("Wire Frame", ref showWireFrame);
 
             ImGui.Text("Camera");
-            ImGui.SliderFloat3("Camera Position", ref camera.position, -10, 10);
+            ImGui.SliderFloat3("Camera Position", ref player.camera.position, -10, 10);
         }
 
         static unsafe void DebugProc(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint msg, nint userParam)
