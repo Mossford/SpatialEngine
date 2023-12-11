@@ -43,6 +43,7 @@ namespace SpatialEngine
         static Vector2 LastMousePosition;
         static Shader shader;
         static Scene scene = new Scene();
+        static Physics physics = new Physics();
         static Player player;
         static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         static readonly string resourcePath = appPath + @"/res/";
@@ -65,6 +66,8 @@ namespace SpatialEngine
             window.Update += OnUpdate;
             window.Render += OnRender;
             window.Run();
+
+            physics.CleanPhysics();
         }
 
         static unsafe void OnLoad() 
@@ -78,6 +81,8 @@ namespace SpatialEngine
             gl.Enable(GLEnum.DebugOutput);
             gl.DebugMessageCallback(DebugProc, null);
             gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
+
+            physics.InitPhysics();
             
             scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), new Vector3(0,0,0), ModelPath + "Floor.obj"));
             scene.AddSpatialObject(LoadModel(new Vector3(5,2,0), new Vector3(0,0,0), ModelPath + "Bunny.obj"));
@@ -160,6 +165,8 @@ namespace SpatialEngine
             {
                 keysPressed.Add((int)Key.ShiftLeft);
             }
+
+            physics.UpdatePhysics(ref scene, (float)dt);
 
             int counter = 0;
             totalTimeUpdate += (float)dt;

@@ -33,6 +33,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+  <PackageReference Include="JoltPhysicsSharp" Version="1.9.12" />
   <PackageReference Include="Silk.NET.Core" Version="2.17.1" />
   <PackageReference Include="Silk.NET.Input" Version="2.17.1" />
   <PackageReference Include="Silk.NET.OpenGL" Version="2.17.1" />
