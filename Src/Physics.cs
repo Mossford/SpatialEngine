@@ -1,11 +1,12 @@
-using System;
 using System.Diagnostics;
 using System.Numerics;
 using JoltPhysicsSharp;
 
+//engine stuff
+using static SpatialEngine.Globals;
+
 namespace SpatialEngine
 {
-
     public class Layers
     {
         public static ObjectLayer NON_MOVING = 0;
@@ -90,7 +91,6 @@ namespace SpatialEngine
 
     public unsafe class Physics
     {
-
         static TempAllocator tempAllocator;
         static JobSystemThreadPool jobSystem;
 
@@ -102,11 +102,6 @@ namespace SpatialEngine
         BPLayerInterfaceImpl layerInterface;
         ObjectVsBroadPhaseLayerFilterImpl objectVsBroadPhaseLayer;
         ObjectLayerPairFilterImpl objectLayerPair;
-        PhysicsSystem physicsSystem;
-        BodyInterface bodyInterface;
-
-        BodyID sphereid;
-        Body floor;
 
         public void InitPhysics()
         {
@@ -118,36 +113,72 @@ namespace SpatialEngine
             objectVsBroadPhaseLayer = new ObjectVsBroadPhaseLayerFilterImpl();
             objectLayerPair = new ObjectLayerPairFilterImpl();
             physicsSystem.Init(maxObjects, maxObjectMutex, maxObjectPairs, maxContactConstraints, layerInterface, objectVsBroadPhaseLayer, objectLayerPair);
+            physicsSystem.OptimizeBroadPhase();
             bodyInterface = physicsSystem.BodyInterface;
-            BoxShapeSettings floor_shape_settings = new BoxShapeSettings(new Vector3(50, 1, 50));
-            BodyCreationSettings floorSettings = new BodyCreationSettings(floor_shape_settings, Vector3.Zero, Quaternion.Identity, MotionType.Static, Layers.NON_MOVING);
-            floor = bodyInterface.CreateBody(floorSettings);
-            bodyInterface.AddBody(floor.ID, Activation.DontActivate);
-            BodyCreationSettings sphereSettings = new BodyCreationSettings(new SphereShape(0.5f), new Vector3(0,5,0), Quaternion.Identity, MotionType.Dynamic, Layers.MOVING);
-            sphereid = bodyInterface.CreateAndAddBody(sphereSettings, Activation.Activate);
-            bodyInterface.SetLinearVelocity(sphereid, new Vector3(0,-5,0));
-            physicsSystem.Gravity = new Vector3(0, -9.81f, 0);
         }
 
         public void UpdatePhysics(ref Scene scene, float dt)
         {
-            if(bodyInterface.IsActive(sphereid))
+            foreach (SpatialObject obj in scene.SpatialObjects)
             {
-                scene.SpatialObjects[1].SO_mesh.position = bodyInterface.GetCenterOfMassPosition(sphereid);
-                physicsSystem.Update(dt, 1, tempAllocator, jobSystem);
+                if(obj.SO_RigidBody != null && bodyInterface.IsActive(obj.SO_RigidBody.rbID))
+                {
+                    obj.SO_mesh.position = bodyInterface.GetCenterOfMassPosition(obj.SO_RigidBody.rbID);
+                    obj.SO_mesh.rotation = new Vector3(bodyInterface.GetRotation(obj.SO_RigidBody.rbID).X, bodyInterface.GetRotation(obj.SO_RigidBody.rbID).Y, bodyInterface.GetRotation(obj.SO_RigidBody.rbID).Z);
+                }
             }
+            physicsSystem.Update(dt, 1, tempAllocator, jobSystem);
         }
 
-        public void CleanPhysics()
+        public void CleanPhysics(ref Scene scene)
         {
-            bodyInterface.RemoveBody(sphereid);
-            bodyInterface.DestroyBody(sphereid);
-
-            bodyInterface.RemoveBody(floor.ID);
-            bodyInterface.DestroyBody(floor.ID);
+            foreach (SpatialObject obj in scene.SpatialObjects)
+            {
+                if(obj.SO_RigidBody != null)
+                {
+                    bodyInterface.RemoveBody(obj.SO_RigidBody.rbID);
+                    bodyInterface.DestroyBody(obj.SO_RigidBody.rbID);
+                }
+            }
 
             tempAllocator.Dispose();
             Foundation.Shutdown();
+        }
+    }
+
+    public class RigidBody
+    {
+        public BodyID rbID;
+        public BodyCreationSettings settings;
+
+        public RigidBody(BodyCreationSettings settings)
+        {
+            this.settings = settings;
+        }
+
+        public RigidBody(Vector3 halfBoxSize, Vector3 position, Quaternion rotation, MotionType motion, ObjectLayer layer)
+        {
+            settings = new BodyCreationSettings(new BoxShapeSettings(halfBoxSize), position, rotation, motion, layer);
+        }
+
+        public RigidBody(float radius, Vector3 position, Quaternion rotation, MotionType motion, ObjectLayer layer)
+        {
+            settings = new BodyCreationSettings(new SphereShape(radius), position, rotation, motion, layer);
+        }
+
+        public RigidBody(Vertex[] vertexes, Vector3 position, Quaternion rotation, MotionType motion, ObjectLayer layer)
+        {
+            Vector3[] vertices = new Vector3[vertexes.Length];
+            for (int i = 0; i < vertexes.Length; i++)
+            {
+                vertices[i] = vertexes[i].position;
+            }
+            settings = new BodyCreationSettings(new ConvexHullShapeSettings(vertices), position, rotation, motion, layer);
+        }
+
+        public void AddToPhysics(ref BodyInterface bodyInterface, Activation activation)
+        {
+            rbID = bodyInterface.CreateAndAddBody(settings, activation);
         }
     }
 }

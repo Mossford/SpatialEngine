@@ -8,11 +8,9 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 using System.Drawing;
 using System.IO;
 using System.Numerics;
-using System.Threading.Tasks;
-using System.Diagnostics;
 using System.Collections.Generic;
-using Silk.NET.Core;
 using System.Linq;
+using JoltPhysicsSharp;
 
 
 //Custom Engine things
@@ -30,6 +28,9 @@ namespace SpatialEngine
         public static IInputContext input;
         public static IKeyboard keyboard;
         public static string EngVer = "0.5.0";
+
+        public static PhysicsSystem physicsSystem;
+        public static BodyInterface bodyInterface;
 
         public static float drawCallAvg = 0.0f;
         public static uint DrawCallCount = 0;
@@ -77,7 +78,7 @@ namespace SpatialEngine
             window.Render += OnRender;
             window.Run();
 
-            physics.CleanPhysics();
+            physics.CleanPhysics(ref scene);
         }
 
         static unsafe void OnLoad() 
@@ -94,9 +95,9 @@ namespace SpatialEngine
 
             physics.InitPhysics();
             
-            scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), new Vector3(0,0,0), ModelPath + "Floor.obj"));
-            scene.AddSpatialObject(LoadModel(new Vector3(5,2,0), new Vector3(0,0,0), ModelPath + "Bunny.obj"));
-            scene.AddSpatialObject(LoadModel(new Vector3(-5,4,0), new Vector3(0,0,0), ModelPath + "Teapot.obj"));
+            scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), new Vector3(0,0,0), ModelPath + "Floor.obj"), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(5,2,0), new Vector3(0,0,0), ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.AddSpatialObject(LoadModel(new Vector3(-5,4,0), new Vector3(0,0,0), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {

@@ -1,18 +1,27 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
-using Silk.NET.Maths;
+using JoltPhysicsSharp;
+
+//engine stuff
+using static SpatialEngine.Globals;
 
 namespace SpatialEngine
 {
     public struct SpatialObject
     {
         public Mesh SO_mesh;
+        public RigidBody SO_RigidBody;
         public uint SO_id;
 
         public SpatialObject(Mesh mesh, uint id)
         {
+            SO_mesh = mesh;
+            SO_id = id;
+        }
+
+        public SpatialObject(RigidBody rigidBody, Mesh mesh, uint id)
+        {
+            SO_RigidBody = rigidBody;
             SO_mesh = mesh;
             SO_id = id;
         }
@@ -45,6 +54,19 @@ namespace SpatialEngine
             SpatialObjects.Add(new SpatialObject(mesh, (uint)id));
             SpatialObjects[id].SO_mesh.BufferGens();
             idList.Add((uint)id);
+        }
+
+        public void AddSpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation)
+        {
+            if(mesh == null)
+                return;
+            int id = SpatialObjects.Count;
+            SpatialObject obj = new SpatialObject(mesh, (uint)id);
+            obj.SO_RigidBody = new RigidBody(obj.SO_mesh.vertexes, obj.SO_mesh.position, new Quaternion(obj.SO_mesh.position, 1.0f), motion, layer);
+            SpatialObjects.Add(obj);
+            SpatialObjects[id].SO_mesh.BufferGens();
+            idList.Add((uint)id);
+            SpatialObjects[id].SO_RigidBody.AddToPhysics(ref bodyInterface, activation);
         }
 
         public void DrawSingle(ref Shader shader, Matrix4x4 view, Matrix4x4 proj, Vector3 camPos)
