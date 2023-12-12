@@ -92,8 +92,6 @@ namespace SpatialEngine
     {
 
         static TempAllocator tempAllocator;
-        static readonly int maxJobs = 4;
-        static readonly int maxJobBarriers = 4;
         static JobSystemThreadPool jobSystem;
 
         static readonly uint maxObjects = 65536;
@@ -114,7 +112,7 @@ namespace SpatialEngine
         {
             Foundation.Init(false);
             tempAllocator = new TempAllocator(10 * 1024 * 1024);
-            jobSystem = new JobSystemThreadPool(maxJobs, maxJobBarriers, Process.GetCurrentProcess().Threads.Count);
+            jobSystem = new JobSystemThreadPool(Foundation.MaxPhysicsJobs, Foundation.MaxPhysicsBarriers, Process.GetCurrentProcess().Threads.Count);
             physicsSystem = new PhysicsSystem();
             layerInterface = new BPLayerInterfaceImpl();
             objectVsBroadPhaseLayer = new ObjectVsBroadPhaseLayerFilterImpl();
@@ -136,7 +134,6 @@ namespace SpatialEngine
             if(bodyInterface.IsActive(sphereid))
             {
                 scene.SpatialObjects[1].SO_mesh.position = bodyInterface.GetCenterOfMassPosition(sphereid);
-                Console.WriteLine(bodyInterface.GetCenterOfMassPosition(sphereid));
                 physicsSystem.Update(dt, 1, tempAllocator, jobSystem);
             }
         }

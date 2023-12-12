@@ -3,6 +3,7 @@ using Silk.NET.Windowing;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
+using ImGuiNET;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using System.Drawing;
 using System.IO;
@@ -10,7 +11,6 @@ using System.Numerics;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections.Generic;
-using ImGuiNET;
 using Silk.NET.Core;
 using System.Linq;
 
@@ -29,11 +29,21 @@ namespace SpatialEngine
         public static IWindow window;
         public static IInputContext input;
         public static IKeyboard keyboard;
+        public static string EngVer = "0.5.0";
+
+        public static float drawCallAvg = 0.0f;
+        public static uint DrawCallCount = 0;
+
+        public static float GetTime()
+        {
+            return (float)window.Time;
+        }
     }
 
     public class Game
     {
         static bool showWireFrame = false;
+        static bool vsync = false;
         static uint vertCount;
         static uint indCount;
         static float totalTime = 0.0f;
@@ -58,7 +68,7 @@ namespace SpatialEngine
             {
                 Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
                 Title = "GameTesting",
-                VSync = false,
+                VSync = vsync,
                 PreferredDepthBufferBits = 24
             };
             window = Window.Create(options);
@@ -125,10 +135,13 @@ namespace SpatialEngine
 
         static unsafe void OnMouseMove(IMouse mouse, Vector2 position)
         {
-            Vector2 mousePosMoved = position - LastMousePosition;
-            LastMousePosition = position;
-            player.Look((int)mousePosMoved.X, (int)mousePosMoved.Y, false, false);
-            LastMousePosition = position;
+            if(lockMouse)
+            {
+                Vector2 mousePosMoved = position - LastMousePosition;
+                LastMousePosition = position;
+                player.Look((int)mousePosMoved.X, (int)mousePosMoved.Y, false, false);
+                LastMousePosition = position;
+            }
         }
 
         static List<int> keysPressed = new List<int>();
@@ -166,8 +179,6 @@ namespace SpatialEngine
                 keysPressed.Add((int)Key.ShiftLeft);
             }
 
-            physics.UpdatePhysics(ref scene, (float)dt);
-
             int counter = 0;
             totalTimeUpdate += (float)dt;
             while (totalTimeUpdate >= 0.016f)
@@ -194,13 +205,14 @@ namespace SpatialEngine
         {
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
+            physics.UpdatePhysics(ref scene, 0.016f);
         }
 
         static unsafe void OnRender(double dt)
         {   
             controller.Update((float)dt);
 
-            ImGuiMenu(dt);
+            ImGuiMenu((float)dt);
 
             gl.ClearColor(Color.FromArgb(102, 178, 204));
             gl.Viewport(0,0, (uint)window.Size.X, (uint)window.Size.Y);
@@ -218,25 +230,284 @@ namespace SpatialEngine
             controller.Render();
         }
 
-        static void ImGuiMenu(double deltaTime)
+        class ScrollingBuffer 
         {
+            int MaxSize;
+            int Offset;
+            List<Vector2> Data;
+            public ScrollingBuffer(int max_size = 2000) 
+            {
+                MaxSize = max_size;
+                Offset  = 0;
+                Data = new List<Vector2>(MaxSize);
+            }
+            public void AddPoint(float x, float y) 
+            {
+                if (Data.Count< MaxSize)
+                    Data.Add(new Vector2(x,y));
+                else 
+                {
+                    Data[Offset] = new Vector2(x,y);
+                    Offset =  (Offset + 1) % MaxSize;
+                }
+            }
+            public void Erase() 
+            {
+                if (Data.Count() > 0) 
+                {
+                    Data.Clear();
+                    Offset  = 0;
+                }
+            }
+        }
+
+        private static ScrollingBuffer frameTimes = new ScrollingBuffer(20000);
+        private static float HighestFT = 0.0f;
+        private static bool ShowSceneViewerMenu, ShowObjectViewerMenu, ShowConsoleViewerMenu;
+        private static int IMM_counter = 0;
+        private static Vector3 IMM_selposition = new Vector3();
+        private static Vector3 IMM_selrotation = new Vector3();
+        private static Vector3 IMM_selvelocity = new Vector3();
+        private static Vector3 IMM_selacceleration = new Vector3();
+        private static Vector3 IMM_selvelocityrot = new Vector3();
+        private static Vector3 IMM_selaccelerationrot = new Vector3();
+        private static int IMM_IcoSphereSub = 0;
+        private static float IMM_SpikerSphereSize = 0;
+        private static string IMM_input = "";
+        static void ImGuiMenu(float deltaTime)
+        {
+            if(deltaTime > HighestFT)
+                HighestFT = (float)deltaTime;
+            frameTimes.AddPoint(GetTime(), deltaTime);
+
             ImGuiWindowFlags window_flags = 0;
             window_flags |= ImGuiWindowFlags.NoTitleBar;
             window_flags |= ImGuiWindowFlags.MenuBar;
 
-            ImGui.Begin("SpatialEngine", window_flags);
+            ImGui.Begin("SpaceTesting", window_flags);
 
-            ImGui.Text(string.Format("App avg {0:N3} ms/frame ({1:N1} FPS)", deltaTime * 1000, Math.Round(1.0f / deltaTime)));
-            ImGui.Text(string.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
-            ImGui.Text(string.Format("Amount of Spatials: ({0})", scene.SpatialObjects.Count));
-            //ImGui.Text(string.Format("Ram Usage: {0:N2}mb", process.PrivateMemorySize64 / 1024.0f / 1024.0f));
-            ImGui.Text(string.Format("Time Open {0:N1} minutes", (totalTime / 60.0f)));
+            //needs to be io.framerate because the actal deltatime is polled too fast and the 
+            //result is hard to read
+            ImGui.Text("Version " + EngVer);
+            ImGui.Text(String.Format("{0:N3} ms/frame ({1:N1} FPS)", 1.0f / ImGui.GetIO().Framerate * 1000.0f, ImGui.GetIO().Framerate));
+            ImGui.Text(String.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
+            ImGui.Text(String.Format("Amount of Spatials: ({0})", scene.SpatialObjects.Count()));
+            ImGui.Text(String.Format("DrawCall Avg: ({0:N1}) DC/frame, DrawCall Total ({1})", drawCallAvg, DrawCallCount));
+            ImGui.Text(String.Format("Time Open %.1f minutes", (GetTime() / 60.0f)));
+            //ImGui.Text(String.Format("Time taken for Update run %.2fms ", MathF.Abs(updateTime)));
+            //ImGui.Text(String.Format("Time taken for Fixed Update run %.2fms ", MathF.Abs(updateFixedTime)));
+
+            //float frameTimeHistory = 2.75f;
+            /*ImGui.SliderFloat("FrameTimeHistory", ref frameTimeHistory, 0.1f, 10.0f);
+            if (ImPlot.BeginPlot("##Scrolling", ImVec2(ImGui::GetContentRegionAvail().x,100))) 
+            {
+                ImPlot.SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoTickLabels, ImPlotAxisFlags_AutoFit);
+                ImPlot.SetupAxisLimits(ImAxis_X1,GetTime() - frameTimeHistory, GetTime(), ImGuiCond_Always);
+                ImPlot.SetupAxisLimits(ImAxis_Y1,0,HighestFT + (HighestFT * 0.25f), ImGuiCond_Always);
+                ImPlot.SetNextFillStyle(ImVec4(0,0.5,0.5,1),1.0f);
+                ImPlot.PlotShaded("FrameTime", &frameTimes.Data[0].x, &frameTimes.Data[0].y, frameTimes.Data.size(), -INFINITY, 0, frameTimes.Offset, 2 * sizeof(float));
+                ImPlot.EndPlot();
+            }*/
+            ImGui.Checkbox("Wire Frame", ref showWireFrame);
+            if(ImGui.Checkbox("Vsync", ref vsync))
+            {
+                window.VSync = vsync;
+            }
 
             ImGui.Spacing();
-            ImGui.Checkbox("Wire Frame", ref showWireFrame);
+            //ImGui.DragFloat("Physics Speed", &PhysicsSpeed, 0.01f, -10.0f, 10.0f);
+            ImGui.DragFloat3("Player Position", ref player.position, 1.0f, -50.0f, 50.0f);
+            ImGui.DragFloat3("Player Rotation", ref player.rotation, 1.0f, -360.0f, 360.0f);
+            ImGui.SliderFloat("Cam Fov", ref player.camera.zoom, 179.9f, 0.01f);
+            Vector3 chunkpos = player.position / 10;
+            ImGui.Text(String.Format("Player in ChunkPos: {0} {1} {2}", (int)chunkpos.X, (int)chunkpos.Y, (int)chunkpos.Z));
 
-            ImGui.Text("Camera");
-            ImGui.SliderFloat3("Camera Position", ref player.camera.position, -10, 10);
+            if (ImGui.BeginMenuBar())
+            {
+                if (ImGui.BeginMenu("Menus"))
+                {
+                    ImGui.MenuItem("Scene Viewer", null, ref ShowSceneViewerMenu);
+                    ImGui.MenuItem("Object Viewer", null, ref ShowObjectViewerMenu);
+                    ImGui.MenuItem("Console Viewer", null, ref ShowConsoleViewerMenu);
+                    ImGui.EndMenu();
+                }
+                ImGui.EndMenuBar();
+            }
+
+            if(ShowSceneViewerMenu)
+            {
+                ImGui.SetNextWindowSize(new Vector2(600,420), ImGuiCond.FirstUseEver);
+                ImGui.Begin("Scene Viewer");
+
+                if (ImGui.TreeNode("Objects"))
+                {
+                    for (int i = 0; i < scene.SpatialObjects.Count(); i++)
+                    {
+                        if (ImGui.TreeNode(string.Format("Object {0}", scene.SpatialObjects[i].SO_id)))
+                        {
+                            /*ImGui.DragFloat3("Object Position", ref scene.SpatialObjects[i].SO_rigidbody.position, 0.05f, -100000.0f, 100000.0f);
+                            ImGui.DragFloat3("Object Rotation", ref scene.SpatialObjects[i].SO_rigidbody.rotation, 0.1f, -360.0f, 360.0f);
+                            ImGui.DragFloat3("Object Velocity", ref scene.SpatialObjects[i].SO_rigidbody.velocity, 0.5f, -1000.0f, 1000.0f);
+                            ImGui.DragFloat3("Object Acceleration", ref scene.SpatialObjects[i].SO_rigidbody.acceleration, 0.1f, -100.0f, 100.0f);
+                            ImGui.DragFloat3("Object RotationVelocity", ref scene.SpatialObjects[i].SO_rigidbody.rotVelocity, 0.5f, -1000.0f, 10000000.0f);
+                            ImGui.DragFloat3("Object RotationAcceleration", ref scene.SpatialObjects[i].SO_rigidbody.rotAcceleration, 0.1f, -100.0f, 100.0f);
+                            ImGui.DragFloat3("Object NetForce", ref scene.SpatialObjects[i].SO_rigidbody.totalForce, 0.1f, -100.0f, 100.0f);
+                            ImGui.Text("Object is experiencing %.1fg's", scene.SpatialObjects[i].SO_rigidbody.gForce);*/
+                            ImGui.TreePop();
+                        }
+                    }
+                    ImGui.TreePop();
+                }
+                /*if(ImGui.TreeNode("Scenes"))
+                {
+                    std.vector<std::string> files = GetFiles(sceneLoc);
+                    for (unsigned int i = 0; i < files.size(); i++)
+                    {
+                        if (ImGui::TreeNode((void*)(intptr_t)i, "Scene: %s", files[i].c_str()))
+                        {
+                            ImGui::SameLine();
+                            if(ImGui::Button("Load"))
+                            {
+                                LoadScene(sceneLoc, files[i], mainScene);
+                            }
+                            ImGui::TreePop();
+                        }
+                    }
+                    ImGui::TreePop();
+                }*/
+
+                ImGui.End();
+            }
+
+            if(ShowObjectViewerMenu)
+            {
+                ImGui.SetNextWindowSize(new Vector2(600,420), ImGuiCond.FirstUseEver);
+                ImGui.Begin("Object Viewer");
+
+                //select the object you want gives properties 
+                //or create a object and that selects by default
+                ImGui.Text("Select Object Properties");
+                ImGui.Spacing();
+                if (ImGui.ArrowButton("##left", ImGuiDir.Left)) 
+                { 
+                    if(IMM_counter > (int)MeshType.First)
+                        IMM_counter--;
+                }
+                ImGui.SameLine(0.0f, 1.0f);
+                if (ImGui.ArrowButton("##right", ImGuiDir.Right)) 
+                { 
+                    if(IMM_counter < (int)MeshType.Last)
+                        IMM_counter++; 
+                }
+                ImGui.SameLine();
+                ImGui.Text(((MeshType)IMM_counter).ToString());
+                if(IMM_counter == (int)MeshType.IcoSphereMesh)
+                    ImGui.SliderInt("Subdivison level", ref IMM_IcoSphereSub, 0, 10);
+                if(IMM_counter == (int)MeshType.SpikerMesh)
+                {
+                    ImGui.SliderInt("Subdivison level", ref IMM_IcoSphereSub, 0, 10);
+                    ImGui.SliderFloat("Size", ref IMM_SpikerSphereSize, 0.01f, 10);
+                }
+                if(IMM_counter == (int)MeshType.FileMesh)
+                {
+                    if(ImGui.TreeNode("Models"))
+                    {
+                        /*static std::vector<std::string> files = GetFiles(modelLoc);
+                        for (unsigned int i = 0; i < files.size(); i++)
+                        {
+                            if (i == 0)
+                                ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+
+                            if (ImGui::TreeNode((void*)(intptr_t)i, "Model: %s", files[i].c_str()))
+                            {
+                                ImGui::SameLine();
+                                if(ImGui::Button("Set"))
+                                {
+                                    input = files[i];
+                                }
+                                ImGui::TreePop();
+                            }
+                        }*/
+                        ImGui.TreePop();
+                    }
+                }
+                else
+                {
+                    IMM_input = ((MeshType)IMM_counter).ToString();
+                }
+                ImGui.InputFloat3("Object Position", ref IMM_selposition);
+                ImGui.InputFloat3("Object Rotation", ref IMM_selrotation);
+                ImGui.InputFloat3("Object Velocity", ref IMM_selvelocity);
+                ImGui.InputFloat3("Object Acceleration", ref IMM_selacceleration);
+                ImGui.InputFloat3("Object Rotation Velocity", ref IMM_selvelocityrot);
+                ImGui.InputFloat3("Object Rotation Acceleration", ref IMM_selaccelerationrot);
+
+                ImGui.Text("Current Model: " + IMM_input);
+
+                if(ImGui.Button("Add Object"))
+                {
+                    Mesh selmesh;
+                    int id = scene.SpatialObjects.Count;
+                    switch (IMM_counter)
+                    {
+                    case (int)MeshType.CubeMesh:
+                        selmesh = CreateCubeMesh(IMM_selposition, IMM_selrotation);
+                        vertCount += (uint)selmesh.vertexes.Length;
+                        indCount += (uint)selmesh.indices.Length;
+                        scene.AddSpatialObject(selmesh);
+                        break;
+                    case (int)MeshType.IcoSphereMesh:
+                        selmesh = CreateSphereMesh(IMM_selposition, IMM_selrotation, (uint)IMM_IcoSphereSub);
+                        vertCount += (uint)selmesh.vertexes.Length;
+                        indCount += (uint)selmesh.indices.Length;
+                        scene.AddSpatialObject(selmesh);
+                        break;
+                    case (int)MeshType.SpikerMesh:
+                        selmesh = CreateSpikerMesh(IMM_selposition, IMM_selrotation, IMM_SpikerSphereSize, IMM_IcoSphereSub);
+                        vertCount += (uint)selmesh.vertexes.Length;
+                        indCount += (uint)selmesh.indices.Length;
+                        scene.AddSpatialObject(selmesh);
+                        break;
+                    case (int)MeshType.TriangleMesh:
+                        selmesh = Create2DTriangle(IMM_selposition, IMM_selrotation);
+                        vertCount += (uint)selmesh.vertexes.Length;
+                        indCount += (uint)selmesh.indices.Length;
+                        scene.AddSpatialObject(selmesh);
+                        break;
+                    case (int)MeshType.FileMesh:
+                        if(!File.Exists(IMM_input))
+                        {
+                            ImGui.OpenPopup("Error");
+                        }
+                        else
+                        {
+                            scene.AddSpatialObject(LoadModel(IMM_selposition, IMM_selrotation, ModelPath + input));
+                            vertCount += (uint)scene.SpatialObjects[id].SO_mesh.vertexes.Length;
+                            indCount += (uint)scene.SpatialObjects[id].SO_mesh.indices.Length;
+                            //scene.SpatialObjects[id].SO_rigidbody.velocity = selvelocity;
+                            //scene.SpatialObjects[id].SO_rigidbody.acceleration = selacceleration;
+                            //scene.SpatialObjects[id].SO_rigidbody.rotVelocity = selvelocityrot;
+                            //scene.SpatialObjects[id].SO_rigidbody.rotAcceleration = selaccelerationrot;
+                        }
+                        break;
+                    }
+                }
+                if(ImGui.BeginPopup("Error"))
+                {
+                    string text = "Model Not Found " + IMM_input;
+                    ImGui.Text(text);
+                    ImGui.EndPopup();
+                }
+
+                ImGui.End();
+            }
+
+            if(ShowConsoleViewerMenu)
+            {
+                ImGui.SetNextWindowSize(new Vector2(600,420), ImGuiCond.FirstUseEver);
+                ImGui.Begin("Console Viewer");
+                ImGui.End();
+            }
         }
 
         static unsafe void DebugProc(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint msg, nint userParam)
