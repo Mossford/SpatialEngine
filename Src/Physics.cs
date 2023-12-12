@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Numerics;
 using JoltPhysicsSharp;
@@ -123,8 +124,8 @@ namespace SpatialEngine
             {
                 if(obj.SO_RigidBody != null && bodyInterface.IsActive(obj.SO_RigidBody.rbID))
                 {
-                    obj.SO_mesh.position = bodyInterface.GetCenterOfMassPosition(obj.SO_RigidBody.rbID);
-                    obj.SO_mesh.rotation = new Vector3(bodyInterface.GetRotation(obj.SO_RigidBody.rbID).X, bodyInterface.GetRotation(obj.SO_RigidBody.rbID).Y, bodyInterface.GetRotation(obj.SO_RigidBody.rbID).Z);
+                    obj.SO_mesh.position = bodyInterface.GetPosition(obj.SO_RigidBody.rbID);
+                    obj.SO_mesh.rotation = bodyInterface.GetRotation(obj.SO_RigidBody.rbID);
                 }
             }
             physicsSystem.Update(dt, 1, tempAllocator, jobSystem);

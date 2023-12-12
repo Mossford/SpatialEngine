@@ -62,7 +62,33 @@ namespace SpatialEngine
                 return;
             int id = SpatialObjects.Count;
             SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_RigidBody = new RigidBody(obj.SO_mesh.vertexes, obj.SO_mesh.position, new Quaternion(obj.SO_mesh.position, 1.0f), motion, layer);
+            obj.SO_RigidBody = new RigidBody(obj.SO_mesh.vertexes, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
+            SpatialObjects.Add(obj);
+            SpatialObjects[id].SO_mesh.BufferGens();
+            idList.Add((uint)id);
+            SpatialObjects[id].SO_RigidBody.AddToPhysics(ref bodyInterface, activation);
+        }
+
+        public void AddSpatialObject(Mesh mesh, Vector3 halfBoxSize, MotionType motion, ObjectLayer layer, Activation activation)
+        {
+            if(mesh == null)
+                return;
+            int id = SpatialObjects.Count;
+            SpatialObject obj = new SpatialObject(mesh, (uint)id);
+            obj.SO_RigidBody = new RigidBody(halfBoxSize, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
+            SpatialObjects.Add(obj);
+            SpatialObjects[id].SO_mesh.BufferGens();
+            idList.Add((uint)id);
+            SpatialObjects[id].SO_RigidBody.AddToPhysics(ref bodyInterface, activation);
+        }
+
+        public void AddSpatialObject(Mesh mesh, float radius, MotionType motion, ObjectLayer layer, Activation activation)
+        {
+            if(mesh == null)
+                return;
+            int id = SpatialObjects.Count;
+            SpatialObject obj = new SpatialObject(mesh, (uint)id);
+            obj.SO_RigidBody = new RigidBody(radius, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
             SpatialObjects.Add(obj);
             SpatialObjects[id].SO_mesh.BufferGens();
             idList.Add((uint)id);

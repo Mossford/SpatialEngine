@@ -9,6 +9,7 @@ using System.Text.Unicode;
 
 //engine stuff
 using static SpatialEngine.Globals;
+using Silk.NET.Maths;
 
 namespace SpatialEngine
 {
@@ -47,10 +48,10 @@ namespace SpatialEngine
         public string modelLocation;
         public Vector3 position = Vector3.Zero; 
         public float scale = 1f;
-        public Vector3 rotation = Vector3.Zero;
+        public Quaternion rotation = Quaternion.Identity;
         public Matrix4x4 modelMat;
 
-        public Mesh(Vertex[] vertexes, uint[] indices, Vector3 position, Vector3 rotation, float scale)
+        public Mesh(Vertex[] vertexes, uint[] indices, Vector3 position, Quaternion rotation, float scale = 1.0f)
         {
             this.vertexes = vertexes;
             this.indices = indices;
@@ -59,7 +60,7 @@ namespace SpatialEngine
             this.scale = scale;
         }
 
-        public Mesh(string modelLocation, Vertex[] vertexes, uint[] indices, Vector3 position, Vector3 rotation, float scale)
+        public Mesh(string modelLocation, Vertex[] vertexes, uint[] indices, Vector3 position, Quaternion rotation, float scale = 1.0f)
         {
             this.modelLocation = modelLocation;
             this.vertexes = vertexes;
@@ -78,12 +79,7 @@ namespace SpatialEngine
 
         public void SetModelMatrix()
         {
-            modelMat = Matrix4x4.Identity;
-            modelMat *= Matrix4x4.CreateTranslation(position);
-            modelMat *= Matrix4x4.CreateFromAxisAngle(Vector3.UnitX, rotation.X);
-            modelMat *= Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, rotation.Y);
-            modelMat *= Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, rotation.Z);
-            modelMat *= Matrix4x4.CreateScale(scale);
+            modelMat = Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position)  * Matrix4x4.CreateScale(scale);
         }
 
         public unsafe void BufferGens()
@@ -195,7 +191,7 @@ namespace SpatialEngine
 
     public static class MeshUtils
     {
-        public static Mesh Create2DTriangle(Vector3 position, Vector3 rotation)
+        public static Mesh Create2DTriangle(Vector3 position, Quaternion rotation)
         {
             Vertex[] vertxes = new Vertex[3];
             vertxes[0] = new Vertex(new Vector3(-1.0f, -1.0f, 0.0f), new Vector3(0.0f, 0.0f, 1.0f), new Vector2(0.0f, 0.0f));
@@ -209,7 +205,7 @@ namespace SpatialEngine
             return new Mesh(((int)MeshType.TriangleMesh).ToString(), vertxes, indices, position, rotation, 1);
         }
 
-        public static Mesh CreateCubeMesh(Vector3 position, Vector3 rotation)
+        public static Mesh CreateCubeMesh(Vector3 position, Quaternion rotation)
         {
             Vertex[] vertexes =
             {
@@ -240,7 +236,7 @@ namespace SpatialEngine
             return new Mesh(((int)MeshType.CubeMesh).ToString(), vertexes, indices, position, rotation, 1.0f);;
         }
 
-        public static Mesh CreateSphereMesh(Vector3 position, Vector3 rotation, uint subdivideNum)
+        public static Mesh CreateSphereMesh(Vector3 position, Quaternion rotation, uint subdivideNum)
         {
 
             float t = 0.52573111f;
@@ -337,7 +333,7 @@ namespace SpatialEngine
             return new Mesh(((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
         }
 
-        public static Mesh CreateSpikerMesh(Vector3 position, Vector3 rotation, float size, int sphereSubDivide = 2)
+        public static Mesh CreateSpikerMesh(Vector3 position, Quaternion rotation, float size, int sphereSubDivide = 2)
         {
 
             Vertex[] vertexes = 
@@ -431,7 +427,7 @@ namespace SpatialEngine
             return new Mesh(((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
         }
 
-        public static Mesh LoadModel(Vector3 position, Vector3 rotation, string modelLocation)
+        public static Mesh LoadModel(Vector3 position, Quaternion rotation, string modelLocation)
         {
             if(!File.Exists(modelLocation))
             {

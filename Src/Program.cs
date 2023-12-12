@@ -95,9 +95,9 @@ namespace SpatialEngine
 
             physics.InitPhysics();
             
-            scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), new Vector3(0,0,0), ModelPath + "Floor.obj"), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(5,2,0), new Vector3(0,0,0), ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            scene.AddSpatialObject(LoadModel(new Vector3(-5,4,0), new Vector3(0,0,0), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), Quaternion.Identity, ModelPath + "Floor.obj"), new Vector3(50,1,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(5,2,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.AddSpatialObject(LoadModel(new Vector3(-5,4,0), Quaternion.Identity, ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
@@ -275,6 +275,7 @@ namespace SpatialEngine
         private static int IMM_IcoSphereSub = 0;
         private static float IMM_SpikerSphereSize = 0;
         private static string IMM_input = "";
+        private static bool IMM_static = false;
         static void ImGuiMenu(float deltaTime)
         {
             if(deltaTime > HighestFT)
@@ -434,8 +435,9 @@ namespace SpatialEngine
                 }
                 else
                 {
-                    IMM_input = ((MeshType)IMM_counter).ToString();
+                    IMM_input = ((MeshType)IMM_counter).ToString(); 
                 }
+                ImGui.Checkbox("Static", ref IMM_static);
                 ImGui.InputFloat3("Object Position", ref IMM_selposition);
                 ImGui.InputFloat3("Object Rotation", ref IMM_selrotation);
                 ImGui.InputFloat3("Object Velocity", ref IMM_selvelocity);
@@ -452,28 +454,40 @@ namespace SpatialEngine
                     switch (IMM_counter)
                     {
                     case (int)MeshType.CubeMesh:
-                        selmesh = CreateCubeMesh(IMM_selposition, IMM_selrotation);
+                        selmesh = CreateCubeMesh(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f));
                         vertCount += (uint)selmesh.vertexes.Length;
                         indCount += (uint)selmesh.indices.Length;
-                        scene.AddSpatialObject(selmesh);
+                        if(IMM_static)
+                            scene.AddSpatialObject(selmesh, new Vector3(1.0f), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+                        else
+                            scene.AddSpatialObject(selmesh, new Vector3(1.0f), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
                         break;
                     case (int)MeshType.IcoSphereMesh:
-                        selmesh = CreateSphereMesh(IMM_selposition, IMM_selrotation, (uint)IMM_IcoSphereSub);
+                        selmesh = CreateSphereMesh(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f), (uint)IMM_IcoSphereSub);
                         vertCount += (uint)selmesh.vertexes.Length;
                         indCount += (uint)selmesh.indices.Length;
-                        scene.AddSpatialObject(selmesh);
+                        if(IMM_static)
+                            scene.AddSpatialObject(selmesh, 0.5f, MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+                        else
+                            scene.AddSpatialObject(selmesh, 0.5f, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
                         break;
                     case (int)MeshType.SpikerMesh:
-                        selmesh = CreateSpikerMesh(IMM_selposition, IMM_selrotation, IMM_SpikerSphereSize, IMM_IcoSphereSub);
+                        selmesh = CreateSpikerMesh(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f), IMM_SpikerSphereSize, IMM_IcoSphereSub);
                         vertCount += (uint)selmesh.vertexes.Length;
                         indCount += (uint)selmesh.indices.Length;
-                        scene.AddSpatialObject(selmesh);
+                        if(IMM_static)
+                            scene.AddSpatialObject(selmesh, MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+                        else
+                            scene.AddSpatialObject(selmesh, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
                         break;
                     case (int)MeshType.TriangleMesh:
-                        selmesh = Create2DTriangle(IMM_selposition, IMM_selrotation);
+                        selmesh = Create2DTriangle(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f));
                         vertCount += (uint)selmesh.vertexes.Length;
                         indCount += (uint)selmesh.indices.Length;
-                        scene.AddSpatialObject(selmesh);
+                        if(IMM_static)
+                            scene.AddSpatialObject(selmesh, MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+                        else
+                            scene.AddSpatialObject(selmesh, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
                         break;
                     case (int)MeshType.FileMesh:
                         if(!File.Exists(IMM_input))
@@ -482,7 +496,7 @@ namespace SpatialEngine
                         }
                         else
                         {
-                            scene.AddSpatialObject(LoadModel(IMM_selposition, IMM_selrotation, ModelPath + input));
+                            scene.AddSpatialObject(LoadModel(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f), ModelPath + input));
                             vertCount += (uint)scene.SpatialObjects[id].SO_mesh.vertexes.Length;
                             indCount += (uint)scene.SpatialObjects[id].SO_mesh.indices.Length;
                             //scene.SpatialObjects[id].SO_rigidbody.velocity = selvelocity;
