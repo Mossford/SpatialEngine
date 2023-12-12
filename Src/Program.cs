@@ -97,7 +97,7 @@ namespace SpatialEngine
             
             scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), Quaternion.Identity, ModelPath + "Floor.obj"), new Vector3(50,1,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(5,2,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            scene.AddSpatialObject(LoadModel(new Vector3(-5,4,0), Quaternion.Identity, ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.AddSpatialObject(LoadModel(new Vector3(-5,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
@@ -467,9 +467,9 @@ namespace SpatialEngine
                         vertCount += (uint)selmesh.vertexes.Length;
                         indCount += (uint)selmesh.indices.Length;
                         if(IMM_static)
-                            scene.AddSpatialObject(selmesh, 0.5f, MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+                            scene.AddSpatialObject(selmesh, 1.0f, MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
                         else
-                            scene.AddSpatialObject(selmesh, 0.5f, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+                            scene.AddSpatialObject(selmesh, 1.0f, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
                         break;
                     case (int)MeshType.SpikerMesh:
                         selmesh = CreateSpikerMesh(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f), IMM_SpikerSphereSize, IMM_IcoSphereSub);
