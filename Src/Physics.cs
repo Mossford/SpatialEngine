@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using JoltPhysicsSharp;
 
@@ -122,10 +123,10 @@ namespace SpatialEngine
         {
             foreach (SpatialObject obj in scene.SpatialObjects)
             {
-                if(obj.SO_RigidBody != null && bodyInterface.IsActive(obj.SO_RigidBody.rbID))
+                if(obj.SO_rigidbody != null && bodyInterface.IsActive(obj.SO_rigidbody.rbID))
                 {
-                    obj.SO_mesh.position = bodyInterface.GetPosition(obj.SO_RigidBody.rbID);
-                    obj.SO_mesh.rotation = bodyInterface.GetRotation(obj.SO_RigidBody.rbID);
+                    obj.SO_mesh.position = bodyInterface.GetPosition(obj.SO_rigidbody.rbID);
+                    obj.SO_mesh.rotation = bodyInterface.GetRotation(obj.SO_rigidbody.rbID);
                 }
             }
             physicsSystem.Update(dt, 1, tempAllocator, jobSystem);
@@ -135,10 +136,10 @@ namespace SpatialEngine
         {
             foreach (SpatialObject obj in scene.SpatialObjects)
             {
-                if(obj.SO_RigidBody != null)
+                if(obj.SO_rigidbody != null)
                 {
-                    bodyInterface.RemoveBody(obj.SO_RigidBody.rbID);
-                    bodyInterface.DestroyBody(obj.SO_RigidBody.rbID);
+                    bodyInterface.RemoveBody(obj.SO_rigidbody.rbID);
+                    bodyInterface.DestroyBody(obj.SO_rigidbody.rbID);
                 }
             }
 
@@ -181,5 +182,37 @@ namespace SpatialEngine
         {
             rbID = bodyInterface.CreateAndAddBody(settings, activation);
         }
+
+        public void AddForce(Vector3 dir, float power)
+        {
+            bodyInterface.AddForce(rbID, dir * power);
+        }
+
+        public void AddImpulseForce(Vector3 dir, float power)
+        {
+            bodyInterface.AddLinearVelocity(rbID, dir * power);
+        }
+
+        public void SetPosition(Double3 vec)
+        {
+            bodyInterface.SetPosition(rbID, vec, Activation.Activate);
+        }
+
+        public void SetRotation(Vector3 vec)
+        {
+            Quaternion quat = new Quaternion(Vector3.Normalize(vec * 180/MathF.PI), 1.0f);
+            bodyInterface.SetRotation(rbID, quat, Activation.Activate);
+        }
+
+        public void SetVelocity(Vector3 vec)
+        {
+            bodyInterface.SetLinearVelocity(rbID, vec);
+        }
+
+        public void SetAngularVelocity(Vector3 vec)
+        {
+            bodyInterface.SetAngularVelocity(rbID, vec);
+        }
+
     }
 }

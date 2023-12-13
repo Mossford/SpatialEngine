@@ -96,8 +96,8 @@ namespace SpatialEngine
             physics.InitPhysics();
             
             scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), Quaternion.Identity, ModelPath + "Floor.obj"), new Vector3(50,1,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(5,2,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            scene.AddSpatialObject(LoadModel(new Vector3(-5,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.AddSpatialObject(LoadModel(new Vector3(5,10,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            //scene.AddSpatialObject(LoadModel(new Vector3(-5,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
@@ -204,6 +204,10 @@ namespace SpatialEngine
 
         static void FixedUpdate(float dt)
         {
+            if (keyboard.IsKeyPressed(Key.V))
+            {
+                player.LaunchObject(ref scene, ModelPath + "Cube.obj");
+            }
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
             physics.UpdatePhysics(ref scene, 0.016f);
@@ -269,9 +273,7 @@ namespace SpatialEngine
         private static Vector3 IMM_selposition = new Vector3();
         private static Vector3 IMM_selrotation = new Vector3();
         private static Vector3 IMM_selvelocity = new Vector3();
-        private static Vector3 IMM_selacceleration = new Vector3();
         private static Vector3 IMM_selvelocityrot = new Vector3();
-        private static Vector3 IMM_selaccelerationrot = new Vector3();
         private static int IMM_IcoSphereSub = 0;
         private static float IMM_SpikerSphereSize = 0;
         private static string IMM_input = "";
@@ -441,9 +443,7 @@ namespace SpatialEngine
                 ImGui.InputFloat3("Object Position", ref IMM_selposition);
                 ImGui.InputFloat3("Object Rotation", ref IMM_selrotation);
                 ImGui.InputFloat3("Object Velocity", ref IMM_selvelocity);
-                ImGui.InputFloat3("Object Acceleration", ref IMM_selacceleration);
                 ImGui.InputFloat3("Object Rotation Velocity", ref IMM_selvelocityrot);
-                ImGui.InputFloat3("Object Rotation Acceleration", ref IMM_selaccelerationrot);
 
                 ImGui.Text("Current Model: " + IMM_input);
 
@@ -463,7 +463,7 @@ namespace SpatialEngine
                             scene.AddSpatialObject(selmesh, new Vector3(1.0f), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
                         break;
                     case (int)MeshType.IcoSphereMesh:
-                        selmesh = CreateSphereMesh(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f), (uint)IMM_IcoSphereSub);
+                        selmesh = CreateSphereMesh(IMM_selposition, new Quaternion(IMM_selrotation * MathF.PI / 180.0f, 1.0f), (uint)IMM_IcoSphereSub);
                         vertCount += (uint)selmesh.vertexes.Length;
                         indCount += (uint)selmesh.indices.Length;
                         if(IMM_static)
@@ -472,7 +472,7 @@ namespace SpatialEngine
                             scene.AddSpatialObject(selmesh, 1.0f, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
                         break;
                     case (int)MeshType.SpikerMesh:
-                        selmesh = CreateSpikerMesh(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f), IMM_SpikerSphereSize, IMM_IcoSphereSub);
+                        selmesh = CreateSpikerMesh(IMM_selposition, new Quaternion(IMM_selrotation * MathF.PI / 180.0f, 1.0f), IMM_SpikerSphereSize, IMM_IcoSphereSub);
                         vertCount += (uint)selmesh.vertexes.Length;
                         indCount += (uint)selmesh.indices.Length;
                         if(IMM_static)
@@ -481,7 +481,7 @@ namespace SpatialEngine
                             scene.AddSpatialObject(selmesh, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
                         break;
                     case (int)MeshType.TriangleMesh:
-                        selmesh = Create2DTriangle(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f));
+                        selmesh = Create2DTriangle(IMM_selposition, new Quaternion(IMM_selrotation * MathF.PI / 180.0f, 1.0f));
                         vertCount += (uint)selmesh.vertexes.Length;
                         indCount += (uint)selmesh.indices.Length;
                         if(IMM_static)
@@ -496,13 +496,11 @@ namespace SpatialEngine
                         }
                         else
                         {
-                            scene.AddSpatialObject(LoadModel(IMM_selposition, new Quaternion(IMM_selrotation, 1.0f), ModelPath + input));
+                            scene.AddSpatialObject(LoadModel(IMM_selposition, new Quaternion(IMM_selrotation * MathF.PI / 180.0f, 1.0f), ModelPath + input));
                             vertCount += (uint)scene.SpatialObjects[id].SO_mesh.vertexes.Length;
                             indCount += (uint)scene.SpatialObjects[id].SO_mesh.indices.Length;
-                            //scene.SpatialObjects[id].SO_rigidbody.velocity = selvelocity;
-                            //scene.SpatialObjects[id].SO_rigidbody.acceleration = selacceleration;
-                            //scene.SpatialObjects[id].SO_rigidbody.rotVelocity = selvelocityrot;
-                            //scene.SpatialObjects[id].SO_rigidbody.rotAcceleration = selaccelerationrot;
+                            scene.SpatialObjects[id].SO_rigidbody.SetVelocity(IMM_selvelocity);
+                            scene.SpatialObjects[id].SO_rigidbody.SetAngularVelocity(IMM_selvelocityrot);
                         }
                         break;
                     }

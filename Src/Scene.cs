@@ -10,7 +10,7 @@ namespace SpatialEngine
     public struct SpatialObject
     {
         public Mesh SO_mesh;
-        public RigidBody SO_RigidBody;
+        public RigidBody SO_rigidbody;
         public uint SO_id;
 
         public SpatialObject(Mesh mesh, uint id)
@@ -21,7 +21,7 @@ namespace SpatialEngine
 
         public SpatialObject(RigidBody rigidBody, Mesh mesh, uint id)
         {
-            SO_RigidBody = rigidBody;
+            SO_rigidbody = rigidBody;
             SO_mesh = mesh;
             SO_id = id;
         }
@@ -62,11 +62,11 @@ namespace SpatialEngine
                 return;
             int id = SpatialObjects.Count;
             SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_RigidBody = new RigidBody(obj.SO_mesh.vertexes, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
+            obj.SO_rigidbody = new RigidBody(obj.SO_mesh.vertexes, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
             SpatialObjects.Add(obj);
             SpatialObjects[id].SO_mesh.BufferGens();
             idList.Add((uint)id);
-            SpatialObjects[id].SO_RigidBody.AddToPhysics(ref bodyInterface, activation);
+            SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
         }
 
         public void AddSpatialObject(Mesh mesh, Vector3 halfBoxSize, MotionType motion, ObjectLayer layer, Activation activation)
@@ -75,11 +75,11 @@ namespace SpatialEngine
                 return;
             int id = SpatialObjects.Count;
             SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_RigidBody = new RigidBody(halfBoxSize, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
+            obj.SO_rigidbody = new RigidBody(halfBoxSize, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
             SpatialObjects.Add(obj);
             SpatialObjects[id].SO_mesh.BufferGens();
             idList.Add((uint)id);
-            SpatialObjects[id].SO_RigidBody.AddToPhysics(ref bodyInterface, activation);
+            SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
         }
 
         public void AddSpatialObject(Mesh mesh, float radius, MotionType motion, ObjectLayer layer, Activation activation)
@@ -88,11 +88,11 @@ namespace SpatialEngine
                 return;
             int id = SpatialObjects.Count;
             SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_RigidBody = new RigidBody(radius, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
+            obj.SO_rigidbody = new RigidBody(radius, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
             SpatialObjects.Add(obj);
             SpatialObjects[id].SO_mesh.BufferGens();
             idList.Add((uint)id);
-            SpatialObjects[id].SO_RigidBody.AddToPhysics(ref bodyInterface, activation);
+            SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
         }
 
         public void DrawSingle(ref Shader shader, Matrix4x4 view, Matrix4x4 proj, Vector3 camPos)

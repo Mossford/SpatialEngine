@@ -1,7 +1,9 @@
 using System;
 using System.Numerics;
-using System.Security.Cryptography;
-using Silk.NET.Input;
+using JoltPhysicsSharp;
+
+//engine stuff
+using static SpatialEngine.MeshUtils;
 
 namespace SpatialEngine
 {
@@ -79,6 +81,14 @@ namespace SpatialEngine
                 rotation.Y =  89.0f;
             if(rotation.Y < -89.0f)
                 rotation.Y = -89.0f;
+        }
+
+        public void LaunchObject(ref Scene scene, string name)
+        {
+            int id = scene.SpatialObjects.Count;
+
+            scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, name), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.SpatialObjects[id].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 150.0f);
         }
     }
 }
