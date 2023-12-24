@@ -9,7 +9,7 @@ using System.Xml.Linq;
 namespace SpatialEngine
 {
 
-    public class ShaderUniform
+    public struct ShaderUniform
     {
         public string name;
         public int location;

@@ -16,8 +16,6 @@ using JoltPhysicsSharp;
 //Custom Engine things
 using static SpatialEngine.MeshUtils;
 using static SpatialEngine.Globals;
-using System.Collections;
-using System.Runtime.InteropServices;
 
 
 namespace SpatialEngine
@@ -115,7 +113,7 @@ namespace SpatialEngine
             scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, ModelPath + "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             //scene.AddSpatialObject(LoadModel(new Vector3(5,10,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             //scene.AddSpatialObject(LoadModel(new Vector3(-5,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            
+
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
                 vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
@@ -244,8 +242,7 @@ namespace SpatialEngine
             gl.UseProgram(shader.shader);
             shader.setVec3("lightPos", new Vector3(0,10,-10));
             scene.UpdateBufferGenScene();
-            //scene.DrawScene(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
-            scene.DrawSingle(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
+            scene.DrawScene(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
 
             controller.Render();
         }
