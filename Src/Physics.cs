@@ -129,7 +129,7 @@ namespace SpatialEngine
                     obj.SO_mesh.rotation = bodyInterface.GetRotation(obj.SO_rigidbody.rbID);
                 }
             }
-            physicsSystem.Update(dt, 1, tempAllocator, jobSystem);
+            physicsSystem.Update(dt, 3, tempAllocator, jobSystem);
         }
 
         public void CleanPhysics(ref Scene scene)
@@ -138,7 +138,6 @@ namespace SpatialEngine
             {
                 if(obj.SO_rigidbody != null)
                 {
-                    bodyInterface.RemoveBody(obj.SO_rigidbody.rbID);
                     bodyInterface.DestroyBody(obj.SO_rigidbody.rbID);
                 }
             }
@@ -151,6 +150,7 @@ namespace SpatialEngine
     public class RigidBody
     {
         public BodyID rbID;
+        public Body body;
         public BodyCreationSettings settings;
 
         public RigidBody(BodyCreationSettings settings)
@@ -180,7 +180,8 @@ namespace SpatialEngine
 
         public void AddToPhysics(ref BodyInterface bodyInterface, Activation activation)
         {
-            rbID = bodyInterface.CreateAndAddBody(settings, activation);
+            rbID = bodyInterface.CreateAndAddBody(settings, Activation.Activate);
+            //bodyInterface.AssignBodyID(in body);
         }
 
         public void AddForce(Vector3 dir, float power)

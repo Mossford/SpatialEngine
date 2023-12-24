@@ -111,6 +111,8 @@ namespace SpatialEngine
                 vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[i].SO_mesh.indices.Length;
             }
+            scene.CreateBufferGenScene();
+
             player = new Player(15.0f, new Vector3(-33,12,-20), new Vector3(300, 15, 0));
             shader = new Shader(gl, ShaderPath + "Default.vert", ShaderPath + "Default.frag");
 
@@ -191,20 +193,10 @@ namespace SpatialEngine
             totalTimeUpdate += (float)dt;
             while (totalTimeUpdate >= 0.016f)
             {
-                FixedUpdate((float)dt);
-                counter++;
+                totalTimeUpdate -= 0.016f;
+                FixedUpdate(0.016f);
+                //counter++;
 
-                if(dt >= 0.016f)
-                {
-                    if(counter == 3)
-                        break;
-                    totalTimeUpdate -= 0.016f;
-                }
-                else
-                {
-                    totalTimeUpdate = 0;
-                    break;
-                }
             }
             keysPressed.Clear();
         }
@@ -213,11 +205,15 @@ namespace SpatialEngine
         {
             if (keyboard.IsKeyPressed(Key.V))
             {
-                player.LaunchObject(ref scene, ModelPath + "Cube.obj");
+                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
+                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
+                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
+                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
+                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
             }
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
-            physics.UpdatePhysics(ref scene, 0.016f);
+            //physics.UpdatePhysics(ref scene, dt);
         }
 
         static unsafe void OnRender(double dt)
@@ -236,8 +232,10 @@ namespace SpatialEngine
                 gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
 
             gl.UseProgram(shader.shader);
-            shader.SetUniform("lightPos", new Vector3(0,10,-10));
-            scene.DrawSingle(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
+            shader.setVec3("lightPos", new Vector3(0,10,-10));
+            scene.UpdateBufferGenScene();
+            scene.DrawScene(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
+            //scene.DrawSingle(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
 
             controller.Render();
         }
@@ -623,7 +621,7 @@ namespace SpatialEngine
                 break;
             }
 
-            Console.WriteLine("%d: %s of %s severity, raised from %s: %s\n", id, _type, _severity, _source, msg);
+            Console.WriteLine(string.Format("{0}: {1} of {2} severity, raised from {3}: {4}", id, _type, _severity, _source, msg));
         }
     }
 }
