@@ -16,6 +16,8 @@ using JoltPhysicsSharp;
 //Custom Engine things
 using static SpatialEngine.MeshUtils;
 using static SpatialEngine.Globals;
+using System.Collections;
+using System.Runtime.InteropServices;
 
 
 namespace SpatialEngine
@@ -28,6 +30,7 @@ namespace SpatialEngine
         public static IInputContext input;
         public static IKeyboard keyboard;
         public static string EngVer = "0.5.0";
+        public static string Gpu = "";
 
         public static PhysicsSystem physicsSystem;
         public static BodyInterface bodyInterface;
@@ -86,6 +89,13 @@ namespace SpatialEngine
             controller = new ImGuiController(gl = window.CreateOpenGL(), window, input = window.CreateInput());
             keyboard = input.Keyboards.FirstOrDefault();
             gl = GL.GetApi(window);
+            byte* text = gl.GetString(GLEnum.Renderer);
+            int textLength = 0;
+            while (text[textLength] != 0)
+                textLength++;
+            byte[] textArray = new byte[textLength];
+            Marshal.Copy((IntPtr)text, textArray, 0, textLength);
+            Gpu = System.Text.Encoding.Default.GetString(textArray);
             gl.Enable(GLEnum.DepthTest);
             gl.Enable(GLEnum.Texture2D);
             gl.Enable(GLEnum.CullFace);
@@ -234,8 +244,8 @@ namespace SpatialEngine
             gl.UseProgram(shader.shader);
             shader.setVec3("lightPos", new Vector3(0,10,-10));
             scene.UpdateBufferGenScene();
-            scene.DrawScene(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
-            //scene.DrawSingle(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
+            //scene.DrawScene(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
+            scene.DrawSingle(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
 
             controller.Render();
         }
@@ -298,6 +308,7 @@ namespace SpatialEngine
             //needs to be io.framerate because the actal deltatime is polled too fast and the 
             //result is hard to read
             ImGui.Text("Version " + EngVer);
+            ImGui.Text("Gpu: " + Gpu);
             ImGui.Text(String.Format("{0:N3} ms/frame ({1:N1} FPS)", 1.0f / ImGui.GetIO().Framerate * 1000.0f, ImGui.GetIO().Framerate));
             ImGui.Text(String.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
             ImGui.Text(String.Format("Amount of Spatials: ({0})", scene.SpatialObjects.Count()));
