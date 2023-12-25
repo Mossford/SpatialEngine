@@ -67,11 +67,6 @@ namespace SpatialEngine
             this.scale = scale;
         }
 
-        ~Mesh()
-        {
-            
-        }
-
         public void SetModelMatrix()
         {
             modelMat = Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position)  * Matrix4x4.CreateScale(scale);
@@ -79,7 +74,7 @@ namespace SpatialEngine
 
         public void Dispose()
         {
-            
+            GC.SuppressFinalize(this);
         }
 
         public void SubdivideTriangle()

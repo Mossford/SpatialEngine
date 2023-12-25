@@ -55,6 +55,7 @@ namespace SpatialEngine
         static ImGuiController controller;
         static Vector2 LastMousePosition;
         static Shader shader;
+        static Renderer renderer = new Renderer();
         static Scene scene = new Scene();
         static Physics physics = new Physics();
         static Player player;
@@ -120,7 +121,8 @@ namespace SpatialEngine
                 vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[i].SO_mesh.indices.Length;
             }
-            scene.CreateBufferGenScene();
+
+            renderer.Init(scene);
 
             player = new Player(15.0f, new Vector3(-33,12,-20), new Vector3(300, 15, 0));
             shader = new Shader(gl, ShaderPath + "Default.vert", ShaderPath + "Default.frag");
@@ -242,8 +244,7 @@ namespace SpatialEngine
 
             gl.UseProgram(shader.shader);
             shader.setVec3("lightPos", new Vector3(0,10,-10));
-            scene.UpdateBufferGenScene();
-            scene.DrawScene(ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
+            renderer.Draw(scene, ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
 
             controller.Render();
         }
