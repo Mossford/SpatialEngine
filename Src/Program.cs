@@ -116,6 +116,11 @@ namespace SpatialEngine
             //scene.AddSpatialObject(LoadModel(new Vector3(5,10,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             //scene.AddSpatialObject(LoadModel(new Vector3(-5,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
 
+            for (int i = 0; i < 10000; i++)
+            {
+                scene.AddSpatialObject(LoadModel(new Vector3(0, 10, 0), Quaternion.Identity, ModelPath + "Cube.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            }
+
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
                 vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
@@ -217,10 +222,8 @@ namespace SpatialEngine
             if (keyboard.IsKeyPressed(Key.V))
             {
                 player.LaunchCube(ref scene, ModelPath + "Cube.obj");
-                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
-                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
-                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
-                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
+                vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;
+                indCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.indices.Length;
             }
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
@@ -310,6 +313,7 @@ namespace SpatialEngine
             ImGui.Text("Gpu: " + Gpu);
             ImGui.Text(String.Format("{0:N3} ms/frame ({1:N1} FPS)", 1.0f / ImGui.GetIO().Framerate * 1000.0f, ImGui.GetIO().Framerate));
             ImGui.Text(String.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
+            ImGui.Text(String.Format("RenderSets: {0}", renderer.renderSets.Count));
             ImGui.Text(String.Format("Amount of Spatials: ({0})", scene.SpatialObjects.Count()));
             ImGui.Text(String.Format("DrawCall Avg: ({0:N1}) DC/frame, DrawCall Total ({1})", drawCallAvg, DrawCallCount));
             ImGui.Text(String.Format("Time Open %.1f minutes", (GetTime() / 60.0f)));

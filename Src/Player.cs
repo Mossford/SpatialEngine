@@ -85,18 +85,14 @@ namespace SpatialEngine
 
         public void LaunchObject(ref Scene scene, string name)
         {
-            int id = scene.SpatialObjects.Count;
-
             scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, name), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            scene.SpatialObjects[id].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
+            scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
         }
 
         public void LaunchCube(ref Scene scene, string name)
         {
-            int id = scene.SpatialObjects.Count;
-
             scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, name), new Vector3(1.0f), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            scene.SpatialObjects[id].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
+            scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
         }
     }
 }

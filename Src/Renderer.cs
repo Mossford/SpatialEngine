@@ -3,11 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 //engine stuff
 using static SpatialEngine.Globals;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpatialEngine
 {
@@ -15,9 +17,9 @@ namespace SpatialEngine
     {
         record MeshOffset(int offset, int offsetByte, int index);
 
-        public class RenderSet
+        public class RenderSet : IDisposable
         {
-            public int MaxRenders { get; protected set; }
+            // Max amount of objects a renderset can render
 
             public uint vao { get; protected set; }
             public uint vbo { get; protected set; }
@@ -27,19 +29,18 @@ namespace SpatialEngine
             Vertex[] vertexes;
             uint[] indices;
 
-            public RenderSet(int maxRenders = 10000)
+            public RenderSet()
             {
-                MaxRenders = maxRenders;
                 meshOffsets = new List<MeshOffset>();
             }
 
-            public unsafe void CreateDrawSet(in List<SpatialObject> objs)
+            public unsafe void CreateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
             {
                 vertexes = new Vertex[0];
                 indices = new uint[0];
                 int vertexSize = 0;
                 int indiceSize = 0;
-                for (int i = 0; i < objs.Count; i++)
+                for (int i = countBE; i < countTO; i++)
                 {
                     vertexSize += objs[i].SO_mesh.vertexes.Length;
                     indiceSize += objs[i].SO_mesh.indices.Length;
@@ -49,15 +50,19 @@ namespace SpatialEngine
                 {
                     vertexes = new Vertex[vertexSize];
                     indices = new uint[indiceSize];
-                    for (int i = 0; i < objs.Count; i++)
+                    int countV = 0;
+                    int countI = 0;
+                    for (int i = countBE; i < countTO; i++)
                     {
                         for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                         {
-                            vertexes[j + objs[i].SO_mesh.vertexes.Length * i] = objs[i].SO_mesh.vertexes[j];
+                            vertexes[countV] = objs[i].SO_mesh.vertexes[j];
+                            countV++;
                         }
                         for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
                         {
-                            indices[j + objs[i].SO_mesh.indices.Length * i] = objs[i].SO_mesh.indices[j];
+                            indices[countI] = objs[i].SO_mesh.indices[j];
+                            countI++;
                         }
                     }
                 }
@@ -83,11 +88,11 @@ namespace SpatialEngine
                 gl.BindVertexArray(0);
             }
 
-            public unsafe void UpdateDrawSet(in List<SpatialObject> objs)
+            public unsafe void UpdateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
             {
                 int vertexSize = 0;
                 int indiceSize = 0;
-                for (int i = 0; i < objs.Count; i++)
+                for (int i = countBE; i < countTO; i++)
                 {
                     vertexSize += objs[i].SO_mesh.vertexes.Length;
                     indiceSize += objs[i].SO_mesh.indices.Length;
@@ -97,15 +102,19 @@ namespace SpatialEngine
                 {
                     vertexes = new Vertex[vertexSize];
                     indices = new uint[indiceSize];
-                    for (int i = 0; i < objs.Count; i++)
+                    int countV = 0;
+                    int countI = 0;
+                    for (int i = countBE; i < countTO; i++)
                     {
                         for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                         {
-                            vertexes[j + objs[i].SO_mesh.vertexes.Length * i] = objs[i].SO_mesh.vertexes[j];
+                            vertexes[countV] = objs[i].SO_mesh.vertexes[j];
+                            countV++;
                         }
                         for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
                         {
-                            indices[j + objs[i].SO_mesh.indices.Length * i] = objs[i].SO_mesh.indices[j];
+                            indices[countI] = objs[i].SO_mesh.indices[j];
+                            countI++;
                         }
                     }
                 }
@@ -122,55 +131,116 @@ namespace SpatialEngine
                 gl.BindVertexArray(0);
             }
 
-            int GetOffsetIndex(int index, in List<SpatialObject> objs)
+            public void Dispose()
             {
-                int offsetByte = 0;
+                gl.DeleteVertexArray(vao);
+                gl.DeleteBuffer(vbo);
+                gl.DeleteBuffer(ebo);
+                GC.SuppressFinalize(this);
+            }
+
+            int GetOffsetIndex(int countBE, int count, int index, in List<SpatialObject> objs)
+            {
                 int offset = 0;
-                for (int g = 0; g < index; g++)
+                for (int i = countBE; i < index; i++)
                 {
-                    offset += objs[g].SO_mesh.indices.Length;
-                    offsetByte += objs[g].SO_mesh.indices.Length * sizeof(uint);
+                    offset += objs[i].SO_mesh.indices.Length;
                 }
-                meshOffsets.Add(new MeshOffset(offset, offsetByte, index));
-                prevMeshLocation = index;
+                meshOffsets.Add(new MeshOffset(offset, offset * sizeof(uint), count));
+                prevMeshLocation = count;
                 return meshOffsets.Count - 1;
             }
 
-            public unsafe void DrawSet(in List<SpatialObject> objs, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
+            public unsafe void DrawSet(in List<SpatialObject> objs, int countBE, int countTO, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
             {
                 gl.BindVertexArray(vao);
                 shader.setMat4("view", view);
                 shader.setMat4("projection", proj);
                 shader.setVec3("viewPos", camPos);
-                for (int i = 0; i < objs.Count; i++)
+                int count = 0;
+                for (int i = countBE; i < countTO; i++)
                 {
-                    int index = i;
-                    if (i >= meshOffsets.Count)
-                        index = GetOffsetIndex(i, objs);
+                    int index = count;
+                    if (count >= meshOffsets.Count)
+                        index = GetOffsetIndex(countBE, count, i, objs);
                     shader.setMat4("model", objs[i].SO_mesh.modelMat);
+                    //shader.setMat4("model", bodyInterface.GetWorldTransform(objs[i].SO_rigidbody.rbID));
                     gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
+                    count++;
                 }
                 gl.BindVertexArray(0);
             }
         }
 
-        List<RenderSet> renderSets;
+        public int MaxRenders { get; protected set; }
+        public List<RenderSet> renderSets { get; protected set; }
+        int objectBeforeCount = 0;
 
-        public Renderer()
+        public Renderer(int maxRenders = 1000)
         {
             renderSets = new List<RenderSet>();
+            MaxRenders = maxRenders;
         }
 
         public void Init(in Scene scene)
         {
             renderSets.Add(new RenderSet());
-            renderSets[0].CreateDrawSet(scene.SpatialObjects);
+            int count = scene.SpatialObjects.Count;
+            int beCount = 0;
+            int objCount = 0;
+            for (int i = 0; i < renderSets.Count; i++)
+            {
+                beCount = objCount;
+                objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
+                count -= MaxRenders;
+            }
+            renderSets[0].CreateDrawSet(scene.SpatialObjects, 0, MaxRenders);
         }
 
         public void Draw(in Scene scene, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
         {
-            renderSets[0].UpdateDrawSet(scene.SpatialObjects);
-            renderSets[0].DrawSet(scene.SpatialObjects, ref shader, view, proj, camPos);
+            int objTotalCount = scene.SpatialObjects.Count;
+
+            if (objTotalCount > MaxRenders * renderSets.Count)
+            {
+                renderSets.Add(new RenderSet());
+                int countADD = scene.SpatialObjects.Count;
+                int beCountADD = 0;
+                int objCountADD = 0;
+                for (int i = 0; i < renderSets.Count; i++)
+                {
+                    beCountADD = objCountADD;
+                    objCountADD = (int)MathF.Min(MaxRenders, countADD) + (i * MaxRenders);
+                    countADD -= MaxRenders;
+                }
+                renderSets[^1].CreateDrawSet(scene.SpatialObjects, beCountADD, objCountADD);
+            }
+
+            int count = objTotalCount;
+            int beCount = 0;
+            if (objectBeforeCount != objTotalCount)
+            {
+                for (int i = 0; i < renderSets.Count; i++)
+                {
+                    //Console.WriteLine("Updating renderset: " + i);
+                    int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
+                    renderSets[i].UpdateDrawSet(scene.SpatialObjects, beCount, objCount);
+                    count -= MaxRenders;
+                    beCount = objCount;
+                }
+            }
+
+            count = objTotalCount;
+            beCount = 0;
+            for (int i = 0; i < renderSets.Count; i++)
+            {
+                int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
+                //Console.WriteLine(beCount + " to " + objCount + " " + i);
+                renderSets[i].DrawSet(scene.SpatialObjects, beCount, objCount, ref shader, view, proj, camPos);
+                count -= MaxRenders;
+                beCount = objCount;
+            }
+            objectBeforeCount = objTotalCount;
         }
 
     }
