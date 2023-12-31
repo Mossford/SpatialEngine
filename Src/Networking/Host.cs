@@ -42,23 +42,30 @@ namespace SpatialEngine
             void InitHost()
             {
                 udpServer = new UdpClient();
-                endPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+                //endpoint that accept from any ip but on correct port?
+                endPoint = new IPEndPoint(IPAddress.Any, port);
                 udpServer.Client.Bind(endPoint);
+                udpServer.BeginReceive(Recive, null);
                 Console.WriteLine($"UDP Server started on {ip}:{port}");
             }
 
-            public void Recive()
+            public void SetIpPort(int port, string ip)
             {
-                while (true)
-                {
-                    if(closed)
-                        break;
-                    byte[] bytes = udpServer.Receive(ref endPoint);
-                    if(bytes != null)
-                    {
-                        Console.WriteLine($"Received: {BitConverter.ToString(bytes)} from {endPoint}");
-                    }
-                }
+                this.port = port;
+                this.ip = ip;
+                endPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+                udpServer.Client.Bind(endPoint);
+                Console.WriteLine($"UDP Server now on {ip}:{port}");
+            }
+
+            public void Recive(IAsyncResult result)
+            {
+                
+            }
+
+            public void HandlePacket(byte[] data)
+            {
+                //run whatever packet it is
             }
 
             public void Close()

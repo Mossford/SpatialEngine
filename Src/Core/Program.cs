@@ -60,7 +60,8 @@ namespace SpatialEngine
         static Renderer renderer = new Renderer();
         static Scene scene = new Scene();
         static Physics physics = new Physics();
-        static Host host = new Host(8888, "127.0.0.1");
+        static Host host = new Host(8888, "192.168.1.177");
+        //static Client client = new Client(8888, "192.168.1.177");
         static Thread hostThread;
         static Player player;
         static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -91,8 +92,8 @@ namespace SpatialEngine
 
         static unsafe void OnLoad() 
         {
-            hostThread = new Thread(host.Recive);
-            hostThread.Start();
+            //hostThread = new Thread(host.Recive);
+            //hostThread.Start();
             controller = new ImGuiController(gl = window.CreateOpenGL(), window, input = window.CreateInput());
             keyboard = input.Keyboards.FirstOrDefault();
             gl = GL.GetApi(window);
@@ -120,8 +121,9 @@ namespace SpatialEngine
             scene.AddSpatialObject(LoadModel(new Vector3(37,5,-21), Quaternion.Identity, ModelPath + "FloorWall5.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-50,2,0), Quaternion.Identity, ModelPath + "FloorWall6.obj"), new Vector3(1,2,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, ModelPath + "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            //scene.AddSpatialObject(LoadModel(new Vector3(5,10,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.AddSpatialObject(LoadModel(new Vector3(5,10,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             //scene.AddSpatialObject(LoadModel(new Vector3(-5,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+
 
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
@@ -207,6 +209,12 @@ namespace SpatialEngine
                 keysPressed.Add((int)Key.ShiftLeft);
             }
 
+            SpatialObjectPacket packet = new SpatialObjectPacket();
+            packet.ByteToPacket(host.Recive());
+            scene.SpatialObjects[packet.id].SO_mesh.position = packet.Position;
+            scene.SpatialObjects[packet.id].SO_mesh.rotation = packet.Rotation;
+
+
             int counter = 0;
             totalTimeUpdate += (float)dt;
             while (totalTimeUpdate >= 0.016f)
@@ -228,6 +236,7 @@ namespace SpatialEngine
                 vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.indices.Length;
             }
+            scene.SpatialObjects[^1].SO_mesh.position += new Vector3(0, dt, 0);
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
             physics.UpdatePhysics(ref scene, dt);

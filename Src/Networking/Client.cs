@@ -21,7 +21,7 @@ namespace SpatialEngine
             public void Send(byte[] data)
             {
                 udpClient.Send(data, data.Length, serverEndPoint);
-                Console.WriteLine($"Sent: {BitConverter.ToString(data)}");
+                //Console.WriteLine($"Sent: {BitConverter.ToString(data)}");
             }
 
             public void Close()
