@@ -101,12 +101,12 @@ namespace SpatialEngine
         public void setInt(string name, int value)
         {
             int location = GetUniformLocation(name);
-            gl.Uniform1(location, (float)value);
+            gl.Uniform1(location, value);
         }
         public void setFloat(string name, float value)
         {
             int location = GetUniformLocation(name);
-            gl.Uniform1(location, (float)value);
+            gl.Uniform1(location, value);
         }
         public unsafe void setVec2(string name, Vector2 value)
         {

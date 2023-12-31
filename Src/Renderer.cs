@@ -25,6 +25,7 @@ namespace SpatialEngine
             public uint ebo { get; protected set; }
             int prevMeshLocation = 0;
             List<MeshOffset> meshOffsets;
+            //BufferObject<Matrix4x4> modelMatrixes;
 
             public RenderSet()
             {
@@ -35,6 +36,7 @@ namespace SpatialEngine
             {
                 Span<Vertex> verts = new Span<Vertex>();
                 Span<uint> inds = new Span<uint>();
+                //Span<Matrix4x4> models = new Span<Matrix4x4>();
                 int vertexSize = 0;
                 int indiceSize = 0;
                 for (int i = countBE; i < countTO; i++)
@@ -43,26 +45,29 @@ namespace SpatialEngine
                     indiceSize += objs[i].SO_mesh.indices.Length;
                 }
 
-                if (verts.Length != vertexSize)
+                verts = stackalloc Vertex[vertexSize];
+                inds = stackalloc uint[indiceSize];
+                //models = stackalloc Matrix4x4[countTO - countBE];
+                int countV = 0;
+                int countI = 0;
+                //int count = 0;
+                for (int i = countBE; i < countTO; i++)
                 {
-                    verts = stackalloc Vertex[vertexSize];
-                    inds = stackalloc uint[indiceSize];
-                    int countV = 0;
-                    int countI = 0;
-                    for (int i = countBE; i < countTO; i++)
+                    //models[count] = objs[i].SO_mesh.modelMat;
+                    for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                     {
-                        for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
-                        {
-                            verts[countV] = objs[i].SO_mesh.vertexes[j];
-                            countV++;
-                        }
-                        for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
-                        {
-                            inds[countI] = objs[i].SO_mesh.indices[j];
-                            countI++;
-                        }
+                        verts[countV] = objs[i].SO_mesh.vertexes[j];
+                        countV++;
                     }
+                    for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
+                    {
+                        inds[countI] = objs[i].SO_mesh.indices[j];
+                        countI++;
+                    }
+                    //count++;
                 }
+
+                //modelMatrixes = new BufferObject<Matrix4x4>(models, 3, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
 
                 vao = gl.GenVertexArray();
                 gl.BindVertexArray(vao);
@@ -89,6 +94,7 @@ namespace SpatialEngine
             {
                 Span<Vertex> verts = new Span<Vertex>();
                 Span<uint> inds = new Span<uint>();
+                //Span<Matrix4x4> models = new Span<Matrix4x4>();
                 int vertexSize = 0;
                 int indiceSize = 0;
                 for (int i = countBE; i < countTO; i++)
@@ -101,10 +107,13 @@ namespace SpatialEngine
                 {
                     verts = stackalloc Vertex[vertexSize];
                     inds = stackalloc uint[indiceSize];
+                    //models = stackalloc Matrix4x4[countTO - countBE];
                     int countV = 0;
                     int countI = 0;
+                    //int count = 0;
                     for (int i = countBE; i < countTO; i++)
                     {
+                        //models[count] = objs[i].SO_mesh.modelMat;
                         for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                         {
                             verts[countV] = objs[i].SO_mesh.vertexes[j];
@@ -115,8 +124,11 @@ namespace SpatialEngine
                             inds[countI] = objs[i].SO_mesh.indices[j];
                             countI++;
                         }
+                        //count++;
                     }
                 }
+
+                //modelMatrixes.Update(models);
 
                 gl.BindVertexArray(vao);
                 gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
@@ -153,6 +165,7 @@ namespace SpatialEngine
             public unsafe void DrawSet(in List<SpatialObject> objs, int countBE, int countTO, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
             {
                 gl.BindVertexArray(vao);
+                //modelMatrixes.Bind();
                 shader.setMat4("view", view);
                 shader.setMat4("projection", proj);
                 shader.setVec3("viewPos", camPos);
