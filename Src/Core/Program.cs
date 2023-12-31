@@ -17,6 +17,8 @@ using System.Runtime.InteropServices;
 //Custom Engine things
 using static SpatialEngine.MeshUtils;
 using static SpatialEngine.Globals;
+using SpatialEngine.Networking;
+using System.Threading;
 
 
 namespace SpatialEngine
@@ -58,6 +60,8 @@ namespace SpatialEngine
         static Renderer renderer = new Renderer();
         static Scene scene = new Scene();
         static Physics physics = new Physics();
+        static Host host = new Host(8888, "127.0.0.1");
+        static Thread hostThread;
         static Player player;
         static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         static readonly string resourcePath = appPath + @"/res/";
@@ -82,10 +86,13 @@ namespace SpatialEngine
             window.Run();
 
             physics.CleanPhysics(ref scene);
+            host.Close();
         }
 
         static unsafe void OnLoad() 
         {
+            hostThread = new Thread(host.Recive);
+            hostThread.Start();
             controller = new ImGuiController(gl = window.CreateOpenGL(), window, input = window.CreateInput());
             keyboard = input.Keyboards.FirstOrDefault();
             gl = GL.GetApi(window);
@@ -210,6 +217,7 @@ namespace SpatialEngine
 
             }
             keysPressed.Clear();
+
         }
 
         static void FixedUpdate(float dt)
