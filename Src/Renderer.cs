@@ -197,16 +197,7 @@ namespace SpatialEngine
         public void Init(in Scene scene)
         {
             renderSets.Add(new RenderSet());
-            int count = scene.SpatialObjects.Count;
-            int beCount = 0;
-            int objCount = 0;
-            for (int i = 0; i < renderSets.Count; i++)
-            {
-                beCount = objCount;
-                objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
-                count -= MaxRenders;
-            }
-            renderSets[0].CreateDrawSet(scene.SpatialObjects, 0, MaxRenders);
+            renderSets[0].CreateDrawSet(scene.SpatialObjects, 0, scene.SpatialObjects.Count);
         }
 
         public void Draw(in Scene scene, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)

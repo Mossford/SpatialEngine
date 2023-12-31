@@ -116,11 +116,6 @@ namespace SpatialEngine
             //scene.AddSpatialObject(LoadModel(new Vector3(5,10,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             //scene.AddSpatialObject(LoadModel(new Vector3(-5,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
 
-            for (int i = 0; i < 10000; i++)
-            {
-                scene.AddSpatialObject(LoadModel(new Vector3(0, 10, 0), Quaternion.Identity, ModelPath + "Cube.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            }
-
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
                 vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
@@ -227,7 +222,7 @@ namespace SpatialEngine
             }
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
-            //physics.UpdatePhysics(ref scene, dt);
+            physics.UpdatePhysics(ref scene, dt);
         }
 
         static unsafe void OnRender(double dt)
