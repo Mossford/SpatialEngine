@@ -69,21 +69,6 @@ namespace SpatialEngine
                 Console.WriteLine($"UDP Server now on {ip}:{port}");
             }
 
-            public byte[] Recive()
-            {
-                while(true)
-                {
-                    if(closed)
-                        break;
-                    byte[] data = udpServer.Receive(ref endPoint);
-                    if(data != null)
-                    {
-                        return data;
-                    }
-                }
-                return null;
-            }
-
             void ReciveAsync(IAsyncResult result)
             {
                 byte[] data = udpServer.EndReceive(result, ref endPoint);

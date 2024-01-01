@@ -24,7 +24,7 @@ namespace SpatialEngine
             this.rotation = rotation;
             camera = new Camera(position, rotation);
             id = scene.SpatialObjects.Count;
-            scene.AddSpatialObject(LoadModel(position, Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z), ModelPath + "Cube.obj"), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(CreateSphereMesh(position, Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z), 2), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
         }
 
         public void UpdatePlayer(float delta)
