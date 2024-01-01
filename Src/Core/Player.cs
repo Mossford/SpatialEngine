@@ -4,6 +4,7 @@ using JoltPhysicsSharp;
 
 //engine stuff
 using static SpatialEngine.MeshUtils;
+using static SpatialEngine.Globals;
 
 namespace SpatialEngine
 {
@@ -14,6 +15,7 @@ namespace SpatialEngine
         public Vector3 position;
         public Vector3 rotation;
         public float speed;
+        int id;
 
         public Player(float speed, Vector3 position, Vector3 rotation)
         {
@@ -21,6 +23,8 @@ namespace SpatialEngine
             this.position = position;
             this.rotation = rotation;
             camera = new Camera(position, rotation);
+            id = scene.SpatialObjects.Count;
+            scene.AddSpatialObject(LoadModel(position, Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z), ModelPath + "Cube.obj"), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
         }
 
         public void UpdatePlayer(float delta)
@@ -28,6 +32,8 @@ namespace SpatialEngine
             position += moveDir * delta * speed;
             camera.position = position;
             camera.rotation = rotation;
+            scene.SpatialObjects[id].SO_mesh.position = position;
+            scene.SpatialObjects[id].SO_mesh.rotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
             moveDir = Vector3.Zero;
         }
 

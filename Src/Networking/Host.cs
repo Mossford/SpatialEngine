@@ -1,7 +1,14 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.IO;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
+
+//engine stuff
+using static SpatialEngine.Globals;
+using static SpatialEngine.Networking.PacketHandler;
 
 namespace SpatialEngine
 {
@@ -43,9 +50,13 @@ namespace SpatialEngine
             {
                 udpServer = new UdpClient();
                 //endpoint that accept from any ip but on correct port?
-                endPoint = new IPEndPoint(IPAddress.Any, port);
+                endPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+            }
+
+            public void Start()
+            {
                 udpServer.Client.Bind(endPoint);
-                udpServer.BeginReceive(Recive, null);
+                udpServer.BeginReceive(ReciveAsync, null);
                 Console.WriteLine($"UDP Server started on {ip}:{port}");
             }
 
@@ -58,14 +69,26 @@ namespace SpatialEngine
                 Console.WriteLine($"UDP Server now on {ip}:{port}");
             }
 
-            public void Recive(IAsyncResult result)
+            public byte[] Recive()
             {
-                
+                while(true)
+                {
+                    if(closed)
+                        break;
+                    byte[] data = udpServer.Receive(ref endPoint);
+                    if(data != null)
+                    {
+                        return data;
+                    }
+                }
+                return null;
             }
 
-            public void HandlePacket(byte[] data)
+            void ReciveAsync(IAsyncResult result)
             {
-                //run whatever packet it is
+                byte[] data = udpServer.EndReceive(result, ref endPoint);
+                udpServer.BeginReceive(ReciveAsync, null);
+                HandlePacket(data);
             }
 
             public void Close()

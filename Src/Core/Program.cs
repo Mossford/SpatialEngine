@@ -32,9 +32,18 @@ namespace SpatialEngine
         public static IKeyboard keyboard;
         public static string EngVer = "0.5.0";
         public static string Gpu = "";
-
+        
+        public static Scene scene;
+        public static Renderer renderer;
+        public static Physics physics;
         public static PhysicsSystem physicsSystem;
         public static BodyInterface bodyInterface;
+
+        public static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        public static readonly string resourcePath = appPath + @"/res/";
+        public static readonly string ShaderPath = resourcePath + @"Shaders/";
+        public static readonly string ImagePath = resourcePath + @"Images/";
+        public static readonly string ModelPath = resourcePath + @"Models/";
 
         public static float drawCallAvg = 0.0f;
         public static uint DrawCallCount = 0;
@@ -57,18 +66,10 @@ namespace SpatialEngine
         static ImGuiController controller;
         static Vector2 LastMousePosition;
         static Shader shader;
-        static Renderer renderer = new Renderer();
-        static Scene scene = new Scene();
-        static Physics physics = new Physics();
-        static Host host = new Host(8888, "192.168.1.177");
-        //static Client client = new Client(8888, "192.168.1.177");
+        static Host host = new Host(1920, "192.168.1.177");
+        //static Client client = new Client(1920, "192.168.1.177");
         static Thread hostThread;
         static Player player;
-        static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        static readonly string resourcePath = appPath + @"/res/";
-        static readonly string ShaderPath = resourcePath + @"Shaders/";
-        static readonly string ImagePath = resourcePath + @"Images/";
-        static readonly string ModelPath = resourcePath + @"Models/";
 
 
         public static void Main(string[] args)
@@ -111,6 +112,9 @@ namespace SpatialEngine
             gl.DebugMessageCallback(DebugProc, null);
             gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
 
+            scene = new Scene();
+            renderer = new Renderer();
+            physics = new Physics();
             physics.InitPhysics();
             
             scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), Quaternion.Identity, ModelPath + "Floor.obj"), new Vector3(50,1,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
@@ -121,7 +125,7 @@ namespace SpatialEngine
             scene.AddSpatialObject(LoadModel(new Vector3(37,5,-21), Quaternion.Identity, ModelPath + "FloorWall5.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-50,2,0), Quaternion.Identity, ModelPath + "FloorWall6.obj"), new Vector3(1,2,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, ModelPath + "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(5,10,0), Quaternion.Identity, ModelPath + "Bunny.obj"), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(0,5,0), Quaternion.Identity, ModelPath + "Bunnysmooth.obj"), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             //scene.AddSpatialObject(LoadModel(new Vector3(-5,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
 
 
@@ -146,6 +150,9 @@ namespace SpatialEngine
                 input.Mice[i].Cursor.CursorMode = CursorMode.Normal;
                 input.Mice[i].MouseMove += OnMouseMove;
             }
+
+            //start host after everything has init
+            host.Start();
         }
 
         static bool lockMouse = false;
@@ -209,11 +216,11 @@ namespace SpatialEngine
                 keysPressed.Add((int)Key.ShiftLeft);
             }
 
-            SpatialObjectPacket packet = new SpatialObjectPacket();
-            packet.ByteToPacket(host.Recive());
-            scene.SpatialObjects[packet.id].SO_mesh.position = packet.Position;
-            scene.SpatialObjects[packet.id].SO_mesh.rotation = packet.Rotation;
-
+            //for (int i = 0; i < scene.SpatialObjects.Count; i++)
+            //{
+            //    SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
+            //    client.Send(packet.ConvertToByte());
+            //}
 
             int counter = 0;
             totalTimeUpdate += (float)dt;
@@ -236,10 +243,10 @@ namespace SpatialEngine
                 vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.indices.Length;
             }
-            scene.SpatialObjects[^1].SO_mesh.position += new Vector3(0, dt, 0);
+            //scene.SpatialObjects[8].SO_mesh.position += new Vector3(0, 0.01f, 0);
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
-            physics.UpdatePhysics(ref scene, dt);
+            //physics.UpdatePhysics(ref scene, dt);
         }
 
         static unsafe void OnRender(double dt)
@@ -380,14 +387,7 @@ namespace SpatialEngine
                     {
                         if (ImGui.TreeNode(string.Format("Object {0}", scene.SpatialObjects[i].SO_id)))
                         {
-                            /*ImGui.DragFloat3("Object Position", ref scene.SpatialObjects[i].SO_rigidbody.position, 0.05f, -100000.0f, 100000.0f);
-                            ImGui.DragFloat3("Object Rotation", ref scene.SpatialObjects[i].SO_rigidbody.rotation, 0.1f, -360.0f, 360.0f);
-                            ImGui.DragFloat3("Object Velocity", ref scene.SpatialObjects[i].SO_rigidbody.velocity, 0.5f, -1000.0f, 1000.0f);
-                            ImGui.DragFloat3("Object Acceleration", ref scene.SpatialObjects[i].SO_rigidbody.acceleration, 0.1f, -100.0f, 100.0f);
-                            ImGui.DragFloat3("Object RotationVelocity", ref scene.SpatialObjects[i].SO_rigidbody.rotVelocity, 0.5f, -1000.0f, 10000000.0f);
-                            ImGui.DragFloat3("Object RotationAcceleration", ref scene.SpatialObjects[i].SO_rigidbody.rotAcceleration, 0.1f, -100.0f, 100.0f);
-                            ImGui.DragFloat3("Object NetForce", ref scene.SpatialObjects[i].SO_rigidbody.totalForce, 0.1f, -100.0f, 100.0f);
-                            ImGui.Text("Object is experiencing %.1fg's", scene.SpatialObjects[i].SO_rigidbody.gForce);*/
+                            ImGui.DragFloat3("Object Position", ref scene.SpatialObjects[i].SO_mesh.position, 0.05f, -100000.0f, 100000.0f);
                             ImGui.TreePop();
                         }
                     }
