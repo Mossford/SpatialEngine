@@ -14,7 +14,7 @@ namespace SpatialEngine
 {
     public class Renderer
     {
-        record MeshOffset(int offset, int offsetByte, int index);
+        record MeshOffset(int offset, int offsetByte);
 
         public class RenderSet : IDisposable
         {
@@ -23,7 +23,6 @@ namespace SpatialEngine
             public uint vao { get; protected set; }
             public uint vbo { get; protected set; }
             public uint ebo { get; protected set; }
-            int prevMeshLocation = 0;
             List<MeshOffset> meshOffsets;
             //BufferObject<Matrix4x4> modelMatrixes;
 
@@ -152,8 +151,7 @@ namespace SpatialEngine
                     offset += objs[i].SO_mesh.vertexes.Length;
                     offsetByte += objs[i].SO_mesh.indices.Length;
                 }
-                meshOffsets.Add(new MeshOffset(offset, offsetByte * sizeof(uint), count));
-                prevMeshLocation = count;
+                meshOffsets.Add(new MeshOffset(offset, offsetByte * sizeof(uint)));
                 return meshOffsets.Count - 1;
             }
 
