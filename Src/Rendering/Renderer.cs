@@ -34,8 +34,6 @@ namespace SpatialEngine
 
             public unsafe void CreateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
             {
-                Span<Vertex> verts = new Span<Vertex>();
-                Span<uint> inds = new Span<uint>();
                 //Span<Matrix4x4> models = new Span<Matrix4x4>();
                 int vertexSize = 0;
                 int indiceSize = 0;
@@ -45,8 +43,8 @@ namespace SpatialEngine
                     indiceSize += objs[i].SO_mesh.indices.Length;
                 }
 
-                verts = stackalloc Vertex[vertexSize];
-                inds = stackalloc uint[indiceSize];
+                Vertex[] verts = new Vertex[vertexSize];
+                uint[] inds = new uint[indiceSize];
                 //models = stackalloc Matrix4x4[countTO - countBE];
                 int countV = 0;
                 int countI = 0;
@@ -77,23 +75,21 @@ namespace SpatialEngine
                 gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
                 fixed (Vertex* buf = verts)
-                    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexSize * sizeof(Vertex)), buf, BufferUsageARB.StaticDraw);
+                    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexSize * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
                 fixed (uint* buf = inds)
-                    gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indiceSize * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
+                    gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indiceSize * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
 
                 gl.EnableVertexAttribArray(0);
-                gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*)0);
+                gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)0);
                 gl.EnableVertexAttribArray(1);
-                gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+                gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(3 * sizeof(float)));
                 gl.EnableVertexAttribArray(2);
-                gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+                gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(6 * sizeof(float)));
                 gl.BindVertexArray(0);
             }
 
             public unsafe void UpdateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
             {
-                Span<Vertex> verts = new Span<Vertex>();
-                Span<uint> inds = new Span<uint>();
                 //Span<Matrix4x4> models = new Span<Matrix4x4>();
                 int vertexSize = 0;
                 int indiceSize = 0;
@@ -103,29 +99,26 @@ namespace SpatialEngine
                     indiceSize += objs[i].SO_mesh.indices.Length;
                 }
 
-                if (verts.Length != vertexSize)
+                Vertex[] verts = new Vertex[vertexSize];
+                uint[] inds = new uint[indiceSize];
+                //models = stackalloc Matrix4x4[countTO - countBE];
+                int countV = 0;
+                int countI = 0;
+                //int count = 0;
+                for (int i = countBE; i < countTO; i++)
                 {
-                    verts = stackalloc Vertex[vertexSize];
-                    inds = stackalloc uint[indiceSize];
-                    //models = stackalloc Matrix4x4[countTO - countBE];
-                    int countV = 0;
-                    int countI = 0;
-                    //int count = 0;
-                    for (int i = countBE; i < countTO; i++)
+                    //models[count] = objs[i].SO_mesh.modelMat;
+                    for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                     {
-                        //models[count] = objs[i].SO_mesh.modelMat;
-                        for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
-                        {
-                            verts[countV] = objs[i].SO_mesh.vertexes[j];
-                            countV++;
-                        }
-                        for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
-                        {
-                            inds[countI] = objs[i].SO_mesh.indices[j];
-                            countI++;
-                        }
-                        //count++;
+                        verts[countV] = objs[i].SO_mesh.vertexes[j];
+                        countV++;
                     }
+                    for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
+                    {
+                        inds[countI] = objs[i].SO_mesh.indices[j];
+                        countI++;
+                    }
+                    //count++;
                 }
 
                 //modelMatrixes.Update(models);
@@ -135,9 +128,9 @@ namespace SpatialEngine
                 gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
                 fixed (Vertex* buf = verts)
-                    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexSize * sizeof(Vertex)), buf, BufferUsageARB.StaticDraw);
+                    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(verts.Length * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
                 fixed (uint* buf = inds)
-                    gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indiceSize * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
+                    gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(inds.Length * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
 
                 gl.BindVertexArray(0);
             }

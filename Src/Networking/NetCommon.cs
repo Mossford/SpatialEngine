@@ -2,8 +2,12 @@ using System;
 using System.IO;
 using System.Numerics;
 using System.Reflection.Emit;
+using JoltPhysicsSharp;
 using Silk.NET.Input;
+
+//engine stuff
 using static SpatialEngine.Globals;
+using static SpatialEngine.MeshUtils;
 
 namespace SpatialEngine
 {
@@ -12,6 +16,8 @@ namespace SpatialEngine
 	
         public enum PacketType
         {
+            ConnectPacket,
+            ConnectReturn,
             SpatialObjectPacket,
             SpawnSpatialObject,      
         }
@@ -25,8 +31,66 @@ namespace SpatialEngine
             public abstract void ByteToPacket(byte[] data);
         }
 
+        public abstract class ServerPacket
+        {
+
+            public abstract byte[] ConvertToByte();
+            public abstract void ByteToPacket(byte[] data);
+        }
+
+        public abstract class ClientPacket
+        {
+
+            public abstract byte[] ConvertToByte();
+            public abstract void ByteToPacket(byte[] data);
+        }
+
+
+        //Connection packets
+
+        public class ConnectPacket : ClientPacket
+        {
+            //connect is value 0
+            public ConnectPacket() 
+            {
+                
+            }
+
+            public override byte[] ConvertToByte() 
+            {
+                return [0];
+            }
+
+            public override void ByteToPacket(byte[] data)
+            {
+                //does nothing
+            }
+        }
+
+        public class ConnectReturnPacket : ServerPacket
+        {
+            public ConnectReturnPacket()
+            {
+
+            }
+
+            public override byte[] ConvertToByte()
+            {
+                MemoryStream stream = new MemoryStream();
+                BinaryWriter writer = new BinaryWriter(stream);
+                writer.Write(EngVer);
+                throw new NotImplementedException();
+
+            }
+
+            public override void ByteToPacket(byte[] data)
+            {
+                //does nothing
+            }
+        }
+
         //will need more infomration then this like info about the rigidbody state and whatever
-        public class SpatialObjectPacket : Packet
+        public class SpatialObjectPacket : ServerPacket
         {
             public int id;
             public Vector3 Position;
@@ -49,7 +113,7 @@ namespace SpatialEngine
                 MemoryStream stream = new MemoryStream();
                 BinaryWriter writer = new BinaryWriter(stream);
                 //type of packet
-                writer.Write((int)PacketType.SpatialObjectPacket);
+                writer.Write((ushort)PacketType.SpatialObjectPacket);
                 //id
                 writer.Write(id);
                 //position
@@ -71,7 +135,7 @@ namespace SpatialEngine
             {
                 MemoryStream stream = new MemoryStream(data);
                 BinaryReader reader = new BinaryReader(stream);
-                int type = reader.ReadInt32();
+                int type = reader.ReadUInt16();
                 id = reader.ReadInt32();
                 //position
                 float posX = reader.ReadSingle();
@@ -89,24 +153,28 @@ namespace SpatialEngine
             }
         }
 
-        public class SpawnSpatialObjectPacket : Packet
+        public class SpawnSpatialObjectPacket : ClientPacket
         {
-            public int id;
             public Vector3 Position;
             public Quaternion Rotation;
             public string ModelLocation;
+            public int MotionType;
+            public int ObjectLayer;
+            public int Activation;
 
             public SpawnSpatialObjectPacket()
             {
 
             }
 
-            public SpawnSpatialObjectPacket(int id, Vector3 position, Quaternion rotation, string modelLocation)
+            public SpawnSpatialObjectPacket(int id, Vector3 position, Quaternion rotation, string modelLocation, MotionType motionType, ObjectLayer objectLayer, Activation activation)
             {
-                this.id = id;
                 this.Position = position;
                 this.Rotation = rotation;
                 this.ModelLocation = modelLocation;
+                this.MotionType = (int)motionType;
+                this.ObjectLayer = objectLayer;
+                this.Activation = (int)activation;
             }
 
             public override byte[] ConvertToByte()
@@ -114,9 +182,9 @@ namespace SpatialEngine
                 MemoryStream stream = new MemoryStream();
                 BinaryWriter writer = new BinaryWriter(stream);
                 //type of packet
-                writer.Write((int)PacketType.SpatialObjectPacket);
+                writer.Write((ushort)PacketType.SpawnSpatialObject);
                 //id
-                writer.Write(id);
+                //writer.Write(id);
                 //position
                 writer.Write(Position.X);
                 writer.Write(Position.Y);
@@ -128,6 +196,12 @@ namespace SpatialEngine
                 writer.Write(Rotation.W);
                 //modellocation
                 writer.Write(ModelLocation);
+                //motion type
+                writer.Write(MotionType);
+                //object layer
+                writer.Write(ObjectLayer);
+                //activation
+                writer.Write(Activation);
                 stream.Close();
                 writer.Close();
 
@@ -138,8 +212,8 @@ namespace SpatialEngine
             {
                 MemoryStream stream = new MemoryStream(data);
                 BinaryReader reader = new BinaryReader(stream);
-                int type = reader.ReadInt32();
-                id = reader.ReadInt32();
+                int type = reader.ReadUInt16();
+                //id = reader.ReadInt32();
                 //position
                 float posX = reader.ReadSingle();
                 float posY = reader.ReadSingle();
@@ -152,6 +226,9 @@ namespace SpatialEngine
                 float rotW = reader.ReadSingle();
                 Rotation = new Quaternion(rotX, rotY, rotZ, rotW);
                 ModelLocation = reader.ReadString();
+                MotionType = reader.ReadInt32();
+                ObjectLayer = reader.ReadInt32();
+                Activation = reader.ReadInt32();
                 stream.Close();
                 reader.Close();
             }
@@ -165,7 +242,7 @@ namespace SpatialEngine
                 MemoryStream stream = new MemoryStream(data);
                 BinaryReader reader = new BinaryReader(stream);
                 //packet type
-                int type = reader.ReadInt32();
+                int type = reader.ReadUInt16();
 
                 switch (type)
                 {
@@ -174,7 +251,16 @@ namespace SpatialEngine
                         SpatialObjectPacket packet = new SpatialObjectPacket();
                         packet.ByteToPacket(data);
                         scene.SpatialObjects[packet.id].SO_mesh.position = packet.Position;
-                        //scene.SpatialObjects[packet.id].SO_mesh.rotation = packet.Rotation;
+                        scene.SpatialObjects[packet.id].SO_mesh.rotation = packet.Rotation;
+                        stream.Close();
+                        reader.Close();
+                        break;
+                    }
+                    case (int)PacketType.SpawnSpatialObject:
+                    {
+                        SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
+                        packet.ByteToPacket(data);
+                        scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
                         stream.Close();
                         reader.Close();
                         break;

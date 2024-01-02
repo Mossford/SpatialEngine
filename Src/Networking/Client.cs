@@ -14,7 +14,7 @@ namespace SpatialEngine
 
             public Client(int port, string ip)
             {
-                udpClient = new UdpClient(port);
+                udpClient = new UdpClient();
                 serverEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
             }
 

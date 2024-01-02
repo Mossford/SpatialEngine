@@ -30,6 +30,7 @@ namespace SpatialEngine
             send all update to client (position of things, rotation of things)
 
         */
+
         public class Host
         {
             public int port;
@@ -38,6 +39,10 @@ namespace SpatialEngine
             UdpClient udpServer;
             IPEndPoint endPoint;
             bool closed = false;
+
+            int clientAmt;
+            string[] ips;
+            int[] ports;
 
             public Host(int port, string ip)
             {
@@ -49,7 +54,7 @@ namespace SpatialEngine
             void InitHost()
             {
                 udpServer = new UdpClient();
-                //endpoint that accept from any ip but on correct port?
+                
                 endPoint = new IPEndPoint(IPAddress.Parse(ip), port);
             }
 

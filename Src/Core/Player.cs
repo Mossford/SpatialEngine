@@ -23,8 +23,8 @@ namespace SpatialEngine
             this.position = position;
             this.rotation = rotation;
             camera = new Camera(position, rotation);
-            id = scene.SpatialObjects.Count;
-            scene.AddSpatialObject(CreateSphereMesh(position, Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z), 2), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            //id = scene.SpatialObjects.Count;
+            //scene.AddSpatialObject(CreateSphereMesh(position, Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z), 2), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
         }
 
         public void UpdatePlayer(float delta)
@@ -32,8 +32,8 @@ namespace SpatialEngine
             position += moveDir * delta * speed;
             camera.position = position;
             camera.rotation = rotation;
-            scene.SpatialObjects[id].SO_mesh.position = position;
-            scene.SpatialObjects[id].SO_mesh.rotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
+            //scene.SpatialObjects[id].SO_mesh.position = position;
+            //scene.SpatialObjects[id].SO_mesh.rotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
             moveDir = Vector3.Zero;
         }
 
@@ -98,6 +98,12 @@ namespace SpatialEngine
         public void LaunchCube(ref Scene scene, string name)
         {
             scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, name), new Vector3(1.0f), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
+        }
+
+        public void LaunchSphere(ref Scene scene, string name)
+        {
+            scene.AddSpatialObject(CreateSphereMesh(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, 2), 1.0f, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
         }
     }

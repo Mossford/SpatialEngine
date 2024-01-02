@@ -27,10 +27,12 @@ namespace SpatialEngine
     public static class Globals
     {
         public static GL gl;
+        public static GraphicsAPI glApi = GraphicsAPI.Default;
         public static IWindow window;
         public static IInputContext input;
         public static IKeyboard keyboard;
         public static string EngVer = "0.5.0";
+        public static string OpenGlVersion = "";
         public static string Gpu = "";
         
         public static Scene scene;
@@ -66,20 +68,22 @@ namespace SpatialEngine
         static ImGuiController controller;
         static Vector2 LastMousePosition;
         static Shader shader;
-        static Host host = new Host(1920, "192.168.1.177");
-        //static Client client = new Client(1920, "192.168.1.177");
+        //static Host host = new Host(1920, "192.168.1.177");
+        static Client client = new Client(1920, "127.0.0.1");
         static Thread hostThread;
         static Player player;
 
 
         public static void Main(string[] args)
         {
+            glApi.Version = new APIVersion(4, 6);
             WindowOptions options = WindowOptions.Default with
             {
                 Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
                 Title = "GameTesting",
                 VSync = vsync,
-                PreferredDepthBufferBits = 24
+                PreferredDepthBufferBits = 24,
+                API = glApi,
             };
             window = Window.Create(options);
             window.Load += OnLoad;
@@ -88,7 +92,7 @@ namespace SpatialEngine
             window.Run();
 
             physics.CleanPhysics(ref scene);
-            host.Close();
+            //host.Close();
         }
 
         static unsafe void OnLoad() 
@@ -105,6 +109,13 @@ namespace SpatialEngine
             byte[] textArray = new byte[textLength];
             Marshal.Copy((IntPtr)text, textArray, 0, textLength);
             Gpu = System.Text.Encoding.Default.GetString(textArray);
+            text = gl.GetString(GLEnum.Version);
+            textLength = 0;
+            while (text[textLength] != 0)
+                textLength++;
+            textArray = new byte[textLength];
+            Marshal.Copy((IntPtr)text, textArray, 0, textLength);
+            OpenGlVersion = System.Text.Encoding.Default.GetString(textArray);
             gl.Enable(GLEnum.DepthTest);
             gl.Enable(GLEnum.Texture2D);
             gl.Enable(GLEnum.CullFace);
@@ -126,7 +137,8 @@ namespace SpatialEngine
             scene.AddSpatialObject(LoadModel(new Vector3(-50,2,0), Quaternion.Identity, ModelPath + "FloorWall6.obj"), new Vector3(1,2,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, ModelPath + "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(0,5,0), Quaternion.Identity, ModelPath + "Bunnysmooth.obj"), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            //scene.AddSpatialObject(LoadModel(new Vector3(-5,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), ModelPath + "Teapot.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            //scene.AddSpatialObject(CreateSphereMesh(new Vector3(0,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), 3), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+
 
 
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
@@ -152,7 +164,7 @@ namespace SpatialEngine
             }
 
             //start host after everything has init
-            host.Start();
+            //host.Start();
         }
 
         static bool lockMouse = false;
@@ -188,7 +200,8 @@ namespace SpatialEngine
             totalTime += (float)dt;
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                //scene.SpatialObjects[i].SO_mesh.rotation = new Vector3(MathF.Sin(totalTime), MathF.Sin(totalTime), 0.0f);
+                SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
+                client.Send(packet.ConvertToByte());
                 scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
             }
             if (keyboard.IsKeyPressed(Key.W))
@@ -216,12 +229,6 @@ namespace SpatialEngine
                 keysPressed.Add((int)Key.ShiftLeft);
             }
 
-            //for (int i = 0; i < scene.SpatialObjects.Count; i++)
-            //{
-            //    SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
-            //    client.Send(packet.ConvertToByte());
-            //}
-
             int counter = 0;
             totalTimeUpdate += (float)dt;
             while (totalTimeUpdate >= 0.016f)
@@ -239,14 +246,16 @@ namespace SpatialEngine
         {
             if (keyboard.IsKeyPressed(Key.V))
             {
-                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
+                player.LaunchSphere(ref scene, ModelPath + "Torus.obj");
+                SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), (Activation)Convert.ToInt32((bodyInterface.IsActive(scene.SpatialObjects[^1].SO_rigidbody.rbID))));
+                client.Send(packet.ConvertToByte());
                 vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.indices.Length;
             }
-            //scene.SpatialObjects[8].SO_mesh.position += new Vector3(0, 0.01f, 0);
+            scene.SpatialObjects[8].SO_mesh.position += new Vector3(0, 0.01f, 0);
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
-            //physics.UpdatePhysics(ref scene, dt);
+            physics.UpdatePhysics(ref scene, dt);
         }
 
         static unsafe void OnRender(double dt)
@@ -329,6 +338,7 @@ namespace SpatialEngine
             //needs to be io.framerate because the actal deltatime is polled too fast and the 
             //result is hard to read
             ImGui.Text("Version " + EngVer);
+            ImGui.Text("OpenGl " + OpenGlVersion);
             ImGui.Text("Gpu: " + Gpu);
             ImGui.Text(String.Format("{0:N3} ms/frame ({1:N1} FPS)", 1.0f / ImGui.GetIO().Framerate * 1000.0f, ImGui.GetIO().Framerate));
             ImGui.Text(String.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
