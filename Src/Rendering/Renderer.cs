@@ -94,6 +94,7 @@ namespace SpatialEngine
                 int indiceSize = 0;
                 for (int i = countBE; i < countTO; i++)
                 {
+                    //maybe move offset calculation into here?
                     vertexSize += objs[i].SO_mesh.vertexes.Length;
                     indiceSize += objs[i].SO_mesh.indices.Length;
                 }
