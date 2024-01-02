@@ -3,7 +3,8 @@ using System.Numerics;
 using JoltPhysicsSharp;
 
 //engine stuff
-using static SpatialEngine.MeshUtils;
+using static SpatialEngine.Rendering.MeshUtils;
+using SpatialEngine.Rendering;
 using static SpatialEngine.Globals;
 
 namespace SpatialEngine

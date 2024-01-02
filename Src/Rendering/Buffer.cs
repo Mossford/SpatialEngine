@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using static SpatialEngine.Globals;
 using System.Reflection;
 
-namespace SpatialEngine
+namespace SpatialEngine.Rendering
 {
     public unsafe class BufferObject<TDataType> : IDisposable where TDataType : unmanaged
     {

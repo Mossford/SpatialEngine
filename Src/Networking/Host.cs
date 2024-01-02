@@ -41,8 +41,7 @@ namespace SpatialEngine
             bool closed = false;
 
             int clientAmt;
-            string[] ips;
-            int[] ports;
+            IPEndPoint[] clientPoints;
 
             public Host(int port, string ip)
             {
@@ -79,6 +78,12 @@ namespace SpatialEngine
                 byte[] data = udpServer.EndReceive(result, ref endPoint);
                 udpServer.BeginReceive(ReciveAsync, null);
                 HandlePacket(data);
+            }
+
+            //may need to be async
+            public void Send(byte[] data)
+            {
+                udpServer.Send(data, data.Length);
             }
 
             public void Close()

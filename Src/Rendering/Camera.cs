@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace SpatialEngine
+namespace SpatialEngine.Rendering
 {
     public class Camera
     {

@@ -5,6 +5,7 @@ using System.Numerics;
 using JoltPhysicsSharp;
 
 //engine stuff
+using SpatialEngine.Rendering;
 using static SpatialEngine.Globals;
 
 namespace SpatialEngine

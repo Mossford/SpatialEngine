@@ -12,6 +12,7 @@ using static Silk.NET.Core.Native.WinString;
 
 //engine stuff
 using static SpatialEngine.Globals;
+using SpatialEngine.Rendering;
 
 namespace SpatialEngine
 {

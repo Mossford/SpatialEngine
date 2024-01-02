@@ -11,7 +11,7 @@ using System.Text.Unicode;
 using static SpatialEngine.Globals;
 using Silk.NET.Maths;
 
-namespace SpatialEngine
+namespace SpatialEngine.Rendering
 {
     public struct Vertex
     {

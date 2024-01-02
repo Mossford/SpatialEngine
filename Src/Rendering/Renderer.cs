@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 //engine stuff
 using static SpatialEngine.Globals;
 
-namespace SpatialEngine
+namespace SpatialEngine.Rendering
 {
     public class Renderer
     {
