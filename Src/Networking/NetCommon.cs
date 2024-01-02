@@ -3,6 +3,7 @@ using System.IO;
 using System.Numerics;
 using System.Reflection.Emit;
 using JoltPhysicsSharp;
+using Silk.NET.Core;
 using Silk.NET.Input;
 
 //engine stuff
@@ -185,7 +186,7 @@ namespace SpatialEngine.Networking
         {
             MemoryStream stream = new MemoryStream(data);
             BinaryReader reader = new BinaryReader(stream);
-            int type = reader.ReadUInt16();
+            ushort type = reader.ReadUInt16();
             id = reader.ReadInt32();
             //position
             float posX = reader.ReadSingle();
@@ -294,31 +295,33 @@ namespace SpatialEngine.Networking
             MemoryStream stream = new MemoryStream(data);
             BinaryReader reader = new BinaryReader(stream);
             //packet type
-            int type = reader.ReadUInt16();
+            ushort type = reader.ReadUInt16();
     
             switch (type)
             {
-                case (int)PacketType.Ping:
+                case (ushort)PacketType.Ping:
                 {
                     
                     break;
                 }
-                case (int)PacketType.Pong:
+                case (ushort)PacketType.Pong:
                 {
                     
                     break;
                 }
-                case (int)PacketType.SpatialObjectPacket:
+                case (ushort)PacketType.SpatialObjectPacket:
                 {
                     SpatialObjectPacket packet = new SpatialObjectPacket();
                     packet.ByteToPacket(data);
-                    scene.SpatialObjects[packet.id].SO_mesh.position = packet.Position;
-                    scene.SpatialObjects[packet.id].SO_mesh.rotation = packet.Rotation;
+                    if (packet.id >= scene.SpatialObjects.Count)
+                        break;
+                    scene.SpatialObjects[packet.id].SO_rigidbody.SetPosition((Double3)packet.Position);
+                    scene.SpatialObjects[packet.id].SO_rigidbody.SetRotation(packet.Rotation);
                     stream.Close();
                     reader.Close();
                     break;
                 }
-                case (int)PacketType.SpawnSpatialObject:
+                case (ushort)PacketType.SpawnSpatialObject:
                 {
                     SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
                     packet.ByteToPacket(data);
