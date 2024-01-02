@@ -146,11 +146,13 @@ namespace SpatialEngine
             int GetOffsetIndex(int countBE, int count, int index, in List<SpatialObject> objs)
             {
                 int offset = 0;
+                int offsetByte = 0;
                 for (int i = countBE; i < index; i++)
                 {
-                    offset += objs[i].SO_mesh.indices.Length;
+                    offset += objs[i].SO_mesh.vertexes.Length;
+                    offsetByte += objs[i].SO_mesh.indices.Length;
                 }
-                meshOffsets.Add(new MeshOffset(offset, offset * sizeof(uint), count));
+                meshOffsets.Add(new MeshOffset(offset, offsetByte * sizeof(uint), count));
                 prevMeshLocation = count;
                 return meshOffsets.Count - 1;
             }
@@ -170,6 +172,14 @@ namespace SpatialEngine
                         index = GetOffsetIndex(countBE, count, i, objs);
                     shader.setMat4("model", objs[i].SO_mesh.modelMat);
                     //shader.setMat4("model", bodyInterface.GetWorldTransform(objs[i].SO_rigidbody.rbID));
+                    //Because of opengls stupid documentation this draw call is suppose to take in the offset in indices by bytes then take in the offset in vertices instead of the offset in indices
+                    /*
+                        indices
+                            Specifies a pointer to the location where the indices are stored.
+                        basevertex
+                            Specifies a constant that should be added to each element of indices when chosing elements from the enabled vertex arrays. 
+                    */
+                    //This naming is so fucking bad and has caused me multiple hours in trying to find what the hell the problem is
                     gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
                     count++;
                 }
