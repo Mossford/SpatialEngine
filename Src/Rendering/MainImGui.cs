@@ -65,7 +65,7 @@ namespace SpatialEngine.Rendering
         {
             if (deltaTime > HighestFT)
                 HighestFT = (float)deltaTime;
-            frameTimes.AddPoint(GetTime(), deltaTime);
+            frameTimes.AddPoint(totalTime, deltaTime);
 
             ImGuiWindowFlags window_flags = 0;
             window_flags |= ImGuiWindowFlags.NoTitleBar;
@@ -82,8 +82,8 @@ namespace SpatialEngine.Rendering
             ImGui.Text(String.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
             ImGui.Text(String.Format("RenderSets: {0}", renderer.renderSets.Count));
             ImGui.Text(String.Format("Amount of Spatials: ({0})", scene.SpatialObjects.Count()));
-            ImGui.Text(String.Format("DrawCall Avg: ({0:N1}) DC/frame, DrawCall Total ({1})", drawCallAvg, DrawCallCount));
-            ImGui.Text(String.Format("Time Open %.1f minutes", (GetTime() / 60.0f)));
+            ImGui.Text(String.Format("DrawCall Avg: ({0:N1}) DC/frame, DrawCall Total ({1})", DrawCallCount / (totalTime / deltaTime), DrawCallCount));
+            ImGui.Text(String.Format("Time Open {0:N1} minutes", totalTime / 60.0f));
             //ImGui.Text(String.Format("Time taken for Update run %.2fms ", MathF.Abs(updateTime)));
             //ImGui.Text(String.Format("Time taken for Fixed Update run %.2fms ", MathF.Abs(updateFixedTime)));
 

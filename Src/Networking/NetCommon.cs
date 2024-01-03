@@ -300,36 +300,36 @@ namespace SpatialEngine.Networking
             switch (type)
             {
                 case (ushort)PacketType.Ping:
-                {
+                    {
                     
-                    break;
-                }
-                case (ushort)PacketType.Pong:
-                {
-                    
-                    break;
-                }
-                case (ushort)PacketType.SpatialObjectPacket:
-                {
-                    SpatialObjectPacket packet = new SpatialObjectPacket();
-                    packet.ByteToPacket(data);
-                    if (packet.id >= scene.SpatialObjects.Count)
                         break;
-                    scene.SpatialObjects[packet.id].SO_rigidbody.SetPosition((Double3)packet.Position);
-                    scene.SpatialObjects[packet.id].SO_rigidbody.SetRotation(packet.Rotation);
-                    stream.Close();
-                    reader.Close();
-                    break;
-                }
+                    }
+                case (ushort)PacketType.Pong:
+                    {
+                    
+                        break;
+                    }
+                case (ushort)PacketType.SpatialObjectPacket:
+                    {
+                        SpatialObjectPacket packet = new SpatialObjectPacket();
+                        packet.ByteToPacket(data);
+                        if (packet.id >= scene.SpatialObjects.Count)
+                            break;
+                        scene.SpatialObjects[packet.id].SO_rigidbody.SetPosition((Double3)packet.Position);
+                        scene.SpatialObjects[packet.id].SO_rigidbody.SetRotation(packet.Rotation);
+                        stream.Close();
+                        reader.Close();
+                        break;
+                    }
                 case (ushort)PacketType.SpawnSpatialObject:
-                {
-                    SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
-                    packet.ByteToPacket(data);
-                    scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
-                    stream.Close();
-                    reader.Close();
-                    break;
-                }
+                    {
+                        SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
+                        packet.ByteToPacket(data);
+                        scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
+                        stream.Close();
+                        reader.Close();
+                        break;
+                    }
             }
         }
     }

@@ -180,6 +180,7 @@ namespace SpatialEngine.Rendering
                     */
                     //This naming is so fucking bad and has caused me multiple hours in trying to find what the hell the problem is
                     gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
+                    DrawCallCount++;
                     count++;
                 }
                 gl.BindVertexArray(0);

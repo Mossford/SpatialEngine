@@ -34,7 +34,7 @@ namespace SpatialEngine
         public static IWindow window;
         public static IInputContext input;
         public static IKeyboard keyboard;
-        public static string EngVer = "0.5.0";
+        public static string EngVer = "0.6.2";
         public static string OpenGlVersion = "";
         public static string Gpu = "";
         
@@ -50,7 +50,7 @@ namespace SpatialEngine
         public static uint indCount;
 
         public static Host host;
-        public static Client client = new Client(4056, "127.0.0.1");
+        public static Client client = new Client(4095, "127.0.0.1");
         public static Player player;
 
         public static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -59,18 +59,12 @@ namespace SpatialEngine
         public static readonly string ImagePath = resourcePath + @"Images/";
         public static readonly string ModelPath = resourcePath + @"Models/";
 
-        public static float drawCallAvg = 0.0f;
         public static uint DrawCallCount = 0;
-
-        public static float GetTime()
-        {
-            return (float)window.Time;
-        }
+        public static float totalTime = 0.0f;
     }
 
     public class Game
     {
-        static float totalTime = 0.0f;
         public const int SCR_WIDTH = 1920;
         public const int SCR_HEIGHT = 1080;
         static ImGuiController controller;
@@ -199,12 +193,12 @@ namespace SpatialEngine
 
         static List<int> keysPressed = new List<int>();
         static float totalTimeUpdate = 0.0f;
-        static void OnUpdate(double dt) 
+        static void OnUpdate(double dt)
         {
             totalTime += (float)dt;
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
+                SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_rigidbody.GetPosition(), scene.SpatialObjects[i].SO_rigidbody.GetRotation());
                 client.Send(packet.ConvertToByte());
                 scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
             }
