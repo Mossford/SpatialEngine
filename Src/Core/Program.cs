@@ -23,7 +23,6 @@ using SpatialEngine.Rendering;
 //silk net has its own shader for some reason
 using Shader = SpatialEngine.Rendering.Shader;
 
-
 namespace SpatialEngine
 {
 
@@ -49,8 +48,8 @@ namespace SpatialEngine
         public static uint vertCount;
         public static uint indCount;
 
-        public static Host host;
-        public static Client client = new Client(4095, "127.0.0.1");
+        //public static Host host;
+        //public static Client client = new Client(4095, "127.0.0.1");
         public static Player player;
 
         public static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -163,6 +162,7 @@ namespace SpatialEngine
 
             //start host after everything has init
             //host.Start();
+            NetworkManager.Init();
         }
 
         static bool lockMouse = false;
@@ -198,8 +198,8 @@ namespace SpatialEngine
             totalTime += (float)dt;
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_rigidbody.GetPosition(), scene.SpatialObjects[i].SO_rigidbody.GetRotation());
-                client.Send(packet.ConvertToByte());
+                //SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_rigidbody.GetPosition(), scene.SpatialObjects[i].SO_rigidbody.GetRotation());
+                //client.Send(packet.ConvertToByte());
                 scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
             }
             if (keyboard.IsKeyPressed(Key.W))
@@ -245,8 +245,8 @@ namespace SpatialEngine
             if (keyboard.IsKeyPressed(Key.V))
             {
                 player.LaunchCube(ref scene, ModelPath + "Cube.obj");
-                SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), (Activation)Convert.ToInt32((bodyInterface.IsActive(scene.SpatialObjects[^1].SO_rigidbody.rbID))));
-                client.Send(packet.ConvertToByte());
+                //SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), (Activation)Convert.ToInt32((bodyInterface.IsActive(scene.SpatialObjects[^1].SO_rigidbody.rbID))));
+                //client.Send(packet.ConvertToByte());
                 vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.indices.Length;
             }

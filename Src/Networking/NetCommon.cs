@@ -13,7 +13,7 @@ using static SpatialEngine.Rendering.MeshUtils;
 namespace SpatialEngine.Networking
 {
     
-    public enum PacketType
+    public enum PacketType : ushort
     {
         Ping,
         Pong,

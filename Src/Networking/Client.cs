@@ -2,52 +2,71 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using Riptide;
+using Riptide.Transports;
+using Riptide.Utils;
 
 using static SpatialEngine.Networking.PacketHandler;
 
 namespace SpatialEngine.Networking
 {
-    public class Client
+    public class SpatialClient
     {
-        UdpClient udpClient;
-        IPEndPoint serverEndPoint;
-        IPEndPoint clientEndPoint;
-    
-        //for averaging the ping
-        int pingTotal;
-        int pings;
-    
-        public Client(int port, string ip)
+        public static Client client;
+        public static Thread clientThread;
+
+        public static ushort connectPort;
+        public static string connectIp;
+
+        public SpatialClient()
         {
-            udpClient = new UdpClient();
-            serverEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+
         }
-    
-        //may need to be async
-        public void Send(byte[] data)
+
+        public void Start(string ip, ushort port)
         {
-            udpClient.Send(data, data.Length, serverEndPoint);
+            connectIp = ip;
+            connectPort = port;
+            client = new Client();
+            client.Connected += Connected;
+            client.Disconnected += Disconnected;
+            Connect(connectIp, connectPort);
+            clientThread = new Thread(Update);
+            clientThread.Start();
         }
-    
-        void ReciveAsync(IAsyncResult result)
+
+        public void Connect(string ip, ushort port)
         {
-            byte[] data = udpClient.EndReceive(result, ref clientEndPoint);
-            udpClient.BeginReceive(ReciveAsync, null);
-            HandlePacket(data);
+            client.Connect($"{ip}:{port}");
         }
-    
-        //reset after some time like 10 seconds
-        public void GetPing()
+
+        public void Update()
         {
-            PingPacket pingPacket = new PingPacket();
-            byte[] data = pingPacket.ConvertToByte();
-            udpClient.Send(data, data.Length, serverEndPoint);
+            Message msg = Message.Create(MessageSendMode.Reliable, 0);
+            msg.AddInt(1);
+            client.Send(msg);
+            while(true)
+            {
+                client.Update();
+            }
         }
-    
-        public void Close()
+
+        void Connected(object sender, EventArgs e)
         {
-            udpClient.Close();
-            Console.WriteLine("Client Stopped");
+               
+        }
+
+        void Disconnected(object sender, EventArgs e)
+        {
+            
+        }
+
+        [MessageHandler((ushort)0)]
+        public static void MessageTest(Message message)
+        {
+            int test = message.GetInt();
+            Console.WriteLine("got message " + test);
         }
     }
 }
