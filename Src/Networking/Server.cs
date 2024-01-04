@@ -39,6 +39,8 @@ namespace SpatialEngine.Networking
         public string ip;
         public int maxConnections { get; protected set; }
 
+        bool stopping;
+
         public SpatialServer(string ip, ushort port = 58301, int maxConnections = 10)
         {
             this.ip = ip;
@@ -59,6 +61,8 @@ namespace SpatialEngine.Networking
         {
             while(true)
             {
+                if(stopping)
+                    return;
                 server.Update();
             }
         }
@@ -82,6 +86,15 @@ namespace SpatialEngine.Networking
             msg.AddInt(test);
             server.Send(msg, fromClientId);
             Console.WriteLine("sending message to " + server.Clients[fromClientId - 1]);
+        }
+
+        public void Close()
+        {
+            server.Stop();
+            stopping = true;
+            serverThread.Interrupt();
+            server = null;
+            serverThread = null;
         }
     }
 }

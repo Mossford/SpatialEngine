@@ -19,6 +19,8 @@ namespace SpatialEngine.Networking
         public static ushort connectPort;
         public static string connectIp;
 
+        bool stopping;
+
         public SpatialClient()
         {
 
@@ -48,6 +50,9 @@ namespace SpatialEngine.Networking
             client.Send(msg);
             while(true)
             {
+                if (stopping)
+                    return;
+
                 client.Update();
             }
         }
@@ -67,6 +72,15 @@ namespace SpatialEngine.Networking
         {
             int test = message.GetInt();
             Console.WriteLine("got message " + test);
+        }
+
+        public void Close()
+        {
+            client.Disconnect();
+            stopping = true;
+            clientThread.Interrupt();
+            client = null;
+            clientThread = null;
         }
     }
 }

@@ -89,6 +89,7 @@ namespace SpatialEngine
             window.Run();
 
             physics.CleanPhysics(ref scene);
+            NetworkManager.Cleanup();
             //host.Close();
         }
 

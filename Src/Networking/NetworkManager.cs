@@ -37,5 +37,20 @@ namespace SpatialEngine.Networking
             didInit = true;
             isServer = true;
         }
+
+        public static void Cleanup()
+        {
+            if(didInit)
+            {
+                if(isServer)
+                {
+                    server.Close();
+                }
+                else
+                {
+                    client.Close();
+                }
+            }
+        }
     }
 }

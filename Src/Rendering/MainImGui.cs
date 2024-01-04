@@ -348,16 +348,15 @@ namespace SpatialEngine.Rendering
                     ImGui.TextColored(new Vector4(1,0,0,1), $"{NetworkManager.server.ip}:{NetworkManager.server.port}");
                     int currentSel = 0;
                     Connection[] connections = NetworkManager.server.GetServerConnections();
-                    if (ImGui.BeginListBox("Connections"))
+                    if (ImGui.BeginListBox("##Connections", new Vector2(ImGui.GetWindowSize().X, (connections.Length + 1) * ImGui.GetTextLineHeightWithSpacing())))
                     {
                         for (int n = 0; n < connections.Length; n++)
                         {
                             bool is_selected = (currentSel == n);
-                            string name = $"{connections[n]}";
+                            string name = $"Client {n + 1} at {connections[n]}";
                             if (ImGui.Selectable(name, is_selected))
                                 currentSel = n;
 
-                            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
                             if (is_selected)
                                 ImGui.SetItemDefaultFocus();
                         }
