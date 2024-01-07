@@ -6,8 +6,6 @@ using System.Threading;
 using Riptide;
 using Riptide.Utils;
 
-using static SpatialEngine.Networking.PacketHandler;
-
 namespace SpatialEngine.Networking
 {
     public static class NetworkManager

@@ -9,7 +9,10 @@ using Riptide;
 
 //engine stuff
 using static SpatialEngine.Globals;
-using static SpatialEngine.Networking.PacketHandler;
+using static SpatialEngine.Rendering.MeshUtils;
+using System.Numerics;
+using JoltPhysicsSharp;
+using Riptide.Transports;
 
 namespace SpatialEngine.Networking
 {
@@ -41,11 +44,13 @@ namespace SpatialEngine.Networking
 
         bool stopping;
 
+
         public SpatialServer(string ip, ushort port = 58301, int maxConnections = 10)
         {
             this.ip = ip;
             this.port = port;
             this.maxConnections = maxConnections;
+            Message.InstancesPerPeer = 100;
         }
 
         public void Start()
@@ -53,7 +58,8 @@ namespace SpatialEngine.Networking
             server = new Server();
             serverThread = new Thread(Update);
             server.ClientConnected += ClientConnected;
-            server.Start(port, (ushort)maxConnections);
+            server.MessageReceived += handleMessage;
+            server.Start(port, (ushort)maxConnections, 0, false);
             serverThread.Start();
         }
 
@@ -77,24 +83,92 @@ namespace SpatialEngine.Networking
             return server.Clients;
         }
 
-        [MessageHandler((ushort)0)]
-        public static void MessageTest(ushort fromClientId, Message message)
+        public void SendUnrelib(Packet packet, ushort clientId)
         {
-            int test = message.GetInt();
-            Console.WriteLine("got message " + test);
-            Message msg = Message.Create(MessageSendMode.Reliable, 0);
-            msg.AddInt(test);
-            server.Send(msg, fromClientId);
-            Console.WriteLine("sending message to " + server.Clients[fromClientId - 1]);
+            Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
+            msgUnrelib.AddBytes(packet.ConvertToByte());
+            server.Send(msgUnrelib, clientId);
+        }
+
+        public void SendRelib(Packet packet, ushort clientId)
+        {
+            Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
+            msgRelib.AddBytes(packet.ConvertToByte());
+            server.Send(msgRelib, clientId);
+        }
+
+        public void SendUnrelibAll(Packet packet)
+        {
+            Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
+            msgUnrelib.AddBytes(packet.ConvertToByte());
+            server.SendToAll(msgUnrelib);
+        }
+
+        public void SendRelibAll(Packet packet)
+        {
+            Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
+            msgRelib.AddBytes(packet.ConvertToByte());
+            server.SendToAll(msgRelib);
+        }
+
+        public void handleMessage(object sender, MessageReceivedEventArgs e)
+        {
+            HandlePacketServer(e.Message.GetBytes(), e.FromConnection);
         }
 
         public void Close()
         {
-            server.Stop();
             stopping = true;
             serverThread.Interrupt();
+            server.Stop();
             server = null;
             serverThread = null;
+        }
+
+        //Handles packets that come from the client
+
+        void HandlePacketServer(byte[] data, Connection client)
+        {
+            MemoryStream stream = new MemoryStream(data);
+            BinaryReader reader = new BinaryReader(stream);
+            //packet type
+            ushort type = reader.ReadUInt16();
+
+            switch (type)
+            {
+                case (ushort)PacketType.Ping:
+                    {
+
+                        break;
+                    }
+                case (ushort)PacketType.Connect:
+                    {
+                        ConnectReturnPacket packet = new ConnectReturnPacket();
+                        SendRelib(packet, client.Id);
+                        break;
+                    }
+                case (ushort)PacketType.SpatialObject:
+                    {
+                        SpatialObjectPacket packet = new SpatialObjectPacket();
+                        packet.ByteToPacket(data);
+                        if (packet.id >= scene.SpatialObjects.Count)
+                            break;
+                        scene.SpatialObjects[packet.id].SO_rigidbody.SetPosition((Double3)packet.Position);
+                        scene.SpatialObjects[packet.id].SO_rigidbody.SetRotation(packet.Rotation);
+                        stream.Close();
+                        reader.Close();
+                        break;
+                    }
+                case (ushort)PacketType.SpawnSpatialObject:
+                    {
+                        SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
+                        packet.ByteToPacket(data);
+                        scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
+                        stream.Close();
+                        reader.Close();
+                        break;
+                    }
+            }
         }
     }
 }
