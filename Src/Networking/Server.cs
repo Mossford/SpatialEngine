@@ -63,6 +63,15 @@ namespace SpatialEngine.Networking
             serverThread.Start();
         }
 
+        public void Stop()
+        {
+            stopping = true;
+            serverThread.Interrupt();
+            server.Stop();
+            server = null;
+            serverThread = null;
+        }
+
         public void Update()
         {
             while(true)

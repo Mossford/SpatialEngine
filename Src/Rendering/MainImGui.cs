@@ -9,12 +9,13 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Riptide;
 
 //engine stuff
 using static SpatialEngine.Globals;
 using static SpatialEngine.Rendering.MeshUtils;
 using SpatialEngine.Networking;
-using Riptide;
+using System.Net;
 
 namespace SpatialEngine.Rendering
 {
@@ -324,6 +325,9 @@ namespace SpatialEngine.Rendering
             ImGui.End();
         }
 
+        static int port = 0;
+        static string ip = "";
+        static byte[] byteBuf = new byte[24];
         static void NetworkViewer()
         {
             ImGui.SetNextWindowSize(new Vector2(600, 420), ImGuiCond.FirstUseEver);
@@ -343,7 +347,7 @@ namespace SpatialEngine.Rendering
             {
                 if(NetworkManager.isServer)
                 {
-                    ImGui.Text("Running Server on");
+                    ImGui.Text("Running Server on: ");
                     ImGui.SameLine();
                     ImGui.TextColored(new Vector4(1,0,0,1), $"{NetworkManager.server.ip}:{NetworkManager.server.port}");
                     int currentSel = 0;
@@ -362,7 +366,46 @@ namespace SpatialEngine.Rendering
                         }
                         ImGui.EndListBox();
                     }
+
+                    if (ImGui.Button("Stop Server"))
+                    {
+                        NetworkManager.server.Stop();
+                    }
                 }
+                else
+                {
+                    if(NetworkManager.client.IsConnected())
+                    {
+                        ImGui.Text("Connected to Server: ");
+                        ImGui.SameLine();
+                        ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{NetworkManager.client.connectIp}:{NetworkManager.client.connectPort}");
+                        Connection clientConnect = NetworkManager.client.GetConnection();
+                        ImGui.Text("Client on: ");
+                        ImGui.SameLine();
+                        ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{clientConnect}");
+                        ImGui.Text(string.Format($"Ping: {clientConnect}"));
+
+                        if(ImGui.Button("Disconnect"))
+                        {
+                            NetworkManager.client.Disconnect();
+                        }
+                    }
+                    else
+                    {
+                        ImGui.Text("Client not connected to server");
+                        ImGui.InputText("IP Address", ref ip, 24);
+                        ImGui.InputInt("Port", ref port);
+                        port = (int)MathF.Abs(port);
+
+                        if (ImGui.Button("Connect"))
+                        {
+                            if (IPAddress.TryParse(ip, out IPAddress address))
+                            {
+                                NetworkManager.client.Connect(address.ToString(), (ushort)port);
+                            }
+                        }
+                    }
+                }    
             }
             ImGui.End();
         }

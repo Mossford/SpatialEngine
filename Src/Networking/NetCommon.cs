@@ -64,7 +64,6 @@ namespace SpatialEngine.Networking
 
     public class ConnectReturnPacket : Packet
     {
-
         public string engVersion;
 
         public ConnectReturnPacket()

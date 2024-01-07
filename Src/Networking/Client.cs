@@ -19,8 +19,8 @@ namespace SpatialEngine.Networking
         public static Client client;
         public static Thread clientThread;
 
-        public static ushort connectPort;
-        public static string connectIp;
+        public ushort connectPort;
+        public string connectIp;
 
         bool stopping;
 
@@ -45,6 +45,13 @@ namespace SpatialEngine.Networking
         public void Connect(string ip, ushort port)
         {
             client.Connect($"{ip}:{port}", 5, 0, null, false);
+            connectIp = ip;
+            connectPort = port;
+        }
+
+        public void Disconnect() 
+        {
+            client.Disconnect();
         }
 
         public void Update()
@@ -74,22 +81,29 @@ namespace SpatialEngine.Networking
 
         void Disconnected(object sender, EventArgs e)
         {
-            
+            connectIp = "";
+            connectPort = 0;
         }
 
         public void SendUnrelib(Packet packet)
         {
-            Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
-            msgUnrelib.AddBytes(packet.ConvertToByte());
-            client.Send(msgUnrelib);
+            if(client.IsConnected)
+            {
+                Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
+                msgUnrelib.AddBytes(packet.ConvertToByte());
+                client.Send(msgUnrelib);
+            }
         }
 
         //calling this a lot causes null error on the message create
         public void SendRelib(Packet packet)
         {
-            Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
-            msgRelib.AddBytes(packet.ConvertToByte());
-            client.Send(msgRelib);
+            if (client.IsConnected)
+            {
+                Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
+                msgRelib.AddBytes(packet.ConvertToByte());
+                client.Send(msgRelib);
+            }
         }
 
         public void Close()
@@ -152,5 +166,8 @@ namespace SpatialEngine.Networking
                     }
             }
         }
+
+        public Connection GetConnection() => client.Connection;
+        public bool IsConnected() => client.IsConnected;
     }
 }
