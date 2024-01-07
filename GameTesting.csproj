@@ -41,6 +41,7 @@
     <PackageReference Include="Silk.NET.OpenGL" Version="2.20.0" />
     <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.17.1" />
     <PackageReference Include="Silk.NET.Windowing" Version="2.20.0" />
+    <PackageReference Include="StbImageSharp" Version="2.27.13" />
   </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />

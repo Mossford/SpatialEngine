@@ -22,6 +22,7 @@ using SpatialEngine.Networking;
 using SpatialEngine.Rendering;
 //silk net has its own shader for some reason
 using Shader = SpatialEngine.Rendering.Shader;
+using Texture = SpatialEngine.Rendering.Texture;
 
 namespace SpatialEngine
 {
@@ -69,6 +70,7 @@ namespace SpatialEngine
         static ImGuiController controller;
         static Vector2 LastMousePosition;
         static Shader shader;
+        static Texture texture;
 
 
         public static void Main(string[] args)
@@ -149,6 +151,8 @@ namespace SpatialEngine
 
             player = new Player(15.0f, new Vector3(-33,12,-20), new Vector3(300, 15, 0));
             shader = new Shader(gl, ShaderPath + "Default.vert", ShaderPath + "Default.frag");
+            texture = new Texture();
+            texture.LoadTexture(ImagePath + "RedDebug.png");
 
             ImGui.SetWindowSize(new Vector2(400, 600));
 
@@ -276,6 +280,8 @@ namespace SpatialEngine
 
             gl.UseProgram(shader.shader);
             shader.setVec3("lightPos", new Vector3(0,10,-10));
+            gl.ActiveTexture(GLEnum.Texture0);
+            texture.Bind();
             renderer.Draw(scene, ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
 
             controller.Render();
