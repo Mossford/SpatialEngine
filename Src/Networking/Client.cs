@@ -87,7 +87,7 @@ namespace SpatialEngine.Networking
 
         public void SendUnrelib(Packet packet)
         {
-            if(client.IsConnected)
+            if(client.IsConnected || !stopping)
             {
                 Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
                 msgUnrelib.AddBytes(packet.ConvertToByte());
@@ -98,7 +98,7 @@ namespace SpatialEngine.Networking
         //calling this a lot causes null error on the message create
         public void SendRelib(Packet packet)
         {
-            if (client.IsConnected)
+            if (client.IsConnected || !stopping)
             {
                 Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
                 msgRelib.AddBytes(packet.ConvertToByte());
@@ -117,7 +117,8 @@ namespace SpatialEngine.Networking
 
         public void handleMessage(object sender, MessageReceivedEventArgs e)
         {
-            HandlePacketClient(e.Message.GetBytes());
+            if(!stopping)
+                HandlePacketClient(e.Message.GetBytes());
         }
 
         //Handles packets that come from the server
@@ -126,6 +127,11 @@ namespace SpatialEngine.Networking
         {
             MemoryStream stream = new MemoryStream(data);
             BinaryReader reader = new BinaryReader(stream);
+
+            //data sent is not a proper packet
+            if (data.Length < 2)
+                return;
+
             //packet type
             ushort type = reader.ReadUInt16();
 

@@ -347,29 +347,39 @@ namespace SpatialEngine.Rendering
             {
                 if(NetworkManager.isServer)
                 {
-                    ImGui.Text("Running Server on: ");
-                    ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(1,0,0,1), $"{NetworkManager.server.ip}:{NetworkManager.server.port}");
-                    int currentSel = 0;
-                    Connection[] connections = NetworkManager.server.GetServerConnections();
-                    if (ImGui.BeginListBox("##Connections", new Vector2(ImGui.GetWindowSize().X, (connections.Length + 1) * ImGui.GetTextLineHeightWithSpacing())))
+                    if(NetworkManager.server.IsRunning())
                     {
-                        for (int n = 0; n < connections.Length; n++)
+                        ImGui.Text("Running Server on: ");
+                        ImGui.SameLine();
+                        ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{NetworkManager.server.ip}:{NetworkManager.server.port}");
+                        int currentSel = 0;
+                        Connection[] connections = NetworkManager.server.GetServerConnections();
+                        if (ImGui.BeginListBox("##Connections", new Vector2(ImGui.GetWindowSize().X, (connections.Length + 1) * ImGui.GetTextLineHeightWithSpacing())))
                         {
-                            bool is_selected = (currentSel == n);
-                            string name = $"Client {n + 1} at {connections[n]}";
-                            if (ImGui.Selectable(name, is_selected))
-                                currentSel = n;
+                            for (int n = 0; n < connections.Length; n++)
+                            {
+                                bool is_selected = (currentSel == n);
+                                string name = $"Client {n + 1} at {connections[n]}";
+                                if (ImGui.Selectable(name, is_selected))
+                                    currentSel = n;
 
-                            if (is_selected)
-                                ImGui.SetItemDefaultFocus();
+                                if (is_selected)
+                                    ImGui.SetItemDefaultFocus();
+                            }
+                            ImGui.EndListBox();
                         }
-                        ImGui.EndListBox();
-                    }
 
-                    if (ImGui.Button("Stop Server"))
+                        if (ImGui.Button("Stop Server"))
+                        {
+                            NetworkManager.server.Stop();
+                        }
+                    }
+                    else
                     {
-                        NetworkManager.server.Stop();
+                        if (ImGui.Button("StartServer"))
+                        {
+                            NetworkManager.InitServer();
+                        }
                     }
                 }
                 else

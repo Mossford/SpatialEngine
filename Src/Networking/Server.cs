@@ -68,8 +68,6 @@ namespace SpatialEngine.Networking
             stopping = true;
             serverThread.Interrupt();
             server.Stop();
-            server = null;
-            serverThread = null;
         }
 
         public void Update()
@@ -89,40 +87,57 @@ namespace SpatialEngine.Networking
 
         public Connection[] GetServerConnections()
         {
+            if(stopping)
+            {
+                return [];
+            }
             return server.Clients;
         }
 
         public void SendUnrelib(Packet packet, ushort clientId)
         {
-            Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
-            msgUnrelib.AddBytes(packet.ConvertToByte());
-            server.Send(msgUnrelib, clientId);
+            if(!stopping)
+            {
+                Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
+                msgUnrelib.AddBytes(packet.ConvertToByte());
+                server.Send(msgUnrelib, clientId);
+            }
         }
 
         public void SendRelib(Packet packet, ushort clientId)
         {
-            Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
-            msgRelib.AddBytes(packet.ConvertToByte());
-            server.Send(msgRelib, clientId);
+            if (!stopping)
+            {
+                Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
+                msgRelib.AddBytes(packet.ConvertToByte());
+                server.Send(msgRelib, clientId);
+            }
         }
 
         public void SendUnrelibAll(Packet packet)
         {
-            Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
-            msgUnrelib.AddBytes(packet.ConvertToByte());
-            server.SendToAll(msgUnrelib);
+            if (!stopping)
+            {
+                Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
+                msgUnrelib.AddBytes(packet.ConvertToByte());
+                server.SendToAll(msgUnrelib);
+            }
         }
 
         public void SendRelibAll(Packet packet)
         {
-            Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
-            msgRelib.AddBytes(packet.ConvertToByte());
-            server.SendToAll(msgRelib);
+            if (!stopping)
+            {
+                Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
+                msgRelib.AddBytes(packet.ConvertToByte());
+                server.SendToAll(msgRelib);
+            }
         }
 
         public void handleMessage(object sender, MessageReceivedEventArgs e)
         {
-            HandlePacketServer(e.Message.GetBytes(), e.FromConnection);
+            if (!stopping)
+                HandlePacketServer(e.Message.GetBytes(), e.FromConnection);
         }
 
         public void Close()
@@ -140,6 +155,11 @@ namespace SpatialEngine.Networking
         {
             MemoryStream stream = new MemoryStream(data);
             BinaryReader reader = new BinaryReader(stream);
+
+            //data sent is not a proper packet
+            if (data.Length < 2)
+                return;
+
             //packet type
             ushort type = reader.ReadUInt16();
 
@@ -179,5 +199,7 @@ namespace SpatialEngine.Networking
                     }
             }
         }
+
+        public bool IsRunning() => server.IsRunning;
     }
 }
