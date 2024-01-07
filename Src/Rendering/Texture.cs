@@ -30,9 +30,9 @@ namespace SpatialEngine.Rendering
                     {
                         if ((x / 4 + y / 4) % 2 == 0)
                         {
-                            pixels[x,y,0] = 255;
-                            pixels[x,y,1] = 0;
-                            pixels[x,y,2] = 255;
+                            pixels[x, y, 0] = 255;
+                            pixels[x, y, 1] = 0;
+                            pixels[x, y, 2] = 255;
 
                         }
                         else
