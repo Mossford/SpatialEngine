@@ -24,6 +24,8 @@ using SpatialEngine.Rendering;
 using Shader = SpatialEngine.Rendering.Shader;
 using Texture = SpatialEngine.Rendering.Texture;
 
+using PlaneGame;
+
 namespace SpatialEngine
 {
 
@@ -136,7 +138,6 @@ namespace SpatialEngine
             scene.AddSpatialObject(LoadModel(new Vector3(37,5,-21), Quaternion.Identity, ModelPath + "FloorWall5.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-50,2,0), Quaternion.Identity, ModelPath + "FloorWall6.obj"), new Vector3(1,2,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, ModelPath + "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(0,5,0), Quaternion.Identity, ModelPath + "Bunnysmooth.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             //scene.AddSpatialObject(CreateSphereMesh(new Vector3(0,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), 3), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
 
 
@@ -168,6 +169,10 @@ namespace SpatialEngine
             //start host after everything has init
             //host.Start();
             NetworkManager.Init();
+
+
+            //init game
+            GameManager.InitGame();
         }
 
         static bool lockMouse = false;
@@ -243,6 +248,8 @@ namespace SpatialEngine
             }
             keysPressed.Clear();
 
+
+            GameManager.UpdateGame((float)dt);
         }
 
         static void FixedUpdate(float dt)

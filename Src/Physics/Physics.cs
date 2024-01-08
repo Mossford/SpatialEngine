@@ -221,6 +221,16 @@ namespace SpatialEngine
             return bodyInterface.GetRotation(rbID);
         }
 
+        public Vector3 GetVelocity()
+        {
+            return bodyInterface.GetLinearVelocity(rbID);
+        }
+
+        public Vector3 GetAngVelocity()
+        {
+            return bodyInterface.GetAngularVelocity(rbID);
+        }
+
         public void SetVelocity(Vector3 vec)
         {
             bodyInterface.SetLinearVelocity(rbID, vec);
