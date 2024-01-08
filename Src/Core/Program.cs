@@ -265,6 +265,10 @@ namespace SpatialEngine
                 vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.indices.Length;
             }
+            if(keyboard.IsKeyPressed(Key.C))
+            {
+                player.LaunchPlane();
+            }
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
             physics.UpdatePhysics(ref scene, dt);

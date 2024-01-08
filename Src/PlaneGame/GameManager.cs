@@ -14,7 +14,7 @@ namespace PlaneGame
 {
     public static class GameManager
     {
-        static Plane plane;
+        public static Plane plane;
 
         public static void InitGame()
         {
@@ -25,7 +25,7 @@ namespace PlaneGame
         public static void UpdateGame(float dt)
         {
             plane.Update(dt);
-            scene.SpatialObjects[plane.id].SO_rigidbody.SetVelocity(plane.velocity);
+            //scene.SpatialObjects[plane.id].SO_rigidbody.SetVelocity(plane.velocity);
         }
     }
 }

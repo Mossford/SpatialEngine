@@ -18,5 +18,24 @@ namespace SpatialEngine
                 matrix.M41 * self.X + matrix.M42 * self.Y + matrix.M43 * self.Z + matrix.M44 * self.W
             );
         }
+
+        public static float Vector3Angle(Vector3 a, Vector3 b)
+        {
+            float dotProduct = Vector3.Dot(a, b);
+            float magnitudeA = a.Length();
+            float magnitudeB = b.Length();
+
+            // Avoid division by zero
+            if (magnitudeA == 0 || magnitudeB == 0)
+            {
+                return 0f;
+            }
+
+            float cosTheta = dotProduct / (magnitudeA * magnitudeB);
+            float thetaRad = (float)MathF.Acos(cosTheta);
+
+            // Convert angle from radians to degrees
+            return thetaRad * (180f / MathF.PI);
+        }
     }
 }
