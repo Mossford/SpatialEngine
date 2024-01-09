@@ -1,3 +1,4 @@
+using JoltPhysicsSharp;
 using System;
 using System.Numerics;
 
@@ -7,10 +8,12 @@ namespace SpatialEngine.Rendering
     {
         public Vector3 position;
         public Vector3 rotation;
-        public Vector3 target;
         public Vector3 direction;
         public float zoom;
         public float sensitivity = 0.2f;
+
+        public Matrix4x4 viewMat;
+        public Matrix4x4 projMat;
 
         public Camera(Vector3 position, Vector3 rotation, float zoom = 45.0f)
         {
@@ -22,6 +25,7 @@ namespace SpatialEngine.Rendering
 
         public Vector3 GetCamDir()
         {
+            Vector3 target;
             target.X = -MathF.Sin(rotation.X*(3.14159265358979323846f/180.0f)) * MathF.Cos(rotation.Y*(3.14159265358979323846f/180.0f));
             target.Y = -MathF.Sin(rotation.Y*(3.14159265358979323846f/180.0f));
             target.Z = MathF.Cos(rotation.X*(3.14159265358979323846f/180.0f)) * MathF.Cos(rotation.Y*(3.14159265358979323846f/180.0f));
@@ -33,15 +37,14 @@ namespace SpatialEngine.Rendering
             return Vector3.Cross(GetCamDir(), Vector3.Normalize(Vector3.Cross(Vector3.UnitY, GetCamDir())));
         }
 
-        public Matrix4x4 GetViewMat()
+        public void SetViewMat()
         {
-            return Matrix4x4.CreateLookAt(position, position + GetCamDir(), GetCameraUp());
+            viewMat = Matrix4x4.CreateLookAt(position, GetCamDir() + position, GetCameraUp());
         }
 
-        public Matrix4x4 GetProjMat(float winX, float winY)
+        public void SetProjMat(float winX, float winY)
         {
-            return Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 180.0f * zoom, winX / winY, 0.1f, 100000.0f);
+            projMat = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 180.0f * zoom, winX / winY, 0.1f, 100000.0f);
         }
-        
     }
 }

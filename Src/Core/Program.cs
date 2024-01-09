@@ -23,6 +23,7 @@ using SpatialEngine.Rendering;
 //silk net has its own shader for some reason
 using Shader = SpatialEngine.Rendering.Shader;
 using Texture = SpatialEngine.Rendering.Texture;
+using static SpatialEngine.Debugging;
 
 using PlaneGame;
 
@@ -47,7 +48,8 @@ namespace SpatialEngine
         public static BodyInterface bodyInterface;
 
         public static bool showWireFrame = false;
-        public static bool vsync = false;
+        //going to be true because my gpu squeals if vsync is off
+        public static bool vsync = true;
         public static uint vertCount;
         public static uint indCount;
 
@@ -278,6 +280,9 @@ namespace SpatialEngine
         {   
             controller.Update((float)dt);
 
+            player.camera.SetViewMat();
+            player.camera.SetProjMat(window.Size.X, window.Size.Y);
+
             ImGuiMenu((float)dt);
 
             gl.ClearColor(Color.FromArgb(102, 178, 204));
@@ -293,7 +298,10 @@ namespace SpatialEngine
             shader.setVec3("lightPos", new Vector3(0,10,-10));
             gl.ActiveTexture(GLEnum.Texture0);
             texture.Bind();
-            renderer.Draw(scene, ref shader, player.camera.GetViewMat(), player.camera.GetProjMat(window.Size.X, window.Size.Y), player.camera.position);
+            renderer.Draw(scene, ref shader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+
+            SetNeededDebug(player.camera.projMat, player.camera.viewMat);
+            DrawDebugItems();
 
             controller.Render();
         }

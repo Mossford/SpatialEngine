@@ -112,7 +112,6 @@ namespace SpatialEngine
         public void LaunchPlane()
         {
             scene.SpatialObjects[GameManager.plane.id].SO_rigidbody.SetPosition((Double3)(camera.position + (camera.GetCamDir() * 13.0f)));
-            scene.SpatialObjects[GameManager.plane.id].SO_rigidbody.SetVelocity(camera.GetCamDir() * 100.0f);
         }
     }
 }

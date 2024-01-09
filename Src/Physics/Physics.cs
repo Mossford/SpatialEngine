@@ -241,5 +241,10 @@ namespace SpatialEngine
             bodyInterface.SetAngularVelocity(rbID, vec);
         }
 
+        public void AddVelocity(Vector3 vec)
+        {
+            bodyInterface.AddLinearVelocity(rbID, vec);
+        }
+
     }
 }

@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 using static SpatialEngine.Globals;
 using static SpatialEngine.Math;
+using static SpatialEngine.Debugging;
+using Silk.NET.Input;
 
 namespace PlaneGame
 {
@@ -21,7 +23,7 @@ namespace PlaneGame
         public LiftCurve liftCurve = new LiftCurve(0.671f, -0.35f, 1f);
         public LiftCurve dragCurve = new LiftCurve(-0.41f, 0.0f, 0.0f);
 
-        public float mass = 1000f;
+        public float mass = 100f;
 
         Vector3 up;
         Vector3 down;
@@ -38,17 +40,23 @@ namespace PlaneGame
         public void Update(float deltaTime)
         {
             totalForce = Vector3.Zero;
-            ApplyDragForce(1.0f, 10.0f);
-            ApplyLiftForce(1.0f, 10.0f);
-            //totalForce += new Vector3(0,-9.81f,0);
+            float aoa = GetAngleOfAttack();
+            //ApplyDragForce(1.0f, 200.0f, aoa);
+            //ApplyLiftForce(1.0f, 200.0f, aoa);
+            //totalForce += forward;
 
-            //velocity += deltaTime * totalForce;
-            scene.SpatialObjects[id].SO_rigidbody.AddImpulseForce(totalForce * deltaTime, 1.0f);
+            DrawDebugLine(forward * 10 + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), forward + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 255));
+            DrawDebugLine(up + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 0));
+            //DrawDebugLine(scene.SpatialObjects[id].SO_rigidbody.GetVelocity() + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 0));
+            //DrawDebugLine(totalForce / mass + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 255));
+            scene.SpatialObjects[id].SO_rigidbody.AddVelocity((totalForce / mass) * deltaTime);
 
-            Vector4 tmpForward = ApplyMatrix(new Vector4(0, 0, 1, 1), bodyInterface.GetWorldTransform(scene.SpatialObjects[id].SO_rigidbody.rbID));
-            Vector4 tmpRight = ApplyMatrix(new Vector4(1, 0, 0, 1), bodyInterface.GetWorldTransform(scene.SpatialObjects[id].SO_rigidbody.rbID));
-            forward = new Vector3(tmpForward.X, tmpForward.Y, tmpForward.Z);
-            right = new Vector3(tmpRight.X, tmpRight.Y, tmpRight.Z);
+            Quaternion rotation = scene.SpatialObjects[id].SO_rigidbody.GetRotation();
+            forward.X = -MathF.Sin(rotation.X) * MathF.Cos(rotation.Y) * 180f / MathF.PI;
+            forward.Y = -MathF.Sin(rotation.Y) * 180f / MathF.PI;
+            forward.Z = MathF.Cos(rotation.X) * MathF.Cos(rotation.Y) * 180f / MathF.PI;
+            forward = Vector3.Normalize(forward);
+            right = ApplyMatrixVec3(Vector3.UnitX, scene.SpatialObjects[id].SO_mesh.modelMat);
             backward = -forward;
             left = -right;
             up = Vector3.Cross(forward, right);
@@ -60,19 +68,19 @@ namespace PlaneGame
             return Vector3Angle(up, scene.SpatialObjects[id].SO_rigidbody.GetVelocity()) - 90.0f;
         }
 
-        void ApplyDragForce(float airDensity, float area)
+        void ApplyDragForce(float airDensity, float area, float angle)
         {
             Vector3 velocity = scene.SpatialObjects[id].SO_rigidbody.GetVelocity();
             float speed = velocity.Length();
-            float dragForce = (-0.5f * 0.0175f * area) * airDensity * speed * dragCurve.Evaluate(MathF.Abs(GetAngleOfAttack()));
+            float dragForce = (-0.5f * 0.0175f * area) * airDensity * speed * dragCurve.Evaluate(MathF.Abs(angle));
             if(speed != 0)
                 totalForce += dragForce * Vector3.Normalize(velocity);
         }
 
-        void ApplyLiftForce(float airDensity, float area)
+        void ApplyLiftForce(float airDensity, float area, float angle)
         {
             float speed = scene.SpatialObjects[id].SO_rigidbody.GetVelocity().Length();
-            float liftForce = (0.5f * 1.9f * area) * airDensity * speed * MathF.Sign(GetAngleOfAttack()) * liftCurve.Evaluate(MathF.Abs(GetAngleOfAttack()));
+            float liftForce = (0.5f * 1.9f * area) * airDensity * speed * MathF.Sign(angle) * liftCurve.Evaluate(MathF.Abs(angle));
             if(up != Vector3.Zero)
                 totalForce += liftForce * Vector3.Normalize(up);
         }
