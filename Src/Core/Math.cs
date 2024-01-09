@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -44,6 +45,36 @@ namespace SpatialEngine
                 return 0f;
             float dot = ClampValue(Vector3.Dot(a, b) / denominator, -1f, 1f);
             return (MathF.Acos(dot)) * 180f/MathF.PI;
+        }
+
+        public static Quaternion Vec3ToQuat(Vector3 vec)
+        {
+            float yaw = vec.X;
+            float pitch = vec.Y;
+            float roll = vec.Z;
+            float qx = MathF.Sin(roll / 2f) * MathF.Cos(pitch / 2f) * MathF.Cos(yaw / 2f) - MathF.Cos(roll / 2f) * MathF.Sin(pitch / 2f) * MathF.Sin(yaw / 2f);
+            float qy = MathF.Cos(roll / 2f) * MathF.Sin(pitch / 2f) * MathF.Cos(yaw / 2f) + MathF.Sin(roll / 2f) * MathF.Cos(pitch / 2f) * MathF.Sin(yaw / 2f);
+            float qz = MathF.Cos(roll / 2f) * MathF.Cos(pitch / 2f) * MathF.Sin(yaw / 2f) - MathF.Sin(roll / 2f) * MathF.Sin(pitch / 2f) * MathF.Cos(yaw / 2f);
+            float qw = MathF.Cos(roll / 2f) * MathF.Cos(pitch / 2f) * MathF.Cos(yaw / 2f) + MathF.Sin(roll / 2f) * MathF.Sin(pitch / 2f) * MathF.Sin(yaw / 2f);
+            return new Quaternion(qx, qy, qz, qw);
+        }
+
+        public static Vector3 QuatToVec3(Quaternion quat)
+        {
+            float x = quat.X;
+            float y = quat.Y;
+            float z = quat.Z;
+            float w = quat.W;
+            float t0 = 2f * (w * x + y * z);
+            float t1 = 1f - 2f * (x * x + y * y);
+            float roll = MathF.Atan2(t0, t1);
+            float t2 = 2f * (w * y - z * x);
+            t2 = ClampValue(t2, -1f, 1f);
+            float pitch = MathF.Asin(t2);
+            float t3 = 2f * (w * z + x * y);
+            float t4 = 1f - 2f * (y * y + z * z);
+            float yaw = MathF.Atan2(t3, t4);
+            return new Vector3(yaw, pitch, roll);
         }
     }
 }

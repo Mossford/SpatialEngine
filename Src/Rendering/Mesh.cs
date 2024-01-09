@@ -10,6 +10,7 @@ using System.Text.Unicode;
 //engine stuff
 using static SpatialEngine.Globals;
 using Silk.NET.Maths;
+using Silk.NET.Input;
 
 namespace SpatialEngine.Rendering
 {
@@ -67,9 +68,9 @@ namespace SpatialEngine.Rendering
             this.scale = scale;
         }
 
-        public void SetModelMatrix()
+        public void SetModelMatrix(Matrix4x4 model)
         {
-            modelMat = Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position)  * Matrix4x4.CreateScale(scale);
+            modelMat = Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position);
         }
 
         public void Dispose()

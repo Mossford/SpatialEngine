@@ -212,7 +212,7 @@ namespace SpatialEngine
             {
                 //SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_rigidbody.GetPosition(), scene.SpatialObjects[i].SO_rigidbody.GetRotation());
                 //client.Send(packet.ConvertToByte());
-                scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
+                scene.SpatialObjects[i].SO_mesh.SetModelMatrix(bodyInterface.GetWorldTransform(scene.SpatialObjects[i].SO_rigidbody.rbID));
             }
             if (keyboard.IsKeyPressed(Key.W))
             {

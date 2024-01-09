@@ -11,6 +11,7 @@ using static SpatialEngine.Globals;
 using static SpatialEngine.Math;
 using static SpatialEngine.Debugging;
 using Silk.NET.Input;
+using System.Diagnostics;
 
 namespace PlaneGame
 {
@@ -41,22 +42,17 @@ namespace PlaneGame
         {
             totalForce = Vector3.Zero;
             float aoa = GetAngleOfAttack();
-            //ApplyDragForce(1.0f, 200.0f, aoa);
-            //ApplyLiftForce(1.0f, 200.0f, aoa);
-            //totalForce += forward;
+            ApplyDragForce(1.0f, 5.0f, aoa);
+            ApplyLiftForce(1.0f, 5.0f, aoa);
+            totalForce += forward * 10000;
 
-            DrawDebugLine(forward * 10 + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), forward + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 255));
-            DrawDebugLine(up + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 0));
-            //DrawDebugLine(scene.SpatialObjects[id].SO_rigidbody.GetVelocity() + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 0));
-            //DrawDebugLine(totalForce / mass + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 255));
+            DrawDebugLine(scene.SpatialObjects[id].SO_rigidbody.GetVelocity() + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 0));
+            DrawDebugLine(totalForce / mass + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 255));
             scene.SpatialObjects[id].SO_rigidbody.AddVelocity((totalForce / mass) * deltaTime);
-
-            Quaternion rotation = scene.SpatialObjects[id].SO_rigidbody.GetRotation();
-            forward.X = -MathF.Sin(rotation.X) * MathF.Cos(rotation.Y) * 180f / MathF.PI;
-            forward.Y = -MathF.Sin(rotation.Y) * 180f / MathF.PI;
-            forward.Z = MathF.Cos(rotation.X) * MathF.Cos(rotation.Y) * 180f / MathF.PI;
-            forward = Vector3.Normalize(forward);
-            right = ApplyMatrixVec3(Vector3.UnitX, scene.SpatialObjects[id].SO_mesh.modelMat);
+            //had to invert the matrix for god knows why
+            Matrix4x4.Invert(scene.SpatialObjects[id].SO_mesh.modelMat, out Matrix4x4 mat);
+            forward = ApplyMatrixVec3(Vector3.UnitZ, mat);
+            right = ApplyMatrixVec3(Vector3.UnitX, mat);
             backward = -forward;
             left = -right;
             up = Vector3.Cross(forward, right);
