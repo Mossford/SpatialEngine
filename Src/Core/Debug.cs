@@ -24,7 +24,8 @@ namespace SpatialEngine
         {
             Line = 2,
             Triangle = 3,
-            Cube = 36
+            Cube = 36,
+            Sphere = 60,
         };
 
         public static void SetNeededDebug(Matrix4x4 proj, Matrix4x4 view)
@@ -158,9 +159,9 @@ namespace SpatialEngine
             fixed (void* v = &points[0])
                 gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(points.Length * sizeof(uint)), v, BufferUsageARB.StaticDraw);
             gl.EnableVertexAttribArray(0);
-            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(float), (void*)0);
+            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * (uint)sizeof(float), (void*)0);
             gl.EnableVertexAttribArray(1);
-            gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)sizeof(float), (void*)(3 * sizeof(float)));
+            gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * (uint)sizeof(float), (void*)(3 * sizeof(float)));
             gl.BindVertexArray(0);
 
             vaos.Add(vao);
@@ -179,7 +180,7 @@ namespace SpatialEngine
                 gl.BindVertexArray(vaos[i]);
                 if (drawSizes[i] == (int)DebugTypes.Line)
                     gl.DrawArrays(GLEnum.Lines, 0, drawSizes[i]);
-                if (drawSizes[i] == (int)DebugTypes.Cube || drawSizes[i] == (int)DebugTypes.Triangle)
+                if (drawSizes[i] == (int)DebugTypes.Cube || drawSizes[i] == (int)DebugTypes.Triangle || drawSizes[i] == (int)DebugTypes.Sphere)
                     gl.DrawArrays(GLEnum.Triangles, 0, drawSizes[i]);
                 gl.BindVertexArray(0);
                 gl.Enable(GLEnum.DepthTest);

@@ -26,6 +26,7 @@ namespace PlaneGame
 
         public float mass = 100f;
 
+        Vector3 playerOffset = new Vector3(0, 10, -30);
         Vector3 up;
         Vector3 down;
         Vector3 forward;
@@ -42,13 +43,14 @@ namespace PlaneGame
         {
             totalForce = Vector3.Zero;
             float aoa = GetAngleOfAttack();
-            ApplyDragForce(1.0f, 5.0f, aoa);
-            ApplyLiftForce(1.0f, 5.0f, aoa);
-            totalForce += forward * 10000;
+            ApplyDragForce(1.0f, 20.0f, aoa);
+            ApplyLiftForce(1.0f, 20.0f, aoa);
+            ApplyThrustForce(1000);
 
             DrawDebugLine(scene.SpatialObjects[id].SO_rigidbody.GetVelocity() + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 0));
             DrawDebugLine(totalForce / mass + scene.SpatialObjects[id].SO_rigidbody.GetPosition(), scene.SpatialObjects[id].SO_rigidbody.GetPosition(), new Vector3(255, 255, 255));
             scene.SpatialObjects[id].SO_rigidbody.AddVelocity((totalForce / mass) * deltaTime);
+            //player.position = scene.SpatialObjects[id].SO_rigidbody.GetPosition() + playerOffset;
             //had to invert the matrix for god knows why
             Matrix4x4.Invert(scene.SpatialObjects[id].SO_mesh.modelMat, out Matrix4x4 mat);
             forward = ApplyMatrixVec3(Vector3.UnitZ, mat);
@@ -79,6 +81,11 @@ namespace PlaneGame
             float liftForce = (0.5f * 1.9f * area) * airDensity * speed * MathF.Sign(angle) * liftCurve.Evaluate(MathF.Abs(angle));
             if(up != Vector3.Zero)
                 totalForce += liftForce * Vector3.Normalize(up);
+        }
+
+        public void ApplyThrustForce(float power)
+        {
+            totalForce += forward * power;
         }
 
         public class LiftCurve

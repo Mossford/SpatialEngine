@@ -9,6 +9,7 @@ using JoltPhysicsSharp;
 using SpatialEngine;
 using static SpatialEngine.Globals;
 using static SpatialEngine.Rendering.MeshUtils;
+using static SpatialEngine.Math;
 
 namespace PlaneGame
 {
@@ -19,7 +20,7 @@ namespace PlaneGame
         public static void InitGame()
         {
             plane = new Plane(scene.SpatialObjects.Count);
-            scene.AddSpatialObject(LoadModel(new Vector3(0, 5, 0), Quaternion.Identity, ModelPath + "Plane.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.AddSpatialObject(LoadModel(new Vector3(0, 10, 0), Vec3ToQuat(new Vector3(0,0,100)), ModelPath + "Plane.obj"), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
         }
 
         public static void UpdateGame(float dt)
