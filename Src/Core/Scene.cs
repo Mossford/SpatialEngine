@@ -4,11 +4,7 @@ using System.Numerics;
 using System.Xml.Linq;
 using JoltPhysicsSharp;
 using Silk.NET.OpenGL;
-
 using Silk.NET.SDL;
-using static Silk.NET.Core.Native.WinString;
-
-
 
 //engine stuff
 using static SpatialEngine.Globals;
