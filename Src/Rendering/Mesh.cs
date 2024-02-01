@@ -383,8 +383,7 @@ namespace SpatialEngine.Rendering
                 }
             }
 
-
-            string[] lines = File.ReadAllLines(modelLocation);
+            StreamReader reader = new StreamReader(modelLocation);
             List<Vertex> vertexes = new List<Vertex>();
             List<uint> indices = new List<uint>();
             List<Vector2> tmpUV = new List<Vector2>();
@@ -392,12 +391,14 @@ namespace SpatialEngine.Rendering
             List<Vector3> tmpVertice = new List<Vector3>();
             List<uint> tmpInd = new List<uint>(), tmpUVInd = new List<uint>(), tmpNormalInd = new List<uint>();
             Vertex vertex = new Vertex(Vector3.Zero, Vector3.Zero, Vector2.Zero);
-            for (int i = 0; i < lines.Length; i++)
+            string line;
+            while (!reader.EndOfStream)
             {
-                string line = lines[i];
-                if(line[0] == 'v' && line[1] != 't' && line[1] != 'n')
+                 line = reader.ReadLine();
+
+                if (line[0] == 'v' && line[1] != 't' && line[1] != 'n')
                 {
-                    line = line.Remove(0, 2);
+                    line = line.Remove(0,2);
                     string[] values = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     if (values.Length >= 3 && float.TryParse(values[0], out float x) && float.TryParse(values[1], out float y) && float.TryParse(values[2], out float z))
                     {

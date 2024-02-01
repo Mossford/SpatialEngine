@@ -12,12 +12,13 @@ using static SpatialEngine.Globals;
 
 namespace SpatialEngine.Rendering
 {
-    public class Renderer
+    public static class Renderer
     {
         record MeshOffset(int offset, int offsetByte);
 
         public class RenderSet : IDisposable
         {
+
             // Max amount of objects a renderset can render
 
             public uint vao { get; protected set; }
@@ -187,23 +188,19 @@ namespace SpatialEngine.Rendering
             }
         }
 
-        public int MaxRenders { get; protected set; }
-        public List<RenderSet> renderSets { get; protected set; }
-        int objectBeforeCount = 0;
+        public static int MaxRenders;
+        public static List<RenderSet> renderSets;
+        static int objectBeforeCount = 0;
 
-        public Renderer(int maxRenders = 1000)
+        public static void Init(in Scene scene, int maxRenders = 10000)
         {
             renderSets = new List<RenderSet>();
             MaxRenders = maxRenders;
-        }
-
-        public void Init(in Scene scene)
-        {
             renderSets.Add(new RenderSet());
             renderSets[0].CreateDrawSet(scene.SpatialObjects, 0, scene.SpatialObjects.Count);
         }
 
-        public void Draw(in Scene scene, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
+        public static void Draw(in Scene scene, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
         {
             int objTotalCount = scene.SpatialObjects.Count;
 

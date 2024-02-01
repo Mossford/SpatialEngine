@@ -42,7 +42,6 @@ namespace SpatialEngine
         public static string Gpu = "";
         
         public static Scene scene;
-        public static Renderer renderer;
         public static Physics physics;
         public static PhysicsSystem physicsSystem;
         public static BodyInterface bodyInterface;
@@ -128,7 +127,6 @@ namespace SpatialEngine
             gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
 
             scene = new Scene();
-            renderer = new Renderer();
             physics = new Physics();
             physics.InitPhysics();
             
@@ -150,7 +148,7 @@ namespace SpatialEngine
                 indCount += (uint)scene.SpatialObjects[i].SO_mesh.indices.Length;
             }
 
-            renderer.Init(scene);
+            Renderer.Init(scene);
 
             player = new Player(15.0f, new Vector3(-33,12,-20), new Vector3(300, 15, 0));
             shader = new Shader(gl, ShaderPath + "Default.vert", ShaderPath + "Default.frag");
@@ -258,7 +256,7 @@ namespace SpatialEngine
         {
             if (keyboard.IsKeyPressed(Key.V))
             {
-                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
+                player.LaunchCube(ref scene, ModelPath + "Bunny.obj");
                 if(!NetworkManager.isServer)
                 {
                     SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), (Activation)Convert.ToInt32((bodyInterface.IsActive(scene.SpatialObjects[^1].SO_rigidbody.rbID))));
@@ -298,7 +296,7 @@ namespace SpatialEngine
             shader.setVec3("lightPos", new Vector3(0,10,-10));
             gl.ActiveTexture(GLEnum.Texture0);
             texture.Bind();
-            renderer.Draw(scene, ref shader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+            Renderer.Draw(scene, ref shader, player.camera.viewMat, player.camera.projMat, player.camera.position);
 
             SetNeededDebug(player.camera.projMat, player.camera.viewMat);
             DrawDebugItems();

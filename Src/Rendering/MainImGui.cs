@@ -83,7 +83,7 @@ namespace SpatialEngine.Rendering
             ImGui.Text("Gpu: " + Gpu);
             ImGui.Text(String.Format("{0:N3} ms/frame ({1:N1} FPS)", 1.0f / ImGui.GetIO().Framerate * 1000.0f, ImGui.GetIO().Framerate));
             ImGui.Text(String.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
-            ImGui.Text(String.Format("RenderSets: {0}", renderer.renderSets.Count));
+            ImGui.Text(String.Format("RenderSets: {0}", Renderer.renderSets.Count));
             ImGui.Text(String.Format("Amount of Spatials: ({0})", scene.SpatialObjects.Count()));
             ImGui.Text(String.Format("DrawCall Avg: ({0:N1}) DC/frame, DrawCall Total ({1})", DrawCallCount / (totalTime / deltaTime), DrawCallCount));
             ImGui.Text(String.Format("Time Open {0:N1} minutes", totalTime / 60.0f));
