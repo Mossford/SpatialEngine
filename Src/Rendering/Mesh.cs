@@ -68,7 +68,7 @@ namespace SpatialEngine.Rendering
             this.scale = scale;
         }
 
-        public void SetModelMatrix(Matrix4x4 model)
+        public void SetModelMatrix()
         {
             modelMat = Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position);
         }
