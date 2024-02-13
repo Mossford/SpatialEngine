@@ -66,16 +66,10 @@ namespace SpatialEngine.Networking
             server.Stop();
         }
 
-        static float totalTimeUpdate = 0f;
         public void Update(float deltaTime)
         {
-            totalTimeUpdate += deltaTime;
-            while (totalTimeUpdate >= 0.016f)
+            if(!stopping)
             {
-                totalTimeUpdate -= 0.016f;
-                if (stopping)
-                    return;
-
                 server.Update();
             }
         }

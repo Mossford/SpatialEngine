@@ -44,6 +44,9 @@ namespace SpatialEngine.Networking
             client.Connect($"{ip}:{port}", 5, 0, null, false);
             connectIp = ip;
             connectPort = port;
+
+            ConnectPacket connectPacket = new ConnectPacket();
+            SendRelib(connectPacket);
         }
 
         public void Disconnect() 
@@ -51,26 +54,17 @@ namespace SpatialEngine.Networking
             client.Disconnect();
         }
 
-        static float totalTimeUpdate = 0f;
         public void Update(float deltaTime)
         {
-            ConnectPacket connectPacket = new ConnectPacket();
-            SendRelib(connectPacket);
-
-            totalTimeUpdate += deltaTime;
-            while (totalTimeUpdate >= 0.016f)
+            if (!stopping)
             {
-                totalTimeUpdate -= 0.016f;
-                if (stopping)
-                        return;
+                for (int i = 0; i < scene.SpatialObjects.Count; i++)
+                {
+                    SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
+                    SendUnrelib(packet);
+                }
 
-                    for (int i = 0; i < scene.SpatialObjects.Count; i++)
-                    {
-                        SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
-                        SendUnrelib(packet);
-                    }
-
-                    client.Update();
+                client.Update();
             }
         }
 
