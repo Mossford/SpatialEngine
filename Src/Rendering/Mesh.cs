@@ -365,21 +365,29 @@ namespace SpatialEngine.Rendering
 
         public static Mesh LoadModel(Vector3 position, Quaternion rotation, string modelLocation)
         {
-            if(!File.Exists(modelLocation))
+            if (modelLocation == "")
+                return null;
+            if (!File.Exists(modelLocation))
             {
-                Console.WriteLine("cannot find model loc");
-                if(modelLocation == "")
-                    return null;
-                switch (Int32.Parse(modelLocation))
+                if(int.TryParse(modelLocation, out int modelType))
                 {
-                case (int)MeshType.CubeMesh:
-                    return CreateCubeMesh(position, rotation);
-                case (int)MeshType.IcoSphereMesh:
-                    return CreateSphereMesh(position, rotation, 3);
-                case (int)MeshType.TriangleMesh:
-                    return Create2DTriangle(position, rotation);
-                case (int)MeshType.SpikerMesh:
-                    return CreateSpikerMesh(position, rotation, 0.3f);
+                    switch (modelType)
+                    {
+                        case (int)MeshType.CubeMesh:
+                            return CreateCubeMesh(position, rotation);
+                        case (int)MeshType.IcoSphereMesh:
+                            return CreateSphereMesh(position, rotation, 3);
+                        case (int)MeshType.TriangleMesh:
+                            return Create2DTriangle(position, rotation);
+                        case (int)MeshType.SpikerMesh:
+                            return CreateSpikerMesh(position, rotation, 0.3f);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("cannot find model at " + modelLocation);
+                    //could not find the model even though an input file location was provided
+                    return null;
                 }
             }
 
