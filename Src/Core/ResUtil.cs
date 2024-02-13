@@ -12,6 +12,7 @@ namespace SpatialEngine
         public static string ShaderPath = resourcePath + "Shaders/";
         public static string ImagePath = resourcePath + "Images/";
         public static string ModelPath = resourcePath + "Models/";
+        public static string ScenePath = resourcePath + "Scenes/";
 
         public static void InitResources()
         {
@@ -22,6 +23,12 @@ namespace SpatialEngine
                 ShaderPath = resourcePath + "Shaders/";
                 ImagePath = resourcePath + "Images/";
                 ModelPath = resourcePath + "Models/";
+                ScenePath = resourcePath + "Scenes/";
+            }
+
+            if(!Directory.Exists(ScenePath))
+            {
+                Directory.CreateDirectory(ScenePath);
             }
         }
     }

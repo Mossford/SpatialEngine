@@ -92,19 +92,19 @@ namespace SpatialEngine
                 rotation.Y = -89.0f;
         }
 
-        public void LaunchObject(ref Scene scene, string name)
+        public void LaunchObject(ref Scene scene, string modelLocation, string name)
         {
-            scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, name), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, modelLocation, name), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
         }
 
-        public void LaunchCube(ref Scene scene, string name)
+        public void LaunchCube(ref Scene scene, string modelLocation)
         {
-            scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, name), new Vector3(1.0f), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, modelLocation, "Cube.obj"), new Vector3(1.0f), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
         }
 
-        public void LaunchSphere(ref Scene scene, string name)
+        public void LaunchSphere(ref Scene scene)
         {
             scene.AddSpatialObject(CreateSphereMesh(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, 2), 1.0f, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);

@@ -294,13 +294,13 @@ namespace SpatialEngine.Rendering
                             scene.AddSpatialObject(selmesh, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
                         break;
                     case (int)MeshType.FileMesh:
-                        if (!File.Exists(IMM_input))
+                        if (!File.Exists(ModelPath + IMM_input))
                         {
                             ImGui.OpenPopup("Error");
                         }
                         else
                         {
-                            scene.AddSpatialObject(LoadModel(IMM_selposition, new Quaternion(IMM_selrotation * MathF.PI / 180.0f, 1.0f), ModelPath + input));
+                            scene.AddSpatialObject(LoadModel(IMM_selposition, new Quaternion(IMM_selrotation * MathF.PI / 180.0f, 1.0f), ModelPath, IMM_input));
                             vertCount += (uint)scene.SpatialObjects[id].SO_mesh.vertexes.Length;
                             indCount += (uint)scene.SpatialObjects[id].SO_mesh.indices.Length;
                             scene.SpatialObjects[id].SO_rigidbody.SetVelocity(IMM_selvelocity);

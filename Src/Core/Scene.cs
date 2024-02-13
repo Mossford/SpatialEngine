@@ -9,6 +9,8 @@ using Silk.NET.SDL;
 //engine stuff
 using static SpatialEngine.Globals;
 using SpatialEngine.Rendering;
+using System.IO;
+using System.Linq;
 
 namespace SpatialEngine
 {
@@ -102,9 +104,50 @@ namespace SpatialEngine
 
         }
 
-        public void SaveScene()
+        public void SaveScene(string location, string name)
         {
+            if(!File.Exists(location + name))
+            {
+                File.Create(location + name);
+            }
+            else
+            {
+                File.WriteAllText(location + name, string.Empty);
+            }
 
+            StreamWriter writer = new StreamWriter(location + name);
+
+            string info =
+                "#Scene File\n" +
+                "#Scene and Object Layout\n" +
+                "\n" +
+                "#S (Scene name)\n" +
+                "#SN (number of SpatialObjects)\n" +
+                "#SO (object number)\n" +
+                "#ML (Mesh location)\n" +
+                "#MP (Mesh position.x)/(mesh position.y)/(mesh position.z)\n" +
+                "#MR (Mesh rotation.x)/(mesh rotation.y)/(mesh rotation.z)\n" +
+                "#MS (mesh scale)\n" +
+                "#TL (Texture location)\n" +
+                "#RV (Velocity.x)/(Velocity.y)/(Velocity.z)\n";
+
+            writer.WriteLine(info);
+            writer.WriteLine("S " + name.Remove(name.LastIndexOf('.'), name.Length - name.LastIndexOf('.')));
+            writer.WriteLine("SN " + SpatialObjects.Count);
+
+            for (int i = 0; i < SpatialObjects.Count; i++)
+            {
+                writer.WriteLine("SO " + SpatialObjects[i].SO_id);
+                writer.WriteLine("ML " + SpatialObjects[i].SO_mesh.modelLocation);
+                writer.WriteLine("MP " + SpatialObjects[i].SO_mesh.position.X + "/" + SpatialObjects[i].SO_mesh.position.Y + "/" + SpatialObjects[i].SO_mesh.position.Z);
+                writer.WriteLine("MR " + SpatialObjects[i].SO_mesh.rotation.X + "/" + SpatialObjects[i].SO_mesh.rotation.Y + "/" + SpatialObjects[i].SO_mesh.rotation.Z + "/" + SpatialObjects[i].SO_mesh.rotation.W);
+                writer.WriteLine("MS " + SpatialObjects[i].SO_mesh.scale);
+                //writer.Write("TL " + SpatialObjects[i].SO_texture.textLocation);
+                Vector3 vel = SpatialObjects[i].SO_rigidbody.GetVelocity();
+                writer.WriteLine("RV " + vel.X.ToString("G30") + "/" + vel.Y.ToString("G30") + "/" + vel.Z.ToString("G30"));
+            }
+
+            writer.Close();
         }
 
         public void LoadScene()

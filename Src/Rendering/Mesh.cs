@@ -363,13 +363,13 @@ namespace SpatialEngine.Rendering
             return new Mesh(((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
         }
 
-        public static Mesh LoadModel(Vector3 position, Quaternion rotation, string modelLocation)
+        public static Mesh LoadModel(Vector3 position, Quaternion rotation, string modelLocation, string name)
         {
             if (modelLocation == "")
                 return null;
-            if (!File.Exists(modelLocation))
+            if (!File.Exists(modelLocation + name))
             {
-                if(int.TryParse(modelLocation, out int modelType))
+                if(int.TryParse(modelLocation + name, out int modelType))
                 {
                     switch (modelType)
                     {
@@ -385,13 +385,13 @@ namespace SpatialEngine.Rendering
                 }
                 else
                 {
-                    Console.WriteLine("cannot find model at " + modelLocation);
                     //could not find the model even though an input file location was provided
+                    Console.WriteLine("cannot find model at " + modelLocation + name);
                     return null;
                 }
             }
 
-            StreamReader reader = new StreamReader(modelLocation);
+            StreamReader reader = new StreamReader(modelLocation + name);
             List<Vertex> vertexes = new List<Vertex>();
             List<uint> indices = new List<uint>();
             List<Vector2> tmpUV = new List<Vector2>();
@@ -465,7 +465,7 @@ namespace SpatialEngine.Rendering
                 indices.Add((uint)i);
                 vertexes.Add(vertex);
             }
-            return new Mesh(modelLocation, vertexes.ToArray(), indices.ToArray(), position, rotation, 1.0f);
+            return new Mesh(name, vertexes.ToArray(), indices.ToArray(), position, rotation, 1.0f);
         }
     }
 }

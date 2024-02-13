@@ -184,7 +184,7 @@ namespace SpatialEngine.Networking
                     {
                         SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
                         packet.ByteToPacket(data);
-                        scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
+                        scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, SpatialEngine.Resources.ModelPath, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
                         stream.Close();
                         reader.Close();
                         break;
