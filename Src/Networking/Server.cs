@@ -159,7 +159,8 @@ namespace SpatialEngine.Networking
             {
                 case (ushort)PacketType.Ping:
                     {
-
+                        PongPacket packet = new PongPacket();
+                        SendRelib(packet, client.Id);
                         break;
                     }
                 case (ushort)PacketType.Connect:

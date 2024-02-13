@@ -122,6 +122,8 @@ namespace SpatialEngine
 
         public void UpdatePhysics(ref Scene scene, float dt)
         {
+            
+
             foreach (SpatialObject obj in scene.SpatialObjects)
             {
                 if(obj.SO_rigidbody != null && bodyInterface.IsActive(obj.SO_rigidbody.rbID))
@@ -135,11 +137,11 @@ namespace SpatialEngine
 
         public void CleanPhysics(ref Scene scene)
         {
-            foreach (SpatialObject obj in scene.SpatialObjects)
+            for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                if(obj.SO_rigidbody != null)
+                if(scene.SpatialObjects[i].SO_rigidbody != null)
                 {
-                    bodyInterface.DestroyBody(obj.SO_rigidbody.rbID);
+                    bodyInterface.DestroyBody(scene.SpatialObjects[i].SO_rigidbody.rbID);
                 }
             }
 
@@ -169,7 +171,7 @@ namespace SpatialEngine
             settings = new BodyCreationSettings(new SphereShape(radius), position, rotation, motion, layer);
         }
 
-        public RigidBody(Vertex[] vertexes, Vector3 position, Quaternion rotation, MotionType motion, ObjectLayer layer)
+        public RigidBody(in Vertex[] vertexes, Vector3 position, Quaternion rotation, MotionType motion, ObjectLayer layer)
         {
             Vector3[] vertices = new Vector3[vertexes.Length];
             for (int i = 0; i < vertexes.Length; i++)

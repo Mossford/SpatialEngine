@@ -38,7 +38,7 @@ namespace SpatialEngine
         public static IWindow window;
         public static IInputContext input;
         public static IKeyboard keyboard;
-        public static string EngVer = "0.6.2";
+        public static string EngVer = "0.6.3";
         public static string OpenGlVersion = "";
         public static string Gpu = "";
         
@@ -53,12 +53,12 @@ namespace SpatialEngine
         public static uint vertCount;
         public static uint indCount;
 
-        //public static Host host;
-        //public static Client client = new Client(4095, "127.0.0.1");
         public static Player player;
 
         public static uint DrawCallCount = 0;
         public static float totalTime = 0.0f;
+
+        public static float GetTime() => totalTime;
     }
 
     public class Game

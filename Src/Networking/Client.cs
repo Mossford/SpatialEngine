@@ -11,6 +11,8 @@ using static SpatialEngine.Rendering.MeshUtils;
 using static SpatialEngine.Globals;
 using JoltPhysicsSharp;
 using System.IO;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace SpatialEngine.Networking
 {
@@ -22,6 +24,8 @@ namespace SpatialEngine.Networking
         public string connectIp;
 
         bool stopping;
+
+        bool waitPing = false;
 
         public SpatialClient()
         {
@@ -63,7 +67,6 @@ namespace SpatialEngine.Networking
                     SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
                     SendUnrelib(packet);
                 }
-
                 client.Update();
             }
         }
@@ -113,6 +116,32 @@ namespace SpatialEngine.Networking
                 HandlePacketClient(e.Message.GetBytes());
         }
 
+        public async Task GetPing()
+        {
+            await Task.Run(() => 
+            {
+                float timeStart = Globals.GetTime();
+                PingPacket packet = new PingPacket();
+                SendRelib(packet);
+                waitPing = true;
+                float accum = 0f;
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+                while(waitPing)
+                {
+                    //stop checking for ping after 15 seconds
+                    if(stopwatch.ElapsedMilliseconds / 1000 >= 15)
+                    {
+                        break;
+                    }
+                }
+                stopwatch.Stop();
+                float timeEnd = Globals.GetTime();
+                Console.WriteLine(timeEnd - timeStart);
+
+            });
+        }
+
         //Handles packets that come from the server
 
         void HandlePacketClient(byte[] data)
@@ -131,7 +160,7 @@ namespace SpatialEngine.Networking
             {
                 case (ushort)PacketType.Pong:
                     {
-
+                        waitPing = false;
                         break;
                     }
                 case (ushort)PacketType.ConnectReturn:
