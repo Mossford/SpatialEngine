@@ -110,7 +110,7 @@ namespace SpatialEngine
         {
             Foundation.Init(false);
             tempAllocator = new TempAllocator(10 * 1024 * 1024);
-            jobSystem = new JobSystemThreadPool(Foundation.MaxPhysicsJobs, Foundation.MaxPhysicsBarriers, Process.GetCurrentProcess().Threads.Count);
+            jobSystem = new JobSystemThreadPool(Foundation.MaxPhysicsJobs, Foundation.MaxPhysicsBarriers, Process.GetCurrentProcess().Threads.Count / 2);
             physicsSystem = new PhysicsSystem();
             layerInterface = new BPLayerInterfaceImpl();
             objectVsBroadPhaseLayer = new ObjectVsBroadPhaseLayerFilterImpl();

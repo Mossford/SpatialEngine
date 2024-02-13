@@ -4,6 +4,7 @@ using JoltPhysicsSharp;
 
 //engine stuff
 using static SpatialEngine.Rendering.MeshUtils;
+using static SpatialEngine.Resources;
 using SpatialEngine.Rendering;
 using static SpatialEngine.Globals;
 using PlaneGame;

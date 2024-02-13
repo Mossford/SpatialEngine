@@ -3,6 +3,7 @@ using Silk.NET.Maths;
 using System.Numerics;
 using Silk.NET.OpenGL;
 using static SpatialEngine.Globals;
+using static SpatialEngine.Resources;
 using Shader = SpatialEngine.Rendering.Shader;
 using System.Collections.Generic;
 

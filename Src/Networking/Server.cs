@@ -36,7 +36,6 @@ namespace SpatialEngine.Networking
     public class SpatialServer
     {
         public static Server server;
-        public static Thread serverThread;
 
         public ushort port;
         public string ip;
@@ -56,26 +55,27 @@ namespace SpatialEngine.Networking
         public void Start()
         {
             server = new Server();
-            serverThread = new Thread(Update);
             server.ClientConnected += ClientConnected;
             server.MessageReceived += handleMessage;
             server.Start(port, (ushort)maxConnections, 0, false);
-            serverThread.Start();
         }
 
         public void Stop()
         {
             stopping = true;
-            serverThread.Interrupt();
             server.Stop();
         }
 
-        public void Update()
+        static float totalTimeUpdate = 0f;
+        public void Update(float deltaTime)
         {
-            while(true)
+            totalTimeUpdate += deltaTime;
+            while (totalTimeUpdate >= 0.016f)
             {
-                if(stopping)
+                totalTimeUpdate -= 0.016f;
+                if (stopping)
                     return;
+
                 server.Update();
             }
         }
@@ -143,10 +143,8 @@ namespace SpatialEngine.Networking
         public void Close()
         {
             stopping = true;
-            serverThread.Interrupt();
             server.Stop();
             server = null;
-            serverThread = null;
         }
 
         //Handles packets that come from the client

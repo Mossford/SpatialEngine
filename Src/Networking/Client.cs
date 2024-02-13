@@ -17,7 +17,6 @@ namespace SpatialEngine.Networking
     public class SpatialClient
     {
         public static Client client;
-        public static Thread clientThread;
 
         public ushort connectPort;
         public string connectIp;
@@ -38,8 +37,6 @@ namespace SpatialEngine.Networking
             client.Disconnected += Disconnected;
             client.MessageReceived += handleMessage;
             Connect(connectIp, connectPort);
-            clientThread = new Thread(Update);
-            clientThread.Start();
         }
 
         public void Connect(string ip, ushort port)
@@ -54,23 +51,26 @@ namespace SpatialEngine.Networking
             client.Disconnect();
         }
 
-        public void Update()
+        static float totalTimeUpdate = 0f;
+        public void Update(float deltaTime)
         {
             ConnectPacket connectPacket = new ConnectPacket();
             SendRelib(connectPacket);
 
-            while (true)
+            totalTimeUpdate += deltaTime;
+            while (totalTimeUpdate >= 0.016f)
             {
+                totalTimeUpdate -= 0.016f;
                 if (stopping)
-                    return;
+                        return;
 
-                for (int i = 0; i < scene.SpatialObjects.Count; i++)
-                {
-                    SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
-                    SendUnrelib(packet);
-                }
+                    for (int i = 0; i < scene.SpatialObjects.Count; i++)
+                    {
+                        SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
+                        SendUnrelib(packet);
+                    }
 
-                client.Update();
+                    client.Update();
             }
         }
 
@@ -110,9 +110,7 @@ namespace SpatialEngine.Networking
         {
             client.Disconnect();
             stopping = true;
-            clientThread.Interrupt();
             client = null;
-            clientThread = null;
         }
 
         public void handleMessage(object sender, MessageReceivedEventArgs e)

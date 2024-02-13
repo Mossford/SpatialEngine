@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 //Custom Engine things
 using static SpatialEngine.Rendering.MeshUtils;
 using static SpatialEngine.Rendering.MainImGui;
+using static SpatialEngine.Resources;
 using static SpatialEngine.Globals;
 using SpatialEngine.Networking;
 using SpatialEngine.Rendering;
@@ -56,12 +57,6 @@ namespace SpatialEngine
         //public static Client client = new Client(4095, "127.0.0.1");
         public static Player player;
 
-        public static readonly string appPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        public static readonly string resourcePath = appPath + @"/res/";
-        public static readonly string ShaderPath = resourcePath + @"Shaders/";
-        public static readonly string ImagePath = resourcePath + @"Images/";
-        public static readonly string ModelPath = resourcePath + @"Models/";
-
         public static uint DrawCallCount = 0;
         public static float totalTime = 0.0f;
     }
@@ -78,6 +73,10 @@ namespace SpatialEngine
 
         public static void Main(string[] args)
         {
+            //init resources
+            InitResources();
+
+
             glApi.Version = new APIVersion(4, 6);
             WindowOptions options = WindowOptions.Default with
             {
@@ -237,14 +236,11 @@ namespace SpatialEngine
                 keysPressed.Add((int)Key.ShiftLeft);
             }
 
-            int counter = 0;
             totalTimeUpdate += (float)dt;
             while (totalTimeUpdate >= 0.016f)
             {
                 totalTimeUpdate -= 0.016f;
                 FixedUpdate(0.016f);
-                //counter++;
-
             }
             keysPressed.Clear();
 
@@ -256,22 +252,35 @@ namespace SpatialEngine
         {
             if (keyboard.IsKeyPressed(Key.V))
             {
-                player.LaunchCube(ref scene, ModelPath + "Bunny.obj");
-                if(!NetworkManager.isServer)
+                player.LaunchCube(ref scene, ModelPath + "Cube.obj");
+                if (!NetworkManager.isServer && NetworkManager.didInit)
                 {
                     SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), (Activation)Convert.ToInt32((bodyInterface.IsActive(scene.SpatialObjects[^1].SO_rigidbody.rbID))));
-                    //NetworkManager.client.SendUnrelib(packet);
+                    NetworkManager.client.SendRelib(packet);
                 }
                 vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.indices.Length;
             }
-            if(keyboard.IsKeyPressed(Key.C))
+            if (keyboard.IsKeyPressed(Key.C))
             {
                 player.LaunchPlane();
             }
             player.Movement(0.016f, keysPressed.ToArray());
             player.UpdatePlayer(0.016f);
             physics.UpdatePhysics(ref scene, dt);
+
+
+            if (NetworkManager.didInit)
+            {
+                if(NetworkManager.isServer)
+                {
+                    NetworkManager.server.Update(dt);
+                }
+                else
+                {
+                    NetworkManager.client.Update(dt);
+                }
+            }
         }
 
         static unsafe void OnRender(double dt)

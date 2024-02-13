@@ -10,6 +10,7 @@ using SpatialEngine;
 using static SpatialEngine.Globals;
 using static SpatialEngine.Rendering.MeshUtils;
 using static SpatialEngine.Math;
+using static SpatialEngine.Resources;
 
 namespace PlaneGame
 {

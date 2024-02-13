@@ -14,6 +14,7 @@ using Riptide;
 //engine stuff
 using static SpatialEngine.Globals;
 using static SpatialEngine.Rendering.MeshUtils;
+using static SpatialEngine.Resources;
 using SpatialEngine.Networking;
 using System.Net;
 

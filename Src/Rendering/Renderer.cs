@@ -204,6 +204,7 @@ namespace SpatialEngine.Rendering
         {
             int objTotalCount = scene.SpatialObjects.Count;
 
+            // add a new render set if there is more objects than there is rendersets avaliable
             if (objTotalCount > MaxRenders * renderSets.Count)
             {
                 renderSets.Add(new RenderSet());
@@ -219,6 +220,7 @@ namespace SpatialEngine.Rendering
                 renderSets[^1].CreateDrawSet(scene.SpatialObjects, beCountADD, objCountADD);
             }
 
+            // update a renderset if there is more objects but less than needed for a new renderset
             int count = objTotalCount;
             int beCount = 0;
             if (objectBeforeCount != objTotalCount)
@@ -233,6 +235,7 @@ namespace SpatialEngine.Rendering
                 }
             }
 
+            // draw the rendersets
             count = objTotalCount;
             beCount = 0;
             for (int i = 0; i < renderSets.Count; i++)
