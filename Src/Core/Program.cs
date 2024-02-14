@@ -38,7 +38,7 @@ namespace SpatialEngine
         public static IWindow window;
         public static IInputContext input;
         public static IKeyboard keyboard;
-        public static string EngVer = "0.6.3";
+        public static string EngVer = "0.6.4";
         public static string OpenGlVersion = "";
         public static string Gpu = "";
         
