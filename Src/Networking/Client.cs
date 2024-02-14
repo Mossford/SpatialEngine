@@ -13,6 +13,7 @@ using JoltPhysicsSharp;
 using System.IO;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 
 namespace SpatialEngine.Networking
 {
@@ -23,9 +24,15 @@ namespace SpatialEngine.Networking
         public ushort connectPort;
         public string connectIp;
 
+        bool disconnected;
         bool stopping;
 
         bool waitPing = false;
+
+        public float currentPing { get; protected set; }
+        public int pingCount { get; protected set; } = 0;
+        int pingCountSecret = 0;
+        float pingTotal = 0f;
 
         public SpatialClient()
         {
@@ -51,16 +58,19 @@ namespace SpatialEngine.Networking
 
             ConnectPacket connectPacket = new ConnectPacket();
             SendRelib(connectPacket);
+            disconnected = false;
         }
 
         public void Disconnect() 
         {
             client.Disconnect();
+            disconnected = true;
         }
 
+        static float accu = 0f;
         public void Update(float deltaTime)
         {
-            if (!stopping)
+            if (!stopping || disconnected)
             {
                 for (int i = 0; i < scene.SpatialObjects.Count; i++)
                 {
@@ -68,6 +78,16 @@ namespace SpatialEngine.Networking
                     SendUnrelib(packet);
                 }
                 client.Update();
+
+
+                //get ping every 1 seconds and if nothing can be done disconnect from server as time out
+                accu += deltaTime;
+                while (accu >= 0.7f)
+                {
+                    accu -= 0.7f;
+                    GetPingAsync();
+                    pingTotal += currentPing;
+                }
             }
         }
 
@@ -116,7 +136,32 @@ namespace SpatialEngine.Networking
                 HandlePacketClient(e.Message.GetBytes());
         }
 
-        public async Task GetPing()
+        public float GetPing()
+        {
+            //start of getting the ping so we return the current ping as an average will mess the values
+            if(pingCountSecret <= 5)
+            {
+                return currentPing;
+            }
+            //can now average as there should be sufficent data for averaging the ping
+            else
+            {
+                //check if the pingCount is greater than 15 as we dont want to average too much
+                if(pingCount > 15)
+                {
+                    pingCount = 1;
+                    pingTotal = currentPing;
+                    return currentPing;
+                }
+                //otherwise we are good to average the ping to get a somewhat good ping value
+                else
+                {
+                    return pingTotal / pingCount;
+                }
+            }
+        }
+
+        async Task GetPingAsync()
         {
             await Task.Run(() => 
             {
@@ -132,13 +177,16 @@ namespace SpatialEngine.Networking
                     //stop checking for ping after 15 seconds
                     if(stopwatch.ElapsedMilliseconds / 1000 >= 15)
                     {
+                        Console.WriteLine("Timed out: Could not ping server");
+                        Disconnect();
                         break;
                     }
                 }
                 stopwatch.Stop();
                 float timeEnd = Globals.GetTime();
-                Console.WriteLine(timeEnd - timeStart);
-
+                currentPing = timeEnd - timeStart;
+                pingCount++;
+                pingCountSecret++;
             });
         }
 

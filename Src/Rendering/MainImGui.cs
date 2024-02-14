@@ -394,7 +394,7 @@ namespace SpatialEngine.Rendering
                         ImGui.Text("Client on: ");
                         ImGui.SameLine();
                         ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{clientConnect}");
-                        ImGui.Text(string.Format($"Ping: {clientConnect}"));
+                        ImGui.Text(string.Format($"Ping: {NetworkManager.client.GetPing() * 1000}ms"));
 
                         if(ImGui.Button("Disconnect"))
                         {

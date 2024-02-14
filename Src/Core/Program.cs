@@ -58,6 +58,10 @@ namespace SpatialEngine
         public static uint DrawCallCount = 0;
         public static float totalTime = 0.0f;
 
+        /// <summary>
+        /// In Seconds
+        /// </summary>
+        /// <returns></returns>
         public static float GetTime() => totalTime;
     }
 
@@ -239,10 +243,10 @@ namespace SpatialEngine
             }
 
             totalTimeUpdate += (float)dt;
-            while (totalTimeUpdate >= 0.016f)
+            while (totalTimeUpdate >= 0.0166f)
             {
-                totalTimeUpdate -= 0.016f;
-                FixedUpdate(0.016f);
+                totalTimeUpdate -= 0.0166f;
+                FixedUpdate(0.0166f);
             }
             keysPressed.Clear();
 
@@ -267,8 +271,8 @@ namespace SpatialEngine
             {
                 player.LaunchPlane();
             }
-            player.Movement(0.016f, keysPressed.ToArray());
-            player.UpdatePlayer(0.016f);
+            player.Movement(dt, keysPressed.ToArray());
+            player.UpdatePlayer(dt);
             physics.UpdatePhysics(ref scene, dt);
 
 
