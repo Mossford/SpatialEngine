@@ -122,8 +122,6 @@ namespace SpatialEngine
 
         public void UpdatePhysics(ref Scene scene, float dt)
         {
-            
-
             foreach (SpatialObject obj in scene.SpatialObjects)
             {
                 if(obj.SO_rigidbody != null && bodyInterface.IsActive(obj.SO_rigidbody.rbID))
@@ -133,6 +131,20 @@ namespace SpatialEngine
                 }
             }
             physicsSystem.Update(dt, 3, tempAllocator, jobSystem);
+        }
+        
+        public void DestroyPhysics(ref Scene scene)
+        {
+            for (int i = 0; i < scene.SpatialObjects.Count; i++)
+            {
+                if (scene.SpatialObjects[i].SO_rigidbody != null)
+                {
+                    bodyInterface.DestroyBody(scene.SpatialObjects[i].SO_rigidbody.rbID);
+                }
+            }
+
+            tempAllocator.Dispose();
+            Foundation.Shutdown();
         }
 
         public void CleanPhysics(ref Scene scene)
@@ -144,9 +156,6 @@ namespace SpatialEngine
                     bodyInterface.DestroyBody(scene.SpatialObjects[i].SO_rigidbody.rbID);
                 }
             }
-
-            tempAllocator.Dispose();
-            Foundation.Shutdown();
         }
     }
 

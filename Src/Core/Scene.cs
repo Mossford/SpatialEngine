@@ -33,6 +33,14 @@ namespace SpatialEngine
             SO_id = id;
         }
 
+        public SpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, uint id)
+        {
+            SO_mesh = mesh;
+            SO_rigidbody = new RigidBody(SO_mesh.vertexes, SO_mesh.position, SO_mesh.rotation, motion, layer);
+            SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
+            SO_id = id;
+        }
+
         public uint GetSizeUsage()
         {
             uint total = 0;
@@ -99,9 +107,15 @@ namespace SpatialEngine
             SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
         }
 
-        public void DeleteObjects()
+        public void Clear()
         {
+            for (int i = 0; i < SpatialObjects.Count; i++)
+            {
+                bodyInterface.DestroyBody(SpatialObjects[i].SO_rigidbody.rbID);
+            }
 
+            SpatialObjects.Clear();
+            idList.Clear();
         }
 
         public void SaveScene(string location, string name)

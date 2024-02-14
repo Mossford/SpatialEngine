@@ -24,6 +24,8 @@ namespace SpatialEngine.Networking
         ConnectReturn,
         SpatialObject,
         SpawnSpatialObject,
+        SceneSyncStart,
+        SceneSyncClear,
     }
 
     public abstract class Packet
@@ -211,6 +213,7 @@ namespace SpatialEngine.Networking
 
     public class SpawnSpatialObjectPacket : Packet
     {
+        public int id;
         public Vector3 Position;
         public Quaternion Rotation;
         public string ModelLocation;
@@ -225,6 +228,7 @@ namespace SpatialEngine.Networking
 
         public SpawnSpatialObjectPacket(int id, Vector3 position, Quaternion rotation, string modelLocation, MotionType motionType, ObjectLayer objectLayer, Activation activation)
         {
+            this.id = id;
             this.Position = position;
             this.Rotation = rotation;
             this.ModelLocation = modelLocation;
@@ -240,7 +244,7 @@ namespace SpatialEngine.Networking
             //type of packet
             writer.Write((ushort)PacketType.SpawnSpatialObject);
             //id
-            //writer.Write(id);
+            writer.Write(id);
             //position
             writer.Write(Position.X);
             writer.Write(Position.Y);
@@ -269,7 +273,7 @@ namespace SpatialEngine.Networking
             MemoryStream stream = new MemoryStream(data);
             BinaryReader reader = new BinaryReader(stream);
             int type = reader.ReadUInt16();
-            //id = reader.ReadInt32();
+            id = reader.ReadInt32();
             //position
             float posX = reader.ReadSingle();
             float posY = reader.ReadSingle();
@@ -290,5 +294,51 @@ namespace SpatialEngine.Networking
         }
 
         public override ushort GetPacketType() => (ushort)PacketType.SpawnSpatialObject;
+    }
+
+    public class SceneSyncStart : Packet
+    {
+        public SceneSyncStart()
+        {
+
+        }
+
+        public override byte[] ConvertToByte()
+        {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+            writer.Write((ushort)PacketType.SceneSyncStart);
+            return stream.ToArray();
+        }
+
+        public override void ByteToPacket(byte[] data)
+        {
+            //does nothing
+        }
+
+        public override ushort GetPacketType() => (ushort)PacketType.SceneSyncStart;
+    }
+
+    public class SceneSyncClear : Packet
+    {
+        public SceneSyncClear()
+        {
+
+        }
+
+        public override byte[] ConvertToByte()
+        {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+            writer.Write((ushort)PacketType.SceneSyncClear);
+            return stream.ToArray();
+        }
+
+        public override void ByteToPacket(byte[] data)
+        {
+            //does nothing
+        }
+
+        public override ushort GetPacketType() => (ushort)PacketType.SceneSyncClear;
     }
 }

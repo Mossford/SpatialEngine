@@ -213,8 +213,6 @@ namespace SpatialEngine
             totalTime += (float)dt;
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                //SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_rigidbody.GetPosition(), scene.SpatialObjects[i].SO_rigidbody.GetRotation());
-                //client.Send(packet.ConvertToByte());
                 scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
             }
             if (keyboard.IsKeyPressed(Key.W))
@@ -251,7 +249,7 @@ namespace SpatialEngine
             keysPressed.Clear();
 
 
-            GameManager.UpdateGame((float)dt);
+            //GameManager.UpdateGame((float)dt);
         }
 
         static void FixedUpdate(float dt)
@@ -274,7 +272,6 @@ namespace SpatialEngine
             player.Movement(dt, keysPressed.ToArray());
             player.UpdatePlayer(dt);
             physics.UpdatePhysics(ref scene, dt);
-
 
             if (NetworkManager.didInit)
             {

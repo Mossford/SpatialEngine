@@ -76,7 +76,7 @@ namespace SpatialEngine.Networking
 
         public void ClientConnected(object sender, EventArgs e)
         {
-
+            
         }
 
         public Connection[] GetServerConnections()
@@ -167,6 +167,10 @@ namespace SpatialEngine.Networking
                     {
                         ConnectReturnPacket packet = new ConnectReturnPacket();
                         SendRelib(packet, client.Id);
+
+                        //scene sync when connect
+                        SceneSyncStart packet2 = new SceneSyncStart();
+                        SendRelib(packet2, client.Id);
                         break;
                     }
                 case (ushort)PacketType.SpatialObject:
@@ -185,9 +189,28 @@ namespace SpatialEngine.Networking
                     {
                         SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
                         packet.ByteToPacket(data);
-                        scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, SpatialEngine.Resources.ModelPath, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
+                        if (packet.id < scene.SpatialObjects.Count)
+                        {
+                            bodyInterface.DestroyBody(scene.SpatialObjects[packet.id].SO_rigidbody.rbID);
+                            scene.SpatialObjects[packet.id] = new SpatialObject(LoadModel(packet.Position, packet.Rotation, SpatialEngine.Resources.ModelPath, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation, (uint)packet.id);
+                        }
+                        else
+                        {
+                            scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, SpatialEngine.Resources.ModelPath, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
+                        }
                         stream.Close();
                         reader.Close();
+                        break;
+                    }
+                case (ushort)PacketType.SceneSyncClear:
+                    {
+                        for (int i = 0; i < scene.SpatialObjects.Count; i++)
+                        {
+                            SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation, 
+                                scene.SpatialObjects[i].SO_mesh.modelLocation, scene.SpatialObjects[i].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[i].SO_rigidbody.rbID), 
+                                (Activation)Convert.ToInt32(bodyInterface.IsActive(scene.SpatialObjects[i].SO_rigidbody.rbID)));
+                            SendRelib(packet, client.Id);
+                        }
                         break;
                     }
             }
