@@ -77,30 +77,36 @@ namespace SpatialEngine
 
         public static void Main(string[] args)
         {
-            //init resources
+            //init resources like resources paths
             InitResources();
 
-            glApi.Version = new APIVersion(4, 6);
-            WindowOptions options = WindowOptions.Default with
+            if (args.Length == 0)
             {
-                Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
-                Title = "GameTesting",
-                VSync = vsync,
-                PreferredDepthBufferBits = 24,
-                API = glApi,
-            };
-            window = Window.Create(options);
-            window.Load += OnLoad;
-            window.Update += OnUpdate;
-            window.Render += OnRender;
-            window.Run();
+                glApi.Version = new APIVersion(4, 6);
+                WindowOptions options = WindowOptions.Default with
+                {
+                    Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
+                    Title = "GameTesting",
+                    VSync = vsync,
+                    PreferredDepthBufferBits = 24,
+                    API = glApi,
+                };
+                window = Window.Create(options);
+                window.Load += OnLoad;
+                window.Update += OnUpdate;
+                window.Render += OnRender;
+                window.Run();
+            }
+            else if (args[0] == "server")
+            {
+                //handles all the initilization of scene and physics and netowrking for server
+                //and starts running the update loop
+                HeadlessServer.Init();
+            }
 
-            //save scene
             scene.SaveScene(ScenePath, "Main.txt");
-
             physics.CleanPhysics(ref scene);
             NetworkManager.Cleanup();
-            //host.Close();
         }
 
         static unsafe void OnLoad() 

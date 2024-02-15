@@ -69,7 +69,7 @@ namespace SpatialEngine.Networking
         static float accu = 0f;
         public void Update(float deltaTime)
         {
-            if (!stopping || disconnected)
+            if (!stopping && !disconnected)
             {
                 for (int i = 0; i < scene.SpatialObjects.Count; i++)
                 {
@@ -174,7 +174,7 @@ namespace SpatialEngine.Networking
                 while(waitPing)
                 {
                     //stop checking for ping after 15 seconds
-                    if(stopwatch.ElapsedMilliseconds / 1000 >= 15)
+                    if(stopwatch.ElapsedMilliseconds / 1000 >= 1)
                     {
                         Console.WriteLine("Timed out: Could not ping server");
                         Disconnect();
