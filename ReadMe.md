@@ -3,7 +3,7 @@
 ## Core
 
 ### The core consists of the entry point, resource handling, Scene Management, Math, Debugging, and Controls. 
-#### The [Main](Src/Core/Program.cs) File
+#### The [Main File](Src/Core/Program.cs)
 > The entry point starts with initilizing resources then checks if the engine has been started in server mode. If it has not it will continue on.
 > If it continues it will initalize OpenGl and start the core functions of the engine, such as the main loop and the render loop.
 > <br>
@@ -21,7 +21,7 @@
 >
 > There is also Global variables stored in here so that any file can have access to main parts of the engine such as the Main Scene, Renderer, and Physics.
 
-#### The [Scene](Src/Core/Scene.cs) File
+#### The [Scene File](Src/Core/Scene.cs)
 > This file contains the most important part of the engine. It holds the structure for the main object, a *SpatialObject*. This container holds important things like the Mesh for that object and the RigidBody for that object.
 > <br>
 >
@@ -33,7 +33,7 @@
 ## Rendering
 
 ### The rendering section consists of rendering specific things like the Main Drawer, Mesh handling, and other rendering specific items
-#### The [Renderer](Src/Rendering/Renderer.cs) File
+#### The [Renderer File](Src/Rendering/Renderer.cs)
 > The renderer operates on one specific structure. A **RenderSet**. The Renderer uses a list of these Rendersets to draw sets of SpatialObjects. In normal terms this is called a Batch Renderer or a Batching System.
 > <br>
 >
