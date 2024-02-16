@@ -57,4 +57,22 @@
 > <br>
 > This function takes in a CountBE and CountTO just like the functions before but uses these to draw the meshes in between those two indexes. It also takes in other paramaters required for rendering like the view and projection matrix.
 > <br>
-> 
+> It starts wtith required Opengl functions of binding the vertex array and setting the matrices into the shader. It then leads to the loop which will go over every object from the CountBE to the CountTO. It will then check if a *MeshOffset* has been created for the current object. If it has not it will then run the function *GetOffsetIndex()*. 
+> <br>
+> This function is very important to the speed of this renderer. This function is required for the use of the Opengl Draw function I use which is *DrawElementsBaseVertex()*. This function needs to take in a index into the buffer in which it will start drawing from that index. This helper function precalculates and stores every SpatialObject mesh offset so that it can draw into that array without needing to start from the 0 index of the vertex buffer.
+> <br>
+>
+> Now Opengls documentation for this function has caused some problems for their naming of paramaters and their uses. As shown here.
+```c#
+//Because of opengls stupid documentation this draw call is suppose to take in the offset in indices by bytes then take in the offset in vertices instead of the offset in indices
+/*
+    indices
+        Specifies a pointer to the location where the indices are stored.
+    basevertex
+        Specifies a constant that should be added to each element of indices when chosing elements from the enabled vertex arrays. 
+*/
+//This naming is so fucking bad and has caused me multiple hours in trying to find what the hell the problem is
+gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
+```
+> Now the main Renderer all opertes in the **Draw()** function.
+> This function starts with getting the current amount of SpatialObjects in the scene. It then checks if the amount of objects multiplied with the maximum a renderset can render multiplied by the amount of current rendersets is less than the amount of objects. Yeilding the expression of *(ObjectAmount > MaximumRenderAmount * RendersetCount)*.
