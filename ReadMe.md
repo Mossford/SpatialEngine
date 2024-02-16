@@ -75,4 +75,26 @@
 gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
 ```
 > Now the main Renderer all opertes in the **Draw()** function.
-> This function starts with getting the current amount of SpatialObjects in the scene. It then checks if the amount of objects multiplied with the maximum a renderset can render multiplied by the amount of current rendersets is less than the amount of objects. Yeilding the expression of *(ObjectAmount > MaximumRenderAmount * RendersetCount)*.
+> This function starts with getting the current amount of SpatialObjects in the scene. It then checks if the amount of objects multiplied with the maximum a renderset can render multiplied by the amount of current rendersets is less than the amount of objects. Yeilding the expression of *(ObjectAmount > MaximumRenderAmount * RendersetCount)*. This will check if we have more objects than the amount all the rendersets can hold.
+> <br> 
+> If this condition turns true we will then add a new renderset to the list of rendersets and create a draw set using a CountBE and CountTO. This is calculated through the loop. This code appears as
+```c#
+int countADD = scene.SpatialObjects.Count;
+int beCountADD = 0;
+int objCountADD = 0;
+for (int i = 0; i < renderSets.Count; i++)
+{
+    beCountADD = objCountADD;
+    objCountADD = (int)MathF.Min(MaxRenders, countADD) + (i * MaxRenders);
+    countADD -= MaxRenders;
+}
+```
+> This will calculate the index for the CountBE being *beCountADD* and the CountTO being *objCountADD*. It will then use this to fully run the CreateDrawSet() function.
+> <br>
+>
+> It will then lead to checking if we need to update the current rendersets based on that if we have changed in the amount of Spatialobjects since the last time we ran the renderer. This part is fundemtently the same as creating the drawset in where we still calculate the CountBE and CountTO but we reupload with the new objects to the renderset. We could use the CreateDrawSet() function for this purpose but a speical one is needed as that contains opengl code that would slow down the renderer.
+> <br>
+>
+> This leads to the loop to go over all the rendersets and call their draw function with calculating the CountBE and CountTO.
+
+####
