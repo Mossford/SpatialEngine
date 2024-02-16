@@ -15,7 +15,7 @@ namespace SpatialEngine.Rendering
         public Matrix4x4 viewMat;
         public Matrix4x4 projMat;
 
-        public Camera(Vector3 position, Vector3 rotation, float zoom = 45.0f)
+        public Camera(Vector3 position, Vector3 rotation, float zoom = 60.0f)
         {
             this.position = position;
             this.rotation = rotation;

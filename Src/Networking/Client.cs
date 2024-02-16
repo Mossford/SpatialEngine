@@ -30,8 +30,7 @@ namespace SpatialEngine.Networking
 
         public float currentPing { get; protected set; }
         public int pingCount { get; protected set; } = 0;
-        int pingCountSecret = 0;
-        float pingTotal = 0f;
+        float lastPing = 0f;
 
         public SpatialClient()
         {
@@ -71,11 +70,11 @@ namespace SpatialEngine.Networking
         {
             if (!stopping && !disconnected)
             {
-                for (int i = 0; i < scene.SpatialObjects.Count; i++)
+                /*for (int i = 0; i < scene.SpatialObjects.Count; i++)
                 {
                     SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
                     SendUnrelib(packet);
-                }
+                }*/
                 client.Update();
 
 
@@ -85,7 +84,6 @@ namespace SpatialEngine.Networking
                 {
                     accu -= 0.7f;
                     GetPingAsync();
-                    pingTotal += currentPing;
                 }
             }
         }
@@ -131,33 +129,23 @@ namespace SpatialEngine.Networking
 
         public void handleMessage(object sender, MessageReceivedEventArgs e)
         {
-            if(!stopping)
+            if (!stopping)
                 HandlePacketClient(e.Message.GetBytes());
         }
 
+        //gets the ping of the client and removes the delay caused by waiting 16ms for an update so a true ping can
+        //be returned. With checking for if the ping is less than 0 which returns the ping before it
         public float GetPing()
         {
-            //start of getting the ping so we return the current ping as an average will mess the values
-            if(pingCountSecret <= 5)
+            if(currentPing - 0.0166f > 0f)
             {
-                return currentPing;
+                return currentPing - 0.0166f;
             }
-            //can now average as there should be sufficent data for averaging the ping
             else
             {
-                //check if the pingCount is greater than 15 as we dont want to average too much
-                if(pingCount > 15)
-                {
-                    pingCount = 1;
-                    pingTotal = currentPing;
-                    return currentPing;
-                }
-                //otherwise we are good to average the ping to get a somewhat good ping value
-                else
-                {
-                    return pingTotal / pingCount;
-                }
+                return lastPing - 0.0166f;
             }
+            
         }
 
         async Task GetPingAsync()
@@ -183,9 +171,10 @@ namespace SpatialEngine.Networking
                 }
                 stopwatch.Stop();
                 float timeEnd = Globals.GetTime();
+                if (currentPing - 0.0166f > 0f)
+                    lastPing = currentPing;
                 currentPing = timeEnd - timeStart;
                 pingCount++;
-                pingCountSecret++;
             });
         }
 
@@ -219,12 +208,14 @@ namespace SpatialEngine.Networking
                     }
                 case (ushort)PacketType.SpatialObject:
                     {
+
                         SpatialObjectPacket packet = new SpatialObjectPacket();
                         packet.ByteToPacket(data);
                         if (packet.id >= scene.SpatialObjects.Count)
                             break;
-                        scene.SpatialObjects[packet.id].SO_rigidbody.SetPosition((Double3)packet.Position);
-                        scene.SpatialObjects[packet.id].SO_rigidbody.SetRotation(packet.Rotation);
+                        //will set the mesh now that physics will run on the server
+                        scene.SpatialObjects[packet.id].SO_mesh.position = packet.Position;
+                        scene.SpatialObjects[packet.id].SO_mesh.rotation = packet.Rotation;
                         stream.Close();
                         reader.Close();
                         break;

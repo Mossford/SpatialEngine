@@ -277,7 +277,7 @@ namespace SpatialEngine
             }
             player.Movement(dt, keysPressed.ToArray());
             player.UpdatePlayer(dt);
-            physics.UpdatePhysics(ref scene, dt);
+            //physics.UpdatePhysics(ref scene, dt);
 
             if (NetworkManager.didInit)
             {

@@ -1,15 +1,11 @@
 ﻿using JoltPhysicsSharp;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Formats.Asn1.AsnWriter;
 
 using static SpatialEngine.Rendering.MeshUtils;
 using static SpatialEngine.Resources;
+using static SpatialEngine.Globals;
 using PlaneGame;
 
 namespace SpatialEngine.Networking
@@ -31,41 +27,55 @@ namespace SpatialEngine.Networking
             NetworkManager.Init();
             NetworkManager.InitServer();
 
-            Globals.physics = new Physics();
-            Globals.scene = new Scene();
-            Globals.physics.InitPhysics();
+            physics = new Physics();
+            scene = new Scene();
+            physics.InitPhysics();
 
-            Globals.scene.AddSpatialObject(LoadModel(new Vector3(0, 0, 0), Quaternion.Identity, ModelPath, "Floor.obj"), new Vector3(50, 1, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            Globals.scene.AddSpatialObject(LoadModel(new Vector3(50, 30, 0), Quaternion.Identity, ModelPath, "FloorWall1.obj"), new Vector3(1, 30, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            Globals.scene.AddSpatialObject(LoadModel(new Vector3(0, 10, 50), Quaternion.Identity, ModelPath, "FloorWall2.obj"), new Vector3(50, 10, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            Globals.scene.AddSpatialObject(LoadModel(new Vector3(25, 5, 0), Quaternion.Identity, ModelPath, "FloorWall3.obj"), new Vector3(1, 5, 20), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            Globals.scene.AddSpatialObject(LoadModel(new Vector3(37, 4, 21), Quaternion.Identity, ModelPath, "FloorWall4.obj"), new Vector3(13, 4, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            Globals.scene.AddSpatialObject(LoadModel(new Vector3(37, 5, -21), Quaternion.Identity, ModelPath, "FloorWall5.obj"), new Vector3(13, 4, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            Globals.scene.AddSpatialObject(LoadModel(new Vector3(-50, 2, 0), Quaternion.Identity, ModelPath, "FloorWall6.obj"), new Vector3(1, 2, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            Globals.scene.AddSpatialObject(LoadModel(new Vector3(-30, 3, -50), Quaternion.Identity, ModelPath, "FloorWall7.obj"), new Vector3(20, 3, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(0, 0, 0), Quaternion.Identity, ModelPath, "Floor.obj"), new Vector3(50, 1, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(50, 30, 0), Quaternion.Identity, ModelPath, "FloorWall1.obj"), new Vector3(1, 30, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(0, 10, 50), Quaternion.Identity, ModelPath, "FloorWall2.obj"), new Vector3(50, 10, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(25, 5, 0), Quaternion.Identity, ModelPath, "FloorWall3.obj"), new Vector3(1, 5, 20), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(37, 4, 21), Quaternion.Identity, ModelPath, "FloorWall4.obj"), new Vector3(13, 4, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(37, 5, -21), Quaternion.Identity, ModelPath, "FloorWall5.obj"), new Vector3(13, 4, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(-50, 2, 0), Quaternion.Identity, ModelPath, "FloorWall6.obj"), new Vector3(1, 2, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(-30, 3, -50), Quaternion.Identity, ModelPath, "FloorWall7.obj"), new Vector3(20, 3, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
 
             GameManager.InitGame();
 
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             while (true)
             {
-                currentTime = (DateTime.UtcNow - Process.GetCurrentProcess().StartTime.ToUniversalTime()).Microseconds / 1000000f;
+                TimeSpan ts = stopWatch.Elapsed;
+                currentTime = (float)ts.TotalMilliseconds;
+
+                deltaTime = currentTime - lastTime;
 
                 totalTimeUpdate += deltaTime;
-                //Console.WriteLine(totalTimeUpdate);
-                //while (totalTimeUpdate >= 0.0166f)
-                //{
-                    //Console.WriteLine(deltaTime);
-                    //totalTimeUpdate -= 0.0166f;
-                    Update(0.0166f);
-                //}
-                deltaTime = currentTime - lastTime;
-                lastTime = currentTime;
+                while (totalTimeUpdate >= 16.667f)
+                {
+                    totalTimeUpdate -= 16.667f;
+                    //needs to be in seconds so will be 0.016667f
+                    Update(0.016667f);
+                }
+
+                lastTime = (float)ts.TotalMilliseconds;
             }
+
+            stopWatch.Stop();
         }
 
         public static void Update(float dt)
         {
-            Globals.physics.UpdatePhysics(ref Globals.scene, dt);
+            physics.UpdatePhysics(ref scene, dt);
+
+            for (int i = 0; i < scene.SpatialObjects.Count; i++)
+            {
+                SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
+                NetworkManager.server.SendUnrelibAll(packet);
+            }
+
             NetworkManager.server.Update(dt);
         }
     }

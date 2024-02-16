@@ -117,6 +117,34 @@ namespace SpatialEngine.Networking
                 server.SendToAll(msgUnrelib);
             }
         }
+        public void SendUnrelibAllExclude(Packet packet, ushort clientId)
+        {
+            if (!stopping)
+            {
+                Message msgUnrelib = Message.Create(MessageSendMode.Unreliable, packet.GetPacketType());
+                msgUnrelib.AddBytes(packet.ConvertToByte());
+                for (int i = 0; i < server.Clients.Length; i++)
+                {
+                    if(clientId != server.Clients[i].Id)
+                        server.Send(msgUnrelib, server.Clients[i]);
+                }
+            }
+        }
+
+        public void SendRelibAllExclude(Packet packet, ushort clientId)
+        {
+            if (!stopping)
+            {
+                Message msgUnrelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
+                msgUnrelib.AddBytes(packet.ConvertToByte());
+                for (int i = 0; i < server.Clients.Length; i++)
+                {
+                    if (clientId != server.Clients[i].Id)
+                        server.Send(msgUnrelib, server.Clients[i]);
+                }
+            }
+        }
+
 
         public void SendRelibAll(Packet packet)
         {
@@ -185,6 +213,7 @@ namespace SpatialEngine.Networking
                         reader.Close();
                         break;
                     }
+                //spawn object on server side but then send to all clients except from the client it was sent by
                 case (ushort)PacketType.SpawnSpatialObject:
                     {
                         SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
@@ -200,6 +229,9 @@ namespace SpatialEngine.Networking
                         }
                         stream.Close();
                         reader.Close();
+
+                        SendUnrelibAllExclude(packet, client.Id);
+
                         break;
                     }
                 case (ushort)PacketType.SceneSyncClear:
