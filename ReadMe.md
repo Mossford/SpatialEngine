@@ -80,7 +80,6 @@ public unsafe void CreateDrawSet(in List<SpatialObject> objs, int countBE, int c
     int countI = 0;
     for (int i = countBE; i < countTO; i++)
     {
-        //models[count] = objs[i].SO_mesh.modelMat;
         for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
         {
             verts[countV] = objs[i].SO_mesh.vertexes[j];
