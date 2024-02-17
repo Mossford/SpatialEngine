@@ -60,58 +60,58 @@
 > The Renderset starts with the function to Create a *DrawSet*. A DrawSet is a group of meshes selected to be combined into one *object*. This function takes in *CountBE* and a *CountTO*, these both point the function where to start taking in meshes to combine and where to end taking in meshes.
 > From here is simple the function will then get every mesh from that starting index of CountBE to CountTO and put all their vertexes and indices into 2 arrays respectively.
 > <br>
+>
+> This part of the code is shown as
+```c#
+int vertexSize = 0;
+int indiceSize = 0;
+for (int i = countBE; i < countTO; i++)
+{
+    vertexSize += objs[i].SO_mesh.vertexes.Length;
+    indiceSize += objs[i].SO_mesh.indices.Length;
+}
+
+Vertex[] verts = new Vertex[vertexSize];
+uint[] inds = new uint[indiceSize];
+int countV = 0;
+int countI = 0;
+for (int i = countBE; i < countTO; i++)
+{
+    for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
+    {
+        verts[countV] = objs[i].SO_mesh.vertexes[j];
+        countV++;
+    }
+    for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
+    {
+        inds[countI] = objs[i].SO_mesh.indices[j];
+        countI++;
+    }
+}
+```
 > From here it will construct the needed Opengl buffers and tell Opengl how the vertex is stored.
 >
 > This in code is
 ```c#
-public unsafe void CreateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
-{
-    int vertexSize = 0;
-    int indiceSize = 0;
-    for (int i = countBE; i < countTO; i++)
-    {
-        vertexSize += objs[i].SO_mesh.vertexes.Length;
-        indiceSize += objs[i].SO_mesh.indices.Length;
-    }
+vao = gl.GenVertexArray();
+gl.BindVertexArray(vao);
+vbo = gl.GenBuffer();
+gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+ebo = gl.GenBuffer();
+gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-    Vertex[] verts = new Vertex[vertexSize];
-    uint[] inds = new uint[indiceSize];
-    int countV = 0;
-    int countI = 0;
-    for (int i = countBE; i < countTO; i++)
-    {
-        for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
-        {
-            verts[countV] = objs[i].SO_mesh.vertexes[j];
-            countV++;
-        }
-        for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
-        {
-            inds[countI] = objs[i].SO_mesh.indices[j];
-            countI++;
-        }
-    }
+fixed (Vertex* buf = verts)
+    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexSize * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
+fixed (uint* buf = inds)
+    gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indiceSize * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
 
-    vao = gl.GenVertexArray();
-    gl.BindVertexArray(vao);
-    vbo = gl.GenBuffer();
-    gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
-    ebo = gl.GenBuffer();
-    gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
-
-    fixed (Vertex* buf = verts)
-        gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexSize * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
-    fixed (uint* buf = inds)
-        gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indiceSize * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
-
-    gl.EnableVertexAttribArray(0);
-    gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)0);
-    gl.EnableVertexAttribArray(1);
-    gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(3 * sizeof(float)));
-    gl.EnableVertexAttribArray(2);
-    gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(6 * sizeof(float)));
-    gl.BindVertexArray(0);
-}
+gl.EnableVertexAttribArray(0);
+gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)0);
+gl.EnableVertexAttribArray(1);
+gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(3 * sizeof(float)));
+gl.EnableVertexAttribArray(2);
+gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(6 * sizeof(float)));
+gl.BindVertexArray(0);
 ```
 > <br>
 >
