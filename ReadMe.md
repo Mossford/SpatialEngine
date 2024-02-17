@@ -61,6 +61,64 @@
 > From here is simple the function will then get every mesh from that starting index of CountBE to CountTO and put all their vertexes and indices into 2 arrays respectively.
 > <br>
 > From here it will construct the needed Opengl buffers and tell Opengl how the vertex is stored.
+>
+> This in code is
+```c#
+public unsafe void CreateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
+    {
+        int vertexSize = 0;
+        int indiceSize = 0;
+        for (int i = countBE; i < countTO; i++)
+        {
+            vertexSize += objs[i].SO_mesh.vertexes.Length;
+            indiceSize += objs[i].SO_mesh.indices.Length;
+        }
+    
+        Vertex[] verts = new Vertex[vertexSize];
+        uint[] inds = new uint[indiceSize];
+        //models = stackalloc Matrix4x4[countTO - countBE];
+        int countV = 0;
+        int countI = 0;
+        //int count = 0;
+        for (int i = countBE; i < countTO; i++)
+        {
+            //models[count] = objs[i].SO_mesh.modelMat;
+            for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
+            {
+                verts[countV] = objs[i].SO_mesh.vertexes[j];
+                countV++;
+            }
+            for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
+            {
+                inds[countI] = objs[i].SO_mesh.indices[j];
+                countI++;
+            }
+            //count++;
+        }
+    
+        //modelMatrixes = new BufferObject<Matrix4x4>(models, 3, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
+    
+        vao = gl.GenVertexArray();
+        gl.BindVertexArray(vao);
+        vbo = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+        ebo = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
+    
+        fixed (Vertex* buf = verts)
+            gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexSize * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
+        fixed (uint* buf = inds)
+            gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indiceSize * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
+    
+        gl.EnableVertexAttribArray(0);
+        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)0);
+        gl.EnableVertexAttribArray(1);
+        gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(3 * sizeof(float)));
+        gl.EnableVertexAttribArray(2);
+        gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(6 * sizeof(float)));
+        gl.BindVertexArray(0);
+    }
+```
 > <br>
 >
 > The UpdateDrawSet function operates the same as this but only gets run when an update to that drawset is needed and will add or remove a mesh when needed.
@@ -109,5 +167,42 @@ for (int i = 0; i < renderSets.Count; i++)
 > <br>
 >
 > This leads to the loop to go over all the rendersets and call their draw function with calculating the CountBE and CountTO.
+>
+>This is shown in a simple way of
+```c#
+count = objTotalCount;
+beCount = 0;
+for (int i = 0; i < renderSets.Count; i++)
+{
+    int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
+    //Console.WriteLine(beCount + " to " + objCount + " " + i);
+    renderSets[i].DrawSet(scene.SpatialObjects, beCount, objCount, ref shader, view, proj, camPos);
+    count -= MaxRenders;
+    beCount = objCount;
+}
+```
 
-####
+
+> An abstract way to represent this renderer is that it takes in all the meshes in the scene. Splits them up into sections by a set value. Then combines all these meshes vertexes into one mesh. Send that to the gpu and render that one mesh using a offset so that it can be multiple meshes but only using one mesh.
+
+#### [The Mesh File](Src/Rendering/Mesh.cs)
+>The Mesh file contains all the important functions and data to represent a mesh that Opengl can take.
+
+
+## Networking
+
+### The networking section contains important things like packet handling, connections between the server and clients and how to run this all in a correct fashion.
+
+
+
+
+
+
+
+## TODO
+
+* ### Server handles creating a object for each player to represent a model but only send it to other clients except the one its rendering?
+* ### Documentation
+* ### ui rendering
+* ### Cascading Shadows
+* ### refactoring of systems?
