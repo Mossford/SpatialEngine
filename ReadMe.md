@@ -118,6 +118,21 @@ gl.BindVertexArray(0);
 > The UpdateDrawSet function operates the same as this but only gets run when an update to that drawset is needed and will add or remove a mesh when needed.
 > <br>
 >
+> The difference in opengl is shown here
+```c#
+gl.BindVertexArray(vao);
+gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
+
+fixed (Vertex* buf = verts)
+    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(verts.Length * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
+fixed (uint* buf = inds)
+    gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(inds.Length * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
+
+gl.BindVertexArray(0);
+```
+> <br>
+>
 > Now we get to the most important part of the Renderset. The DrawSet function.
 > <br>
 > This function takes in a CountBE and CountTO just like the functions before but uses these to draw the meshes in between those two indexes. It also takes in other paramaters required for rendering like the view and projection matrix.
@@ -125,6 +140,19 @@ gl.BindVertexArray(0);
 > It starts wtith required Opengl functions of binding the vertex array and setting the matrices into the shader. It then leads to the loop which will go over every object from the CountBE to the CountTO. It will then check if a *MeshOffset* has been created for the current object. If it has not it will then run the function *GetOffsetIndex()*. 
 > <br>
 > This function is very important to the speed of this renderer. This function is required for the use of the Opengl Draw function I use which is *DrawElementsBaseVertex()*. This function needs to take in a index into the buffer in which it will start drawing from that index. This helper function precalculates and stores every SpatialObject mesh offset so that it can draw into that array without needing to start from the 0 index of the vertex buffer.
+>
+> This function is represented as
+```c#
+int offset = 0;
+int offsetByte = 0;
+for (int i = countBE; i < index; i++)
+{
+    offset += objs[i].SO_mesh.vertexes.Length;
+    offsetByte += objs[i].SO_mesh.indices.Length;
+}
+meshOffsets.Add(new MeshOffset(offset, offsetByte * sizeof(uint)));
+return meshOffsets.Count - 1;
+```
 > <br>
 >
 > Now Opengls documentation for this function has caused some problems for their naming of paramaters and their uses. As shown here.
