@@ -170,7 +170,6 @@ beCount = 0;
 for (int i = 0; i < renderSets.Count; i++)
 {
     int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
-    //Console.WriteLine(beCount + " to " + objCount + " " + i);
     renderSets[i].DrawSet(scene.SpatialObjects, beCount, objCount, ref shader, view, proj, camPos);
     count -= MaxRenders;
     beCount = objCount;
