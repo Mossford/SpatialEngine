@@ -19,8 +19,6 @@ namespace SpatialEngine.Rendering
         public class RenderSet : IDisposable
         {
 
-            // Max amount of objects a renderset can render
-
             public uint vao { get; protected set; }
             public uint vbo { get; protected set; }
             public uint ebo { get; protected set; }

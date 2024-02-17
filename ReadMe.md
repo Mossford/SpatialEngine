@@ -1,4 +1,17 @@
-# **The Spatial Engine**
+# **The Spatial Engine** 
+## (A c# version of the c++ Spatial Engine by me)
+
+## Current Features
+* #### Runs on SilkNet using a custom built renderer on Opengl that uses batching of meshes for fast rendering of huge amounts of meshes. Uses custom loading of obj meshes and support for textures and soon a 2d custom renderer for ui.
+* #### Uses Jolt physics for its physics and a possbility to make my own physics engine in the future once I get the physics on the c++ version of this engine working
+* #### Currently uses Riptide Networking for connecting clients to servers and sending packets. Will be replaced by Valves networking solution. Builds on top of this with a custom packet system for the server and client.
+* #### Custom way of representing objects in the game with a *SpatialObject* and scene loading *(soon)* and saving.
+
+
+
+
+
+# How it works
 
 ## Core
 
