@@ -254,7 +254,6 @@ namespace SpatialEngine
             }
             keysPressed.Clear();
 
-
             //GameManager.UpdateGame((float)dt);
         }
 
@@ -315,6 +314,17 @@ namespace SpatialEngine
             gl.ActiveTexture(GLEnum.Texture0);
             texture.Bind();
             Renderer.Draw(scene, ref shader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+
+            //render players
+            if(NetworkManager.didInit && !NetworkManager.isServer)
+            {
+                for (int i = 0; i < NetworkManager.client.playerMeshes.Count; i++)
+                {
+                    Console.WriteLine("test");
+                    NetworkManager.client.playerMeshes[i].SetModelMatrix();
+                    NetworkManager.client.playerMeshes[i].DrawMesh(ref shader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+                }
+            }
 
             SetNeededDebug(player.camera.projMat, player.camera.viewMat);
             DrawDebugItems();

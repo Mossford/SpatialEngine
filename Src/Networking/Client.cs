@@ -13,6 +13,8 @@ using JoltPhysicsSharp;
 using System.IO;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using SpatialEngine.Rendering;
+using System.Collections.Generic;
 
 namespace SpatialEngine.Networking
 {
@@ -32,9 +34,13 @@ namespace SpatialEngine.Networking
         public int pingCount { get; protected set; } = 0;
         float lastPing = 0f;
 
+        // the other clients meshes, they only need position and rotation so a mesh is all that is needed
+        public List<Mesh> playerMeshes;
+
         public SpatialClient()
         {
             Message.InstancesPerPeer = 100;
+            playerMeshes = new List<Mesh>();
         }
 
         public void Start(string ip, ushort port)
@@ -56,6 +62,8 @@ namespace SpatialEngine.Networking
 
             ConnectPacket connectPacket = new ConnectPacket();
             SendRelib(connectPacket);
+            PlayerJoinPacket playerJoinPacket = new PlayerJoinPacket(0, player.position, Math.Vec3ToQuat(player.rotation), "Cube.obj");
+            SendRelib(playerJoinPacket);
             disconnected = false;
         }
 
@@ -75,6 +83,10 @@ namespace SpatialEngine.Networking
                     SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
                     SendUnrelib(packet);
                 }*/
+                //send own player pos and rot to server
+                PlayerPacket packet = new PlayerPacket(0, player.position, Math.Vec3ToQuat(player.rotation));
+                SendUnrelib(packet);
+                //Console.WriteLine(playerMeshes.Count);
                 client.Update();
 
 
@@ -241,6 +253,24 @@ namespace SpatialEngine.Networking
                     {
                         SceneSyncClear packet = new SceneSyncClear();
                         SendRelib(packet);
+                        break;
+                    }
+                case (ushort)PacketType.Player:
+                    {
+                        PlayerPacket packet = new PlayerPacket();
+                        packet.ByteToPacket(data);
+                        if(packet.id < playerMeshes.Count)
+                        {
+                            playerMeshes[packet.id].position = packet.Position;
+                            playerMeshes[packet.id].rotation = packet.Rotation;
+                        }
+                        Console.WriteLine(packet.Position);
+                        break;
+                    }
+                case (ushort)PacketType.PlayerJoin:
+                    {
+                        PlayerJoinPacket packet = new PlayerJoinPacket();
+                        playerMeshes.Add(LoadModel(packet.Position, packet.Rotation, Resources.ModelPath, "Cube.obj"));
                         break;
                     }
             }

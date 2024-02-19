@@ -73,6 +73,49 @@ namespace SpatialEngine.Rendering
             modelMat = Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position);
         }
 
+        /// <summary>
+        /// Slow way of drawing meant for use outside of the scene system and of low volume of meshes
+        /// </summary>
+        public unsafe void DrawMesh(ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
+        {
+            uint vao;
+            uint vbo;
+            uint ebo;
+
+            vao = gl.GenVertexArray();
+            gl.BindVertexArray(vao);
+            vbo = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+            ebo = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
+
+            fixed (Vertex* buf = vertexes)
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexes.Length * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
+            fixed (uint* buf = indices)
+                gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indices.Length * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
+
+            gl.EnableVertexAttribArray(0);
+            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)0);
+            gl.EnableVertexAttribArray(1);
+            gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(3 * sizeof(float)));
+            gl.EnableVertexAttribArray(2);
+            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(6 * sizeof(float)));
+            gl.BindVertexArray(0);
+            
+            gl.UseProgram(shader.shader);
+            gl.BindVertexArray(vao);
+            shader.setMat4("view", view);
+            shader.setMat4("projection", proj);
+            shader.setVec3("viewPos", camPos);
+            shader.setMat4("model", modelMat);
+            gl.DrawElements(GLEnum.Triangles, (uint)indices.Length, GLEnum.UnsignedInt, (void*)0);
+            gl.BindVertexArray(0);
+
+            gl.DeleteBuffer(vbo);
+            gl.DeleteBuffer(ebo);
+            gl.DeleteVertexArray(vao);
+        }
+
         public void Dispose()
         {
             GC.SuppressFinalize(this);

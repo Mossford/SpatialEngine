@@ -16,7 +16,7 @@ namespace SpatialEngine
 
         public static void InitResources()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            /*if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 appPath = "";
                 resourcePath = "res/";
@@ -24,7 +24,7 @@ namespace SpatialEngine
                 ImagePath = resourcePath + "Images/";
                 ModelPath = resourcePath + "Models/";
                 ScenePath = resourcePath + "Scenes/";
-            }
+            }*/
 
             if(!Directory.Exists(ScenePath))
             {

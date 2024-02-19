@@ -223,7 +223,9 @@ for (int i = 0; i < renderSets.Count; i++)
 ## TODO
 
 * ### Server handles creating a object for each player to represent a model but only send it to other clients except the one its rendering?
+* #### last client is not visible to all the other clients need fixing. Gets info about position and rotation but wont render
 * ### Documentation
+* ### Refactor shader system
 * ### ui rendering
 * ### Cascading Shadows
 * ### refactoring of systems?

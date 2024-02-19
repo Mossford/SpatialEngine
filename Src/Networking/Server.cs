@@ -245,6 +245,31 @@ namespace SpatialEngine.Networking
                         }
                         break;
                     }
+                case (ushort)PacketType.Player:
+                    {
+                        //send this packet to all clients except from sender
+                        PlayerPacket packet = new PlayerPacket();
+                        packet.ByteToPacket(data);
+                        //set id to the client id so the clients can have the correct spot in the list and subtract 1 as it does not include itself
+                        packet.id = client.Id - 1;
+                        SendUnrelibAllExclude(packet, client.Id);
+                        break;
+                    }
+                case (ushort)PacketType.PlayerJoin:
+                    {
+                        //send join signal to all other clients except to the one that joined
+                        PlayerJoinPacket packet = new PlayerJoinPacket();
+                        packet.ByteToPacket(data);
+                        SendRelibAllExclude(packet, client.Id);
+
+                        //send signals to create a player for the current client if it joined after another client
+                        // and remove 1 so we dont send a copy of its own player
+                        for (int i = 0; i < server.ClientCount - 1; i++)
+                        {
+                            SendRelib(packet, client.Id);
+                        }
+                        break;
+                    }
             }
         }
 
