@@ -320,7 +320,6 @@ namespace SpatialEngine
             {
                 for (int i = 0; i < NetworkManager.client.playerMeshes.Count; i++)
                 {
-                    Console.WriteLine("test");
                     NetworkManager.client.playerMeshes[i].SetModelMatrix();
                     NetworkManager.client.playerMeshes[i].DrawMesh(ref shader, player.camera.viewMat, player.camera.projMat, player.camera.position);
                 }

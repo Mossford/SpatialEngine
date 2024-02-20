@@ -86,7 +86,6 @@ namespace SpatialEngine.Networking
                 //send own player pos and rot to server
                 PlayerPacket packet = new PlayerPacket(0, player.position, Math.Vec3ToQuat(player.rotation));
                 SendUnrelib(packet);
-                //Console.WriteLine(playerMeshes.Count);
                 client.Update();
 
 
@@ -264,12 +263,12 @@ namespace SpatialEngine.Networking
                             playerMeshes[packet.id].position = packet.Position;
                             playerMeshes[packet.id].rotation = packet.Rotation;
                         }
-                        Console.WriteLine(packet.Position);
                         break;
                     }
                 case (ushort)PacketType.PlayerJoin:
                     {
                         PlayerJoinPacket packet = new PlayerJoinPacket();
+                        //hardcoded mesh location for now as using the packet causes it not to find the mesh
                         playerMeshes.Add(LoadModel(packet.Position, packet.Rotation, Resources.ModelPath, "Cube.obj"));
                         break;
                     }
