@@ -204,7 +204,7 @@ for (int i = 0; i < renderSets.Count; i++)
 ```
 
 
-> An abstract way to represent this renderer is that it takes in all the meshes in the scene. Splits them up into sections by a set value. Then combines all these meshes vertexes into one mesh. Send that to the gpu and render that one mesh using a offset so that it can be multiple meshes but only using one mesh.
+> An abstract way to represent this renderer is that it takes in all the meshes in the scene. Splits them up into sections by a set value. Then combines all these meshes vertexes into one mesh. Send that to the gpu and render that one mesh using a offset so that it can be multiple draw calls but only using one mesh.
 
 #### [The Mesh File](Src/Rendering/Mesh.cs)
 >The Mesh file contains all the important functions and data to represent a mesh that Opengl can take.
