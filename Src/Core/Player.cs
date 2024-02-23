@@ -7,7 +7,7 @@ using static SpatialEngine.Rendering.MeshUtils;
 using static SpatialEngine.Resources;
 using SpatialEngine.Rendering;
 using static SpatialEngine.Globals;
-using PlaneGame;
+using SpatialGame;
 
 namespace SpatialEngine
 {
@@ -108,11 +108,6 @@ namespace SpatialEngine
         {
             scene.AddSpatialObject(CreateSphereMesh(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, 2), 1.0f, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
             scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
-        }
-
-        public void LaunchPlane()
-        {
-            scene.SpatialObjects[GameManager.plane.id].SO_rigidbody.SetPosition((Double3)(camera.position + (camera.GetCamDir() * 13.0f)));
         }
     }
 }

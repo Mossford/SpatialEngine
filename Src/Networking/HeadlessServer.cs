@@ -6,7 +6,7 @@ using System.Numerics;
 using static SpatialEngine.Rendering.MeshUtils;
 using static SpatialEngine.Resources;
 using static SpatialEngine.Globals;
-using PlaneGame;
+using SpatialGame;
 
 namespace SpatialEngine.Networking
 {

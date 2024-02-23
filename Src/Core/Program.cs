@@ -26,7 +26,7 @@ using Shader = SpatialEngine.Rendering.Shader;
 using Texture = SpatialEngine.Rendering.Texture;
 using static SpatialEngine.Debugging;
 
-using PlaneGame;
+using SpatialGame;
 
 namespace SpatialEngine
 {
@@ -269,10 +269,6 @@ namespace SpatialEngine
                 }
                 vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.indices.Length;
-            }
-            if (keyboard.IsKeyPressed(Key.C))
-            {
-                player.LaunchPlane();
             }
             player.Movement(dt, keysPressed.ToArray());
             player.UpdatePlayer(dt);
