@@ -50,6 +50,8 @@
 > The renderer operates on one specific structure. A **RenderSet**. The Renderer uses a list of these Rendersets to draw sets of SpatialObjects. In normal terms this is called a Batch Renderer or a Batching System.
 > <br>
 >
+> An abstract way to represent this renderer is that it takes in all the meshes in the scene. Splits them up into sections by a set value. Then combines all these meshes vertexes into one mesh. Send that to the gpu and render that one mesh using a offset so that it can be multiple draw calls but only using one mesh.
+>
 > The **RenderSet** contains the needed things for fully rendering a set of objects. Opengl uses a **Vao** *(Vertex array object)* This holds a index to where the vertexes of a mesh are stored. Opengl also uses a **Vbo** *(Vertex buffer object)* and a **Ebo** *(Element buffer object)*, in which the Ebo being the more important one holding all the indices of the mesh.
 > <br>
 > The render set also stores a list of a object called a **MeshOffset** which will be used for a method of drawing this renderer was built for. 
@@ -202,9 +204,6 @@ for (int i = 0; i < renderSets.Count; i++)
     beCount = objCount;
 }
 ```
-
-
-> An abstract way to represent this renderer is that it takes in all the meshes in the scene. Splits them up into sections by a set value. Then combines all these meshes vertexes into one mesh. Send that to the gpu and render that one mesh using a offset so that it can be multiple draw calls but only using one mesh.
 
 #### [The Mesh File](Src/Rendering/Mesh.cs)
 >The Mesh file contains all the important functions and data to represent a mesh that Opengl can take.
