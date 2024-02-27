@@ -160,6 +160,7 @@ return meshOffsets.Count - 1;
 > Now Opengls documentation for this function has caused some problems for their naming of paramaters and their uses. As shown here.
 ```c#
 //Because of opengls stupid documentation this draw call is suppose to take in the offset in indices by bytes then take in the offset in vertices instead of the offset in indices
+// and its not the indices that are stored it wants the offsets as the indcies are already in a buffer which is what draw elements is using
 /*
     indices
         Specifies a pointer to the location where the indices are stored.

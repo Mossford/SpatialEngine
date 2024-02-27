@@ -14,6 +14,7 @@ namespace SpatialEngine.Rendering
 {
     public static class Renderer
     {
+        //offset is the vertex offset and offsetbyte is the indices offset in bytes
         record MeshOffset(int offset, int offsetByte);
 
         public class RenderSet : IDisposable
@@ -23,7 +24,7 @@ namespace SpatialEngine.Rendering
             public uint vbo { get; protected set; }
             public uint ebo { get; protected set; }
             List<MeshOffset> meshOffsets;
-            //BufferObject<Matrix4x4> modelMatrixes;
+            BufferObject<Matrix4x4> modelMatrixes;
 
             public RenderSet()
             {
@@ -32,7 +33,7 @@ namespace SpatialEngine.Rendering
 
             public unsafe void CreateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
             {
-                //Span<Matrix4x4> models = new Span<Matrix4x4>();
+                Span<Matrix4x4> models = new Span<Matrix4x4>();
                 int vertexSize = 0;
                 int indiceSize = 0;
                 for (int i = countBE; i < countTO; i++)
@@ -43,13 +44,13 @@ namespace SpatialEngine.Rendering
 
                 Vertex[] verts = new Vertex[vertexSize];
                 uint[] inds = new uint[indiceSize];
-                //models = stackalloc Matrix4x4[countTO - countBE];
+                models = stackalloc Matrix4x4[countTO - countBE];
                 int countV = 0;
                 int countI = 0;
-                //int count = 0;
+                int count = 0;
                 for (int i = countBE; i < countTO; i++)
                 {
-                    //models[count] = objs[i].SO_mesh.modelMat;
+                    models[count] = objs[i].SO_mesh.modelMat;
                     for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                     {
                         verts[countV] = objs[i].SO_mesh.vertexes[j];
@@ -60,10 +61,10 @@ namespace SpatialEngine.Rendering
                         inds[countI] = objs[i].SO_mesh.indices[j];
                         countI++;
                     }
-                    //count++;
+                    count++;
                 }
 
-                //modelMatrixes = new BufferObject<Matrix4x4>(models, 3, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
+                modelMatrixes = new BufferObject<Matrix4x4>(models, 3, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
 
                 vao = gl.GenVertexArray();
                 gl.BindVertexArray(vao);
@@ -88,7 +89,7 @@ namespace SpatialEngine.Rendering
 
             public unsafe void UpdateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
             {
-                //Span<Matrix4x4> models = new Span<Matrix4x4>();
+                Span<Matrix4x4> models = new Span<Matrix4x4>();
                 int vertexSize = 0;
                 int indiceSize = 0;
                 for (int i = countBE; i < countTO; i++)
@@ -100,13 +101,13 @@ namespace SpatialEngine.Rendering
 
                 Vertex[] verts = new Vertex[vertexSize];
                 uint[] inds = new uint[indiceSize];
-                //models = stackalloc Matrix4x4[countTO - countBE];
+                models = stackalloc Matrix4x4[countTO - countBE];
                 int countV = 0;
                 int countI = 0;
-                //int count = 0;
+                int count = 0;
                 for (int i = countBE; i < countTO; i++)
                 {
-                    //models[count] = objs[i].SO_mesh.modelMat;
+                    models[count] = objs[i].SO_mesh.modelMat;
                     for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                     {
                         verts[countV] = objs[i].SO_mesh.vertexes[j];
@@ -114,13 +115,22 @@ namespace SpatialEngine.Rendering
                     }
                     for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
                     {
-                        inds[countI] = objs[i].SO_mesh.indices[j];
+                        //for drawelements non base vertex as it needs to add onto the idncies from before
+                        //remove using only for testing
+                        //if(i == 0)
+                        //{
+                            inds[countI] = objs[i].SO_mesh.indices[j];
+                        //}
+                        //else
+                        //{
+                        //    inds[countI] = objs[i].SO_mesh.indices[j] + (uint)(objs[i - 1].SO_mesh.indices.Length * i);
+                        //}
                         countI++;
                     }
-                    //count++;
+                    count++;
                 }
 
-                //modelMatrixes.Update(models);
+                modelMatrixes.Update(models);
 
                 gl.BindVertexArray(vao);
                 gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
@@ -158,30 +168,50 @@ namespace SpatialEngine.Rendering
             public unsafe void DrawSet(in List<SpatialObject> objs, int countBE, int countTO, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
             {
                 gl.BindVertexArray(vao);
-                //modelMatrixes.Bind();
+                modelMatrixes.Bind();
                 shader.setMat4("view", view);
                 shader.setMat4("projection", proj);
                 shader.setVec3("viewPos", camPos);
                 int count = 0;
+                int totalIndCount = 0;
+                uint[] indCounts = new uint[1];
+                int[] offsetBytes = new int[countTO - countBE];
+                int[] offsets = new int[countTO - countBE];
                 for (int i = countBE; i < countTO; i++)
                 {
                     int index = count;
                     if (count >= meshOffsets.Count)
                         index = GetOffsetIndex(countBE, count, i, objs);
-                    shader.setMat4("model", objs[i].SO_mesh.modelMat);
+                    offsetBytes[i] = index;
+                    totalIndCount += objs[i].SO_mesh.indices.Length;
+                    offsetBytes[count] = meshOffsets[index].offsetByte;
+                    offsets[count] = meshOffsets[index].offset;
+                }
+                indCounts[0] = (uint)totalIndCount;
+                fixed(uint* ptr = indCounts)
+                    gl.MultiDrawElementsBaseVertex(GLEnum.Triangles, ptr, GLEnum.UnsignedInt, (void**)0, 10000, 10);
+                count++;
+                DrawCallCount++;
+                /*for (int i = countBE; i < countTO; i++)
+                {
+                    int index = count;
+                    if (count >= meshOffsets.Count)
+                        index = GetOffsetIndex(countBE, count, i, objs);
+                    //shader.setMat4("model", objs[i].SO_mesh.modelMat);
                     //shader.setMat4("model", bodyInterface.GetWorldTransform(objs[i].SO_rigidbody.rbID));
                     //Because of opengls stupid documentation this draw call is suppose to take in the offset in indices by bytes then take in the offset in vertices instead of the offset in indices
-                    /*
-                        indices
-                            Specifies a pointer to the location where the indices are stored.
-                        basevertex
-                            Specifies a constant that should be added to each element of indices when chosing elements from the enabled vertex arrays. 
-                    */
+                    // and its not the indices that are stored it wants the offsets as the indcies are already in a buffer which is what draw elements is using
+                    //
+                    //    indices
+                    //        Specifies a pointer to the location where the indices are stored.
+                    //    basevertex
+                    //        Specifies a constant that should be added to each element of indices when chosing elements from the enabled vertex arrays. 
+                    //
                     //This naming is so fucking bad and has caused me multiple hours in trying to find what the hell the problem is
                     gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
                     DrawCallCount++;
                     count++;
-                }
+                }*/
                 gl.BindVertexArray(0);
             }
         }
