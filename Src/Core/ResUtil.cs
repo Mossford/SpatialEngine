@@ -14,6 +14,8 @@ namespace SpatialEngine
         public static string ModelPath = resourcePath + "Models/";
         public static string ScenePath = resourcePath + "Scenes/";
 
+        //IMPORTANT
+        //IF PUBLISHED IN SINGLE FILE DOTNET CANNOT FIND THE PATH OF EXECUTION AS REFLECTION DOES NOT WORK FOR SINGLE FILE PUBLISHING
         public static void InitResources()
         {
             /*if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

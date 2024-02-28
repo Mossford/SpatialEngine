@@ -1,6 +1,7 @@
 ﻿using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -33,7 +34,7 @@ namespace SpatialEngine.Rendering
 
             public unsafe void CreateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
             {
-                Span<Matrix4x4> models = new Span<Matrix4x4>();
+                Matrix4x4[] models = new Matrix4x4[countTO - countBE];
                 int vertexSize = 0;
                 int indiceSize = 0;
                 for (int i = countBE; i < countTO; i++)
@@ -44,7 +45,6 @@ namespace SpatialEngine.Rendering
 
                 Vertex[] verts = new Vertex[vertexSize];
                 uint[] inds = new uint[indiceSize];
-                models = stackalloc Matrix4x4[countTO - countBE];
                 int countV = 0;
                 int countI = 0;
                 int count = 0;
@@ -89,7 +89,7 @@ namespace SpatialEngine.Rendering
 
             public unsafe void UpdateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
             {
-                Span<Matrix4x4> models = new Span<Matrix4x4>();
+                Matrix4x4[] models = new Matrix4x4[countTO - countBE];
                 int vertexSize = 0;
                 int indiceSize = 0;
                 for (int i = countBE; i < countTO; i++)
@@ -101,7 +101,6 @@ namespace SpatialEngine.Rendering
 
                 Vertex[] verts = new Vertex[vertexSize];
                 uint[] inds = new uint[indiceSize];
-                models = stackalloc Matrix4x4[countTO - countBE];
                 int countV = 0;
                 int countI = 0;
                 int count = 0;
@@ -144,6 +143,20 @@ namespace SpatialEngine.Rendering
                 gl.BindVertexArray(0);
             }
 
+            public void UpdateModelBuffer(in List<SpatialObject> objs, int countBE, int countTO)
+            {
+                Matrix4x4[] models = new Matrix4x4[countTO - countBE];
+
+                int count = 0;
+                for (int i = countBE; i < countTO; i++)
+                {
+                    models[count] = objs[i].SO_mesh.modelMat;
+                    count++;
+                }
+
+                modelMatrixes.Update(models);
+            }
+
             public void Dispose()
             {
                 gl.DeleteVertexArray(vao);
@@ -173,8 +186,7 @@ namespace SpatialEngine.Rendering
                 shader.setMat4("projection", proj);
                 shader.setVec3("viewPos", camPos);
                 int count = 0;
-                int totalIndCount = 0;
-                uint[] indCounts = new uint[1];
+                uint[] indCounts = new uint[countTO - countBE];
                 int[] offsetBytes = new int[countTO - countBE];
                 int[] offsets = new int[countTO - countBE];
                 for (int i = countBE; i < countTO; i++)
@@ -182,15 +194,24 @@ namespace SpatialEngine.Rendering
                     int index = count;
                     if (count >= meshOffsets.Count)
                         index = GetOffsetIndex(countBE, count, i, objs);
-                    offsetBytes[i] = index;
-                    totalIndCount += objs[i].SO_mesh.indices.Length;
+                    indCounts[count] = (uint)objs[i].SO_mesh.indices.Length;
                     offsetBytes[count] = meshOffsets[index].offsetByte;
                     offsets[count] = meshOffsets[index].offset;
+                    count++;
                 }
-                indCounts[0] = (uint)totalIndCount;
-                fixed(uint* ptr = indCounts)
-                    gl.MultiDrawElementsBaseVertex(GLEnum.Triangles, ptr, GLEnum.UnsignedInt, (void**)0, 10000, 10);
-                count++;
+
+                //indices paramater needed a array of void* and this allows for it as it creates pointers to each value and creates a pointer array with it
+                int*[] obArray = new int*[countTO - countBE];
+
+                for (int i = 0; i < offsetBytes.Length; i++)
+                {
+                    obArray[i] = (int*)offsetBytes[i];
+                }
+
+                fixed (void* ptr = &obArray[0])
+                    gl.MultiDrawElementsBaseVertex(GLEnum.Triangles, indCounts, GLEnum.UnsignedInt, (void**)ptr, offsets);
+
+                //gl.MultiDrawElements(GLEnum.Triangles, indCounts, GLEnum.UnsignedInt, (void*)0, 1);
                 DrawCallCount++;
                 /*for (int i = countBE; i < countTO; i++)
                 {
@@ -225,7 +246,7 @@ namespace SpatialEngine.Rendering
             renderSets = new List<RenderSet>();
             MaxRenders = maxRenders;
             renderSets.Add(new RenderSet());
-            renderSets[0].CreateDrawSet(scene.SpatialObjects, 0, scene.SpatialObjects.Count);
+            renderSets[0].CreateDrawSet(in scene.SpatialObjects, 0, scene.SpatialObjects.Count);
         }
 
         public static void Draw(in Scene scene, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
@@ -245,7 +266,7 @@ namespace SpatialEngine.Rendering
                     objCountADD = (int)MathF.Min(MaxRenders, countADD) + (i * MaxRenders);
                     countADD -= MaxRenders;
                 }
-                renderSets[^1].CreateDrawSet(scene.SpatialObjects, beCountADD, objCountADD);
+                renderSets[^1].CreateDrawSet(in scene.SpatialObjects, beCountADD, objCountADD);
             }
 
             // update a renderset if there is more objects but less than needed for a new renderset
@@ -255,9 +276,8 @@ namespace SpatialEngine.Rendering
             {
                 for (int i = 0; i < renderSets.Count; i++)
                 {
-                    //Console.WriteLine("Updating renderset: " + i);
                     int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
-                    renderSets[i].UpdateDrawSet(scene.SpatialObjects, beCount, objCount);
+                    renderSets[i].UpdateDrawSet(in scene.SpatialObjects, beCount, objCount);
                     count -= MaxRenders;
                     beCount = objCount;
                 }
@@ -269,8 +289,8 @@ namespace SpatialEngine.Rendering
             for (int i = 0; i < renderSets.Count; i++)
             {
                 int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
-                //Console.WriteLine(beCount + " to " + objCount + " " + i);
-                renderSets[i].DrawSet(scene.SpatialObjects, beCount, objCount, ref shader, view, proj, camPos);
+                renderSets[i].UpdateModelBuffer(in scene.SpatialObjects, beCount, objCount);
+                renderSets[i].DrawSet(in scene.SpatialObjects, beCount, objCount, ref shader, view, proj, camPos);
                 count -= MaxRenders;
                 beCount = objCount;
             }
