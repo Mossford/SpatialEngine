@@ -114,16 +114,7 @@ namespace SpatialEngine.Rendering
                     }
                     for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
                     {
-                        //for drawelements non base vertex as it needs to add onto the idncies from before
-                        //remove using only for testing
-                        //if(i == 0)
-                        //{
-                            inds[countI] = objs[i].SO_mesh.indices[j];
-                        //}
-                        //else
-                        //{
-                        //    inds[countI] = objs[i].SO_mesh.indices[j] + (uint)(objs[i - 1].SO_mesh.indices.Length * i);
-                        //}
+                        inds[countI] = objs[i].SO_mesh.indices[j];
                         countI++;
                     }
                     count++;
