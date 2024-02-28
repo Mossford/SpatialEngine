@@ -149,12 +149,6 @@ namespace SpatialEngine
             scene.AddSpatialObject(LoadModel(new Vector3(37,5,-21), Quaternion.Identity, ModelPath, "FloorWall5.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-50,2,0), Quaternion.Identity, ModelPath, "FloorWall6.obj"), new Vector3(1,2,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, ModelPath, "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            //scene.AddSpatialObject(CreateSphereMesh(new Vector3(0,10,0), new Quaternion(0.1f, 0.1f, 0.1f, 1), 3), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-
-            for (int i = 0; i < 500; i++)
-            {
-                scene.AddSpatialObject(LoadModel(new Vector3(0, 5, 1), Quaternion.Identity, ModelPath, "Cube.obj"), new Vector3(20, 3, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            }
 
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
@@ -287,14 +281,14 @@ namespace SpatialEngine
                 {
                     if(!NetworkManager.client.IsConnected())
                     {
-                        //physics.UpdatePhysics(ref scene, dt);
+                        physics.UpdatePhysics(ref scene, dt);
                     }
                     NetworkManager.client.Update(dt);
                 }
             }
             else
             {
-                //physics.UpdatePhysics(ref scene, dt);
+                physics.UpdatePhysics(ref scene, dt);
             }
         }
 
