@@ -210,16 +210,21 @@ namespace SpatialEngine.Rendering
 
                 fixed (void* ptr = &obArray[0])
                     gl.MultiDrawElementsBaseVertex(GLEnum.Triangles, indCounts, GLEnum.UnsignedInt, (void**)ptr, offsets);
-
-                //gl.MultiDrawElements(GLEnum.Triangles, indCounts, GLEnum.UnsignedInt, (void*)0, 1);
                 DrawCallCount++;
-                /*for (int i = countBE; i < countTO; i++)
+                gl.BindVertexArray(0);
+            }
+
+            //needs to have the shader be set as the objects shader
+            public unsafe void DrawSetObject(in List<SpatialObject> objs, int countBE, int countTO)
+            {
+                gl.BindVertexArray(vao);
+                modelMatrixes.Bind();
+                int count = 0;
+                for (int i = countBE; i < countTO; i++)
                 {
                     int index = count;
                     if (count >= meshOffsets.Count)
                         index = GetOffsetIndex(countBE, count, i, objs);
-                    //shader.setMat4("model", objs[i].SO_mesh.modelMat);
-                    //shader.setMat4("model", bodyInterface.GetWorldTransform(objs[i].SO_rigidbody.rbID));
                     //Because of opengls stupid documentation this draw call is suppose to take in the offset in indices by bytes then take in the offset in vertices instead of the offset in indices
                     // and its not the indices that are stored it wants the offsets as the indcies are already in a buffer which is what draw elements is using
                     //
@@ -229,10 +234,14 @@ namespace SpatialEngine.Rendering
                     //        Specifies a constant that should be added to each element of indices when chosing elements from the enabled vertex arrays. 
                     //
                     //This naming is so fucking bad and has caused me multiple hours in trying to find what the hell the problem is
+
+                    //use the object shader
+                    //objs[i].SO_shader.use();
+
                     gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
                     DrawCallCount++;
                     count++;
-                }*/
+                }
                 gl.BindVertexArray(0);
             }
         }
