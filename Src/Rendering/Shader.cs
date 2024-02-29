@@ -30,11 +30,22 @@ namespace SpatialEngine.Rendering
         int prevLocationIndex;
         public List<ShaderUniform> uniformList;
 
+        /// <summary>
+        /// Only holds the vertex file name but not the shader path
+        /// </summary>
+        public string vertPath { get; private set; }
+        /// <summary>
+        /// Only holds the fragment file name but not the shader path
+        /// </summary>
+        public string fragPath { get; private set; }
+
         public unsafe Shader(GL gl, string vertPath, string fragPath)
         {
             //get shader file code
-            string vertexCode = File.ReadAllText(vertPath);
-            string fragCode = File.ReadAllText(fragPath);
+            this.vertPath = vertPath;
+            this.fragPath = fragPath;
+            string vertexCode = File.ReadAllText(Resources.ShaderPath + vertPath);
+            string fragCode = File.ReadAllText(Resources.ShaderPath + fragPath);
             //compile shader
             vertShaderU = gl.CreateShader(ShaderType.VertexShader);
             gl.ShaderSource(vertShaderU, vertexCode);

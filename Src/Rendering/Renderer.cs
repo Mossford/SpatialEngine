@@ -227,7 +227,8 @@ namespace SpatialEngine.Rendering
                     //This naming is so fucking bad and has caused me multiple hours in trying to find what the hell the problem is
 
                     //use the object shader
-                    //objs[i].SO_shader.use();
+                    if(objs[i].SO_shader is not null)
+                        gl.UseProgram(objs[i].SO_shader.shader);
 
                     gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
                     DrawCallCount++;

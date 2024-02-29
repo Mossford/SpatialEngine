@@ -11,6 +11,7 @@ using static SpatialEngine.Globals;
 using SpatialEngine.Rendering;
 using System.IO;
 using System.Linq;
+using Shader = SpatialEngine.Rendering.Shader;
 
 namespace SpatialEngine
 {
@@ -18,6 +19,7 @@ namespace SpatialEngine
     {
         public Mesh SO_mesh;
         public RigidBody SO_rigidbody;
+        public Shader SO_shader;
         public uint SO_id;
 
         public unsafe SpatialObject(Mesh mesh, uint id)
@@ -33,10 +35,35 @@ namespace SpatialEngine
             SO_id = id;
         }
 
+        public SpatialObject(RigidBody rigidBody, Mesh mesh, Shader shader, uint id)
+        {
+            SO_rigidbody = rigidBody;
+            SO_shader = shader;
+            SO_mesh = mesh;
+            SO_id = id;
+        }
+
+        public SpatialObject(RigidBody rigidBody, Mesh mesh, string vertPath, string fragPath, uint id)
+        {
+            SO_rigidbody = rigidBody;
+            SO_shader = new Shader(gl, vertPath, fragPath);
+            SO_mesh = mesh;
+            SO_id = id;
+        }
+
         public SpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, uint id)
         {
             SO_mesh = mesh;
             SO_rigidbody = new RigidBody(SO_mesh.vertexes, SO_mesh.position, SO_mesh.rotation, motion, layer);
+            SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
+            SO_id = id;
+        }
+
+        public SpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, string vertPath, string fragPath, uint id)
+        {
+            SO_mesh = mesh;
+            SO_rigidbody = new RigidBody(SO_mesh.vertexes, SO_mesh.position, SO_mesh.rotation, motion, layer);
+            SO_shader = new Shader(gl, vertPath, fragPath);
             SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
             SO_id = id;
         }
@@ -143,7 +170,9 @@ namespace SpatialEngine
                 "#MR (Mesh rotation.x)/(mesh rotation.y)/(mesh rotation.z)\n" +
                 "#MS (mesh scale)\n" +
                 "#TL (Texture location)\n" +
-                "#RV (Velocity.x)/(Velocity.y)/(Velocity.z)\n";
+                "#RV (Velocity.x)/(Velocity.y)/(Velocity.z)\n" +
+                "#SLV (Shader Vertex Location)\n" +
+                "#SLF (Shader Fragment Location)\n";
 
             writer.WriteLine(info);
             writer.WriteLine("S " + name.Remove(name.LastIndexOf('.'), name.Length - name.LastIndexOf('.')));
@@ -152,13 +181,24 @@ namespace SpatialEngine
             for (int i = 0; i < SpatialObjects.Count; i++)
             {
                 writer.WriteLine("SO " + SpatialObjects[i].SO_id);
-                writer.WriteLine("ML " + SpatialObjects[i].SO_mesh.modelLocation);
-                writer.WriteLine("MP " + SpatialObjects[i].SO_mesh.position.X + "/" + SpatialObjects[i].SO_mesh.position.Y + "/" + SpatialObjects[i].SO_mesh.position.Z);
-                writer.WriteLine("MR " + SpatialObjects[i].SO_mesh.rotation.X + "/" + SpatialObjects[i].SO_mesh.rotation.Y + "/" + SpatialObjects[i].SO_mesh.rotation.Z + "/" + SpatialObjects[i].SO_mesh.rotation.W);
-                writer.WriteLine("MS " + SpatialObjects[i].SO_mesh.scale);
+                if (SpatialObjects[i].SO_mesh is not null)
+                {
+                    writer.WriteLine("ML " + SpatialObjects[i].SO_mesh.modelLocation);
+                    writer.WriteLine("MP " + SpatialObjects[i].SO_mesh.position.X + "/" + SpatialObjects[i].SO_mesh.position.Y + "/" + SpatialObjects[i].SO_mesh.position.Z);
+                    writer.WriteLine("MR " + SpatialObjects[i].SO_mesh.rotation.X + "/" + SpatialObjects[i].SO_mesh.rotation.Y + "/" + SpatialObjects[i].SO_mesh.rotation.Z + "/" + SpatialObjects[i].SO_mesh.rotation.W);
+                    writer.WriteLine("MS " + SpatialObjects[i].SO_mesh.scale);
+                }
                 //writer.Write("TL " + SpatialObjects[i].SO_texture.textLocation);
-                Vector3 vel = SpatialObjects[i].SO_rigidbody.GetVelocity();
-                writer.WriteLine("RV " + vel.X.ToString("G30") + "/" + vel.Y.ToString("G30") + "/" + vel.Z.ToString("G30"));
+                if (SpatialObjects[i].SO_rigidbody is not null)
+                {
+                    Vector3 vel = SpatialObjects[i].SO_rigidbody.GetVelocity();
+                    writer.WriteLine("RV " + vel.X.ToString("G30") + "/" + vel.Y.ToString("G30") + "/" + vel.Z.ToString("G30"));
+                }
+                if (SpatialObjects[i].SO_shader is not null)
+                {
+                    writer.WriteLine("SLV " + SpatialObjects[i].SO_shader.vertPath);
+                    writer.WriteLine("SLF " + SpatialObjects[i].SO_shader.fragPath);
+                }
             }
 
             writer.Close();

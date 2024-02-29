@@ -18,7 +18,7 @@ namespace SpatialEngine
         static List<uint> vbos = new List<uint>();
         static List<uint> drawSizes = new List<uint>();
 
-        static Shader lineShader = new Shader(gl, ShaderPath + "DebugDrawing.vert", ShaderPath + "DebugDrawing.frag");
+        static Shader lineShader = new Shader(gl, "DebugDrawing.vert", "DebugDrawing.frag");
 
 
         enum DebugTypes

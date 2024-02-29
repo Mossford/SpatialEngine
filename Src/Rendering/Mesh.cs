@@ -43,6 +43,9 @@ namespace SpatialEngine.Rendering
     {
         public Vertex[] vertexes;
         public uint[] indices;
+        /// <summary>
+        /// only holds the file name of the mesh but not the mesh path
+        /// </summary>
         public string modelLocation;
         public Vector3 position = Vector3.Zero; 
         public float scale = 1f;
