@@ -102,7 +102,7 @@ namespace SpatialEngine.Rendering
             gl.EnableVertexAttribArray(1);
             gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(3 * sizeof(float)));
             gl.EnableVertexAttribArray(2);
-            gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(6 * sizeof(float)));
+            gl.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(6 * sizeof(float)));
             gl.BindVertexArray(0);
             
             gl.UseProgram(shader.shader);

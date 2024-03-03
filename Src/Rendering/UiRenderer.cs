@@ -12,7 +12,17 @@ namespace SpatialEngine.Rendering
 
     public class UiElement : IDisposable
     {
-        record UIVertex(Vector3 pos, Vector2 uv);
+        struct UIVertex
+        {
+            public Vector2 pos;
+            public Vector2 uv;
+
+            public UIVertex(Vector2 pos, Vector2 uv)
+            {
+                this.pos = pos;
+                this.uv = uv;
+            }
+        }
 
         //size for the quad
         public float Length;
@@ -40,10 +50,10 @@ namespace SpatialEngine.Rendering
             //create quad
             UIVertex[] vert =
             {
-                new(new(-Length, -Height, 0), new(0,0)),
-                new(new(-Length,  Height, 0), new(1,0)),
-                new(new(Length, Height, 0), new(0,1)),
-                new(new(Length, -Height, 0), new(1,1)),
+                new(new(-Length, -Height), new(0,0)),
+                new(new(-Length,  Height), new(1,0)),
+                new(new(Length, Height), new(0,1)),
+                new(new(Length, -Height), new(1,1)),
             };
             int[] ind = { 0, 1, 2, 0, 2, 3 };
 
@@ -55,23 +65,33 @@ namespace SpatialEngine.Rendering
             Globals.gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
             fixed (UIVertex* buf = vert)
-                Globals.gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vert.Length * sizeof(Vector3) + sizeof(Vector2)), buf, BufferUsageARB.StreamDraw);
+                Globals.gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vert.Length * sizeof(UIVertex)), buf, BufferUsageARB.StreamDraw);
             fixed (int* buf = ind)
                 Globals.gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(ind.Length * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
 
             Globals.gl.EnableVertexAttribArray(0);
-            Globals.gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)(sizeof(Vector3) + sizeof(Vector2)), (void*)0);
+            Globals.gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, (uint)sizeof(UIVertex), (void*)0);
             Globals.gl.EnableVertexAttribArray(1);
-            Globals.gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)(sizeof(Vector3) + sizeof(Vector2)), (void*)(3 * sizeof(float)));
+            Globals.gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, (uint)sizeof(UIVertex), (void*)(2 * sizeof(float)));
             Globals.gl.BindVertexArray(0);
+
+            Globals.gl.BindVertexArray(id);
+            //Globals.gl.ActiveTexture(GLEnum.Texture1);
+            //texture.Bind();
+            Globals.gl.DrawElements(GLEnum.Triangles, (uint)ind.Length, GLEnum.UnsignedInt, (void*)0);
+            Globals.gl.BindVertexArray(0);
+
+            Globals.gl.DeleteBuffer(vbo);
+            Globals.gl.DeleteBuffer(ebo);
+            Globals.gl.DeleteVertexArray(id);
 
         }
 
         public unsafe void Draw(in Shader shader)
         {
             Globals.gl.BindVertexArray(id);
-            Globals.gl.ActiveTexture(GLEnum.Texture1);
-            texture.Bind();
+            //Globals.gl.ActiveTexture(GLEnum.Texture1);
+            //texture.Bind();
             Globals.gl.DrawElements(GLEnum.Triangles, 6, GLEnum.UnsignedInt, (void*)0);
             Globals.gl.BindVertexArray(0);
         }
@@ -98,10 +118,10 @@ namespace SpatialEngine.Rendering
 
         public static void Draw()
         {
-            UiElement test = new UiElement("", 1920 / 2f, 1080 / 2f);
-            test.Bind();
+            UiElement test = new UiElement("", 1, 1);
             Globals.gl.UseProgram(uiShader.shader);
-            test.Draw(in uiShader);
+            test.Bind();
+            //test.Draw(in uiShader);
         }
     }
 }
