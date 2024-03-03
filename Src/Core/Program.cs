@@ -161,7 +161,7 @@ namespace SpatialEngine
             player = new Player(15.0f, new Vector3(-33,12,-20), new Vector3(300, 15, 0));
             shader = new Shader(gl, "Default.vert", "Default.frag");
             texture = new Texture();
-            texture.LoadTexture(ImagePath + "RedDebug.png");
+            texture.LoadTexture("RedDebug.png");
 
             ImGui.SetWindowSize(new Vector2(400, 600));
 

@@ -21,7 +21,7 @@ namespace SpatialEngine.Rendering
             bool noImage = false;
             ImageResult result = new ImageResult();
 
-            if (!File.Exists(location))
+            if (!File.Exists(Resources.ImagePath + location))
             {
                 noImage = true;
                 for (int x = 0; x < 64; x++)
@@ -46,7 +46,7 @@ namespace SpatialEngine.Rendering
             }
             else
             {
-                result = ImageResult.FromMemory(File.ReadAllBytes(location), ColorComponents.RedGreenBlueAlpha);
+                result = ImageResult.FromMemory(File.ReadAllBytes(Resources.ImagePath + location), ColorComponents.RedGreenBlueAlpha);
             }
             id = gl.GenTexture();
             gl.ActiveTexture(GLEnum.Texture0);

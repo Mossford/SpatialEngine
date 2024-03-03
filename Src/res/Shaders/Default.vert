@@ -8,8 +8,6 @@ layout (std140, binding = 3) restrict buffer models
     mat4 modelMat[];
 } model;
 
-out vec2 TexCoords;
-
 out VS_OUT 
 {
     vec3 FragPos;
