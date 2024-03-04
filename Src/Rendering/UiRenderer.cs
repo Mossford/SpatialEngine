@@ -35,10 +35,11 @@ namespace SpatialEngine.Rendering
         uint vbo;
         uint ebo;
 
-        public UiElement(string textureLoc, float length = 1, float height = 1)
+        public UiElement(string textureLoc, float length = Globals.SCR_WIDTH, float height = Globals.SCR_HEIGHT)
         {
-            Length = length;
-            Height = height;
+            //scale by the resolution so that we can have a correct pixel size
+            Length = length / Globals.SCR_WIDTH;
+            Height = height / Globals.SCR_HEIGHT;
 
             texture = new Texture();
             texture.LoadTexture(textureLoc);
@@ -51,11 +52,11 @@ namespace SpatialEngine.Rendering
             UIVertex[] vert =
             {
                 new(new(-Length, -Height), new(0,0)),
-                new(new(-Length,  Height), new(1,0)),
-                new(new(Length, Height), new(0,1)),
-                new(new(Length, -Height), new(1,1)),
+                new(new(Length, -Height), new(1,0)),
+                new(new(-Length, Height), new(0,1)),
+                new(new(Length, Height), new(1,1))
             };
-            int[] ind = { 0, 1, 2, 0, 2, 3 };
+            int[] ind = { 0, 1, 2, 1, 3, 2};
 
             id = Globals.gl.GenVertexArray();
             Globals.gl.BindVertexArray(id);
@@ -75,23 +76,13 @@ namespace SpatialEngine.Rendering
             Globals.gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, (uint)sizeof(UIVertex), (void*)(2 * sizeof(float)));
             Globals.gl.BindVertexArray(0);
 
-            Globals.gl.BindVertexArray(id);
-            //Globals.gl.ActiveTexture(GLEnum.Texture1);
-            //texture.Bind();
-            Globals.gl.DrawElements(GLEnum.Triangles, (uint)ind.Length, GLEnum.UnsignedInt, (void*)0);
-            Globals.gl.BindVertexArray(0);
-
-            Globals.gl.DeleteBuffer(vbo);
-            Globals.gl.DeleteBuffer(ebo);
-            Globals.gl.DeleteVertexArray(id);
-
         }
 
         public unsafe void Draw(in Shader shader)
         {
             Globals.gl.BindVertexArray(id);
-            //Globals.gl.ActiveTexture(GLEnum.Texture1);
-            //texture.Bind();
+            Globals.gl.ActiveTexture(GLEnum.Texture0);
+            texture.Bind();
             Globals.gl.DrawElements(GLEnum.Triangles, 6, GLEnum.UnsignedInt, (void*)0);
             Globals.gl.BindVertexArray(0);
         }
@@ -101,6 +92,7 @@ namespace SpatialEngine.Rendering
             Globals.gl.DeleteBuffer(vbo);
             Globals.gl.DeleteBuffer(ebo);
             Globals.gl.DeleteVertexArray(id);
+            texture.Dispose();
             GC.SuppressFinalize(this);
         }
 
@@ -118,10 +110,11 @@ namespace SpatialEngine.Rendering
 
         public static void Draw()
         {
-            UiElement test = new UiElement("", 1, 1);
+            UiElement test = new UiElement("RedDebug.png", 100, 100);
             Globals.gl.UseProgram(uiShader.shader);
             test.Bind();
-            //test.Draw(in uiShader);
+            test.Draw(in uiShader);
+            test.Dispose();
         }
     }
 }

@@ -36,6 +36,8 @@ namespace SpatialEngine
         public static GL gl;
         public static GraphicsAPI glApi = GraphicsAPI.Default;
         public static IWindow window;
+        public const int SCR_WIDTH = 1920;
+        public const int SCR_HEIGHT = 1080;
         public static IInputContext input;
         public static IKeyboard keyboard;
         public static string EngVer = "0.6.6";
@@ -67,8 +69,6 @@ namespace SpatialEngine
 
     public class Game
     {
-        public const int SCR_WIDTH = 1920;
-        public const int SCR_HEIGHT = 1080;
         static ImGuiController controller;
         static Vector2 LastMousePosition;
         static Shader shader;
