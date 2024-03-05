@@ -25,8 +25,13 @@ namespace SpatialEngine.Rendering
         }
 
         //size for the quad
-        public float Length;
-        public float Height;
+        public float length;
+        public float height;
+
+        //transform
+        public Vector2 position;
+        public float rotation;
+        public float scale;
 
         //texture that is displayed
         public Texture texture;
@@ -35,14 +40,15 @@ namespace SpatialEngine.Rendering
         uint vbo;
         uint ebo;
 
-        public UiElement(string textureLoc, float length = Globals.SCR_WIDTH, float height = Globals.SCR_HEIGHT)
+        public UiElement(string textureLoc, Vector2 pos, float rot = 0f, float scale = 1f, float length = 100, float height = 100)
         {
-            //scale by the resolution so that we can have a correct pixel size
-            Length = length / Globals.SCR_WIDTH;
-            Height = height / Globals.SCR_HEIGHT;
-
             texture = new Texture();
             texture.LoadTexture(textureLoc);
+            this.position = pos;
+            this.rotation = rot;
+            this.scale = scale;
+            this.length = length;
+            this.height = height;
         }
 
 
@@ -51,10 +57,10 @@ namespace SpatialEngine.Rendering
             //create quad
             UIVertex[] vert =
             {
-                new(new(-Length, -Height), new(0,0)),
-                new(new(Length, -Height), new(1,0)),
-                new(new(-Length, Height), new(0,1)),
-                new(new(Length, Height), new(1,1))
+                new(new(-1, -1), new(0,0)),
+                new(new(1, -1), new(1,0)),
+                new(new(-1, 1), new(0,1)),
+                new(new(1, 1), new(1,1))
             };
             int[] ind = { 0, 1, 2, 1, 3, 2};
 
@@ -101,20 +107,34 @@ namespace SpatialEngine.Rendering
     public static class UiRenderer
     {
         static Shader uiShader;
+        static List<UiElement> uiElements;
 
         public static void Init()
         {
             uiShader = new Shader(Globals.gl, "Ui.vert", "Ui.frag");
-
+            uiElements = new List<UiElement>();
+            uiElements.Add(new UiElement("RedDebug.png", new(0,0), 0f, 1.0f));
+            for (int i = 0; i < uiElements.Count; i++)
+            {
+                uiElements[i].Bind();
+            }
         }
 
         public static void Draw()
         {
-            UiElement test = new UiElement("RedDebug.png", 100, 100);
             Globals.gl.UseProgram(uiShader.shader);
-            test.Bind();
-            test.Draw(in uiShader);
-            test.Dispose();
+            for (int i = 0; i < uiElements.Count; i++)
+            {
+                uiElements[i].length += 0.1f;
+                Matrix4x4 model = Matrix4x4.Identity;
+                model = Matrix4x4.CreateOrthographic(1920, 1080, -1, 1);
+                model *= Matrix4x4.CreateRotationX(uiElements[i].rotation * (MathF.PI / 180f));
+                model *= Matrix4x4.CreateScale(uiElements[i].length * uiElements[i].scale, uiElements[i].height * uiElements[i].scale, 1f);
+                model *= Matrix4x4.CreateTranslation(new(uiElements[i].position.X, uiElements[i].position.Y, 0f));
+
+                uiShader.setMat4("model", model);
+                uiElements[i].Draw(in uiShader);
+            }
         }
     }
 }

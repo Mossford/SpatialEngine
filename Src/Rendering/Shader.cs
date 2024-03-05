@@ -154,5 +154,10 @@ namespace SpatialEngine.Rendering
             int location = GetUniformLocation(name);
             gl.UniformMatrix4(location, 1, false, (float*)&mat);
         }
+        public unsafe void setMat3x2(string name, Matrix3x2 mat)
+        {
+            int location = GetUniformLocation(name);
+            gl.UniformMatrix3x2(location, 1, false, (float*)&mat);
+        }
     }
 }
