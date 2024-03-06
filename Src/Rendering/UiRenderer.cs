@@ -102,6 +102,7 @@ namespace SpatialEngine.Rendering
                 texture.Bind();
                 Globals.gl.DrawElements(GLEnum.Triangles, 6, GLEnum.UnsignedInt, (void*)0);
                 Globals.gl.BindVertexArray(0);
+                Globals.DrawCallCount++;
             }
 
             public static void Dispose()
