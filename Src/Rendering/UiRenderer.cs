@@ -125,12 +125,11 @@ namespace SpatialEngine.Rendering
             Globals.gl.UseProgram(uiShader.shader);
             for (int i = 0; i < uiElements.Count; i++)
             {
-                uiElements[i].length += 0.1f;
                 Matrix4x4 model = Matrix4x4.Identity;
-                model = Matrix4x4.CreateOrthographic(1920, 1080, -1, 1);
-                model *= Matrix4x4.CreateRotationX(uiElements[i].rotation * (MathF.PI / 180f));
                 model *= Matrix4x4.CreateScale(uiElements[i].length * uiElements[i].scale, uiElements[i].height * uiElements[i].scale, 1f);
+                model *= Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, uiElements[i].rotation);
                 model *= Matrix4x4.CreateTranslation(new(uiElements[i].position.X, uiElements[i].position.Y, 0f));
+                model *= Matrix4x4.CreateOrthographic(Globals.SCR_WIDTH, Globals.SCR_HEIGHT, -1, 1);
 
                 uiShader.setMat4("model", model);
                 uiElements[i].Draw(in uiShader);
