@@ -12,6 +12,7 @@ using static SpatialEngine.Globals;
 using Silk.NET.Maths;
 using Silk.NET.Input;
 using System.Net.Security;
+using Silk.NET.Vulkan;
 
 namespace SpatialEngine.Rendering
 {
@@ -185,6 +186,46 @@ namespace SpatialEngine.Rendering
             }
             indices = newIndices.ToArray();
             vertexes = newVerts.ToArray();
+        }
+
+        /// <summary>
+        /// creates smooth normals
+        /// </summary>
+        public void CalculateNormals()
+        {
+            for (int g = 0; g < vertexes.Length; g++)
+            {
+                Vector3 normal = Vector3.One;
+                for (int i = 0; i < indices.Length; i += 3)
+                {
+                    uint a, b, c;
+                    a = indices[i];
+                    b = indices[i + 1];
+                    c = indices[i + 2];
+                    if (vertexes[g].position == vertexes[a].position)
+                    {
+                        Vector3 u = vertexes[b].position - vertexes[a].position;
+                        Vector3 v = vertexes[c].position - vertexes[a].position;
+                        Vector3 tmpnormal = Vector3.Normalize(Vector3.Cross(u, v));
+                        normal += tmpnormal;
+                    }
+                    if (vertexes[g].position == vertexes[b].position)
+                    {
+                        Vector3 u = vertexes[c].position - vertexes[b].position;
+                        Vector3 v = vertexes[a].position - vertexes[b].position;
+                        Vector3 tmpnormal = Vector3.Normalize(Vector3.Cross(u, v));
+                        normal += tmpnormal;
+                    }
+                    if (vertexes[g].position == vertexes[c].position)
+                    {
+                        Vector3 u = vertexes[a].position - vertexes[c].position;
+                        Vector3 v = vertexes[b].position - vertexes[c].position;
+                        Vector3 tmpnormal = Vector3.Normalize(Vector3.Cross(u, v));
+                        normal += tmpnormal;
+                    }
+                }
+                vertexes[g].normal = Vector3.Normalize(normal);
+            }
         }
 
         public void Balloon(float delta = 0.0f, float speed = 0.0f, float percentage = 0.0f)

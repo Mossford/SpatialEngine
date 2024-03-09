@@ -35,11 +35,13 @@ namespace SpatialEngine.Terrain
             int vertIndex = 0;
             int indIndex = 0;
             Random rand = new Random();
-            for (int x = 0; x < length; x++)
+            for (int y = 0; y < width; y++)
             {
-                for (int y = 0; y < width; y++)
+                for (int x = 0; x < length; x++)
                 {
-                    vertexes[vertIndex] = new Vertex(new Vector3((lengthOffset + y) * scale, (float)rand.NextDouble() - 2.5f, (widthOffset - x) * scale), Vector3.UnitY, Vector2.Zero);
+                    Vector3 pos = new Vector3((lengthOffset + x) * scale, 4 + (float)rand.NextDouble() - 2.5f, (widthOffset - y) * scale);
+                    Vector2 uv = new Vector2(x / (float)width, y / (float)length);
+                    vertexes[vertIndex] = new Vertex(pos, Vector3.UnitY, uv);
                     if(x < length - 1 && y < width - 1)
                     {
                         ind[indIndex] = (uint)vertIndex;
@@ -57,7 +59,9 @@ namespace SpatialEngine.Terrain
             }
 
             id = scene.SpatialObjects.Count;
-            scene.AddSpatialObject(new Mesh(vertexes, ind, new Vector3(0, 0, 0), Quaternion.Identity), new Vector3(1000, 1, 1000), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(new Mesh(vertexes, ind, new Vector3(0, 4, 0), Quaternion.Identity), new Vector3(length * scale, 1, width * scale), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+
+            //scene.SpatialObjects[id].SO_mesh.CalculateNormals();
         }
     }
 }
