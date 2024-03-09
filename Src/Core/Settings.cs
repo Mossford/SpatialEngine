@@ -16,6 +16,7 @@ namespace SpatialEngine
             /// <para>Optimizes updating the rendersets buffers</para>
             /// 0 = Updates every frame (halfs fps compared to the optimized version)<br />
             /// 1 = Updates every second or when a new object is added<br />
+            /// 2 = Updates when a new object is added (aggressive optimization, but may not update meshes)
             /// </summary>
             public static ushort OptimizeUpdatingBuffers = 1;
         }

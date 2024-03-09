@@ -289,7 +289,21 @@ namespace SpatialEngine.Rendering
                 }
                 case 1:
                 {
-                    if(totalTime % 1 >= 0.95f || objectBeforeCount != objTotalCount)
+                    if(GetTime() % 1 >= 0.95f || objectBeforeCount != objTotalCount)
+                    {
+                        for (int i = 0; i < renderSets.Count; i++)
+                        {
+                            int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
+                            renderSets[i].UpdateDrawSet(in scene.SpatialObjects, beCount, objCount);
+                            count -= MaxRenders;
+                            beCount = objCount;
+                        }
+                    }
+                    break;
+                }
+                case 2:
+                {
+                    if (objectBeforeCount != objTotalCount)
                     {
                         for (int i = 0; i < renderSets.Count; i++)
                         {

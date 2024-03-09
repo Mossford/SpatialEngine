@@ -27,6 +27,7 @@ using Texture = SpatialEngine.Rendering.Texture;
 using static SpatialEngine.Debugging;
 
 using SpatialGame;
+using System.Runtime.CompilerServices;
 
 namespace SpatialEngine
 {
@@ -64,6 +65,7 @@ namespace SpatialEngine
         /// In Seconds
         /// </summary>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GetTime() => totalTime;
     }
 
