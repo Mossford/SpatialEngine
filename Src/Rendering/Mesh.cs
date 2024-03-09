@@ -191,7 +191,7 @@ namespace SpatialEngine.Rendering
         /// <summary>
         /// creates smooth normals
         /// </summary>
-        public void CalculateNormals()
+        public void CalculateNormalsSmooth()
         {
             for (int g = 0; g < vertexes.Length; g++)
             {
@@ -395,7 +395,7 @@ namespace SpatialEngine.Rendering
                 vertexes = newVerts.ToArray();
             }
 
-            CalculateNormals();
+            CalculateNormalsSmooth();
 
             modelLocation = ((int)MeshType.IcoSphereMesh).ToString();
             this.position = position;
