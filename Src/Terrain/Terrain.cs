@@ -12,11 +12,8 @@ namespace SpatialEngine.Terrain
 
         public Terrain()
         {
-
-
-
             id = Globals.scene.SpatialObjects.Count;
-            //Globals.scene.AddSpatialObject(new Rendering.Mesh());
+            Globals.scene.AddSpatialObject(new Rendering.Mesh());
         }
     }
 }

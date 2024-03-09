@@ -40,7 +40,7 @@ namespace SpatialEngine
         public const int SCR_HEIGHT = 1080;
         public static IInputContext input;
         public static IKeyboard keyboard;
-        public static string EngVer = "0.6.7";
+        public static string EngVer = "0.6.8";
         public static string OpenGlVersion = "";
         public static string Gpu = "";
         

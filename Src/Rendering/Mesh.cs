@@ -75,7 +75,17 @@ namespace SpatialEngine.Rendering
         public Mesh(string modelLocation, Vector3 position, Quaternion rotation, float scale = 1.0f)
         {
             this.modelLocation = modelLocation;
-             MeshUtils.LoadModel(position, rotation, modelLocation);
+            LoadModel(position, rotation, modelLocation);
+            this.scale = scale;
+        }
+
+        /// <summary>
+        /// TESTING may cause issues
+        /// </summary>
+        public Mesh ()
+        {
+            vertexes = new Vertex[0];
+            indices = new uint[0];
         }
 
         public void SetModelMatrix()
@@ -177,6 +187,21 @@ namespace SpatialEngine.Rendering
             vertexes = newVerts.ToArray();
         }
 
+        public void Balloon(float delta = 0.0f, float speed = 0.0f, float percentage = 0.0f)
+        {
+            for (int i = 0; i < vertexes.Count(); i++)
+            {
+                Vector3 finPos = Vector3.Normalize(vertexes[i].position);
+                if (percentage == 0.0f)
+                {
+                    finPos *= GetTime() * delta * speed;
+                    vertexes[i].position = (vertexes[i].position * (1.0f - GetTime() * delta * speed)) + finPos;
+                }
+                else
+                    vertexes[i].position = vertexes[i].position * (1.0f - percentage) + finPos * percentage;
+            }
+        }
+
         /// <summary>
         /// Internal Mesh gen
         /// </summary>
@@ -203,8 +228,8 @@ namespace SpatialEngine.Rendering
         /// </summary>
         public void CreateCubeMesh(Vector3 position, Quaternion rotation)
         {
-            Vertex[] vertexes =
-            {
+            vertexes =
+            [
                 new Vertex(new Vector3(-1.0f, -1.0f, 1.0f),new Vector3(0), new Vector2(0)),
                 new Vertex(new Vector3(-1.0f, 1.0f, 1.0f),new Vector3(0), new Vector2(0)),
                 new Vertex(new Vector3(-1.0f, -1.0f, -1.0f),new Vector3(0), new Vector2(0)),
@@ -213,9 +238,9 @@ namespace SpatialEngine.Rendering
                 new Vertex(new Vector3(1.0f,1.0f, 1.0f),new Vector3(0), new Vector2(0)),
                 new Vertex(new Vector3(1.0f,-1.0f, -1.0f),new Vector3(0), new Vector2(0)),
                 new Vertex(new Vector3(1.0f,1.0f, -1.0f),new Vector3(0), new Vector2(0))
-            };
-            uint[] indices =
-            {
+            ];
+            indices =
+            [
                 1, 2, 0,
                 3, 6, 2,
                 7, 4, 6,
@@ -228,10 +253,7 @@ namespace SpatialEngine.Rendering
                 5, 1, 0,
                 6, 4, 0,
                 3, 1, 5
-            };
-
-            this.vertexes = vertexes;
-            this.indices = indices;
+            ];
 
             modelLocation = ((int)MeshType.CubeMesh).ToString();
             this.position = position;
@@ -481,8 +503,6 @@ namespace SpatialEngine.Rendering
             }
 
             StreamReader reader = new StreamReader(loc);
-            List<Vertex> vertexes = new List<Vertex>();
-            List<uint> indices = new List<uint>();
             List<Vector2> tmpUV = new List<Vector2>();
             List<Vector3> tmpNormal = new List<Vector3>();
             List<Vector3> tmpVertice = new List<Vector3>();
@@ -543,6 +563,8 @@ namespace SpatialEngine.Rendering
                     }
                 }
             }
+            this.vertexes = new Vertex[tmpInd.Count];
+            this.indices = new uint[tmpInd.Count];
             for (int i = 0; i < tmpInd.Count; i++)
             {
                 uint indUv = tmpUVInd[i];
@@ -551,8 +573,9 @@ namespace SpatialEngine.Rendering
                 vertex.uv = tmpUV[(int)indUv - 1];
                 vertex.normal = tmpNormal[(int)indNor - 1];
                 vertex.position = tmpVertice[(int)indVert - 1];
-                indices.Add((uint)i);
-                vertexes.Add(vertex);
+                this.indices[i] = (uint)i;
+                this.vertexes[i] = vertex;
+                
             }
 
             modelLocation = name;

@@ -274,14 +274,32 @@ namespace SpatialEngine.Rendering
             // update a renderset if there is more objects but less than needed for a new renderset
             int count = objTotalCount;
             int beCount = 0;
-            if (objectBeforeCount != objTotalCount)
+            switch(Settings.RendererSettings.OptimizeUpdatingBuffers)
             {
-                for (int i = 0; i < renderSets.Count; i++)
+                case 0:
                 {
-                    int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
-                    renderSets[i].UpdateDrawSet(in scene.SpatialObjects, beCount, objCount);
-                    count -= MaxRenders;
-                    beCount = objCount;
+                    for (int i = 0; i < renderSets.Count; i++)
+                    {
+                        int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
+                        renderSets[i].UpdateDrawSet(in scene.SpatialObjects, beCount, objCount);
+                        count -= MaxRenders;
+                        beCount = objCount;
+                    }
+                    break;
+                }
+                case 1:
+                {
+                    if(totalTime % 1 >= 0.95f || objectBeforeCount != objTotalCount)
+                    {
+                        for (int i = 0; i < renderSets.Count; i++)
+                        {
+                            int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
+                            renderSets[i].UpdateDrawSet(in scene.SpatialObjects, beCount, objCount);
+                            count -= MaxRenders;
+                            beCount = objCount;
+                        }
+                    }
+                    break;
                 }
             }
 
