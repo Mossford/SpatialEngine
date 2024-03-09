@@ -152,6 +152,8 @@ namespace SpatialEngine
             scene.AddSpatialObject(LoadModel(new Vector3(-50,2,0), Quaternion.Identity, "FloorWall6.obj"), new Vector3(1,2,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
 
+            Terrain.Terrain test = new Terrain.Terrain();
+
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
                 vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
