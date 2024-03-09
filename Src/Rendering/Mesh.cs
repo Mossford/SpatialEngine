@@ -373,11 +373,6 @@ namespace SpatialEngine.Rendering
                     Vector3 bc = Vector3.Normalize((bTri.position + cTri.position) * 0.5f);
                     Vector3 ca = Vector3.Normalize((cTri.position + aTri.position) * 0.5f);
 
-                    //Create Normals
-                    Vector3 u = bc - ab;
-                    Vector3 v = ca - ab;
-                    Vector3 normal = Vector3.Normalize(Vector3.Cross(u, v));
-
                     //Add the new vertexes
                     ia = (uint)newVerts.Count;
                     newVerts.Add(aTri);
@@ -386,11 +381,11 @@ namespace SpatialEngine.Rendering
                     ic = (uint)newVerts.Count;
                     newVerts.Add(cTri);
                     uint iab = (uint)newVerts.Count;
-                    newVerts.Add(new Vertex(ab, normal, Vector2.Zero));
+                    newVerts.Add(new Vertex(ab, Vector3.One, Vector2.Zero));
                     uint ibc = (uint)newVerts.Count;
-                    newVerts.Add(new Vertex(bc, normal, Vector2.Zero));
+                    newVerts.Add(new Vertex(bc, Vector3.One, Vector2.Zero));
                     uint ica = (uint)newVerts.Count;
-                    newVerts.Add(new Vertex(ca, normal, Vector2.Zero));
+                    newVerts.Add(new Vertex(ca, Vector3.One, Vector2.Zero));
                     newIndices.Add(ia); newIndices.Add(iab); newIndices.Add(ica);
                     newIndices.Add(ib); newIndices.Add(ibc); newIndices.Add(iab);
                     newIndices.Add(ic); newIndices.Add(ica); newIndices.Add(ibc);
@@ -399,6 +394,8 @@ namespace SpatialEngine.Rendering
                 indices = newIndices.ToArray();
                 vertexes = newVerts.ToArray();
             }
+
+            CalculateNormals();
 
             modelLocation = ((int)MeshType.IcoSphereMesh).ToString();
             this.position = position;
@@ -678,22 +675,22 @@ namespace SpatialEngine.Rendering
         {
 
             float t = 0.52573111f;
-            float b = 0.850650808f;
+            float y = 0.850650808f;
 
             Vertex[] vertexes = 
             {
-                new Vertex(new Vector3(-t,  b,  0), new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(t,  b,  0),  new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(-t, -b,  0), new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(t, -b,  0),  new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(0, -t,  b),  new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(0,  t,  b),  new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(0, -t, -b),  new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(0,  t, -b),  new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(b,  0, -t),  new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(b,  0,  t),  new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(-b,  0, -t), new Vector3(0), new Vector2(0)),
-                new Vertex(new Vector3(-b,  0,  t), new Vector3(0), new Vector2(0))
+                new Vertex(new Vector3(-t,  y,  0), new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(t,  y,  0),  new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(-t, -y,  0), new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(t, -y,  0),  new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(0, -t,  y),  new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(0,  t,  y),  new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(0, -t, -y),  new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(0,  t, -y),  new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(y,  0, -t),  new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(y,  0,  t),  new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(-y,  0, -t), new Vector3(0), new Vector2(0)),
+                new Vertex(new Vector3(-y,  0,  t), new Vector3(0), new Vector2(0))
             };
 
             uint[] indices = 
@@ -768,6 +765,41 @@ namespace SpatialEngine.Rendering
                 indices = newIndices.ToArray();
                 vertexes = newVerts.ToArray();
             }
+
+            for (int g = 0; g < vertexes.Length; g++)
+            {
+                Vector3 normal = Vector3.One;
+                for (int i = 0; i < indices.Length; i += 3)
+                {
+                    uint a, b, c;
+                    a = indices[i];
+                    b = indices[i + 1];
+                    c = indices[i + 2];
+                    if (vertexes[g].position == vertexes[a].position)
+                    {
+                        Vector3 u = vertexes[b].position - vertexes[a].position;
+                        Vector3 v = vertexes[c].position - vertexes[a].position;
+                        Vector3 tmpnormal = Vector3.Normalize(Vector3.Cross(u, v));
+                        normal += tmpnormal;
+                    }
+                    if (vertexes[g].position == vertexes[b].position)
+                    {
+                        Vector3 u = vertexes[c].position - vertexes[b].position;
+                        Vector3 v = vertexes[a].position - vertexes[b].position;
+                        Vector3 tmpnormal = Vector3.Normalize(Vector3.Cross(u, v));
+                        normal += tmpnormal;
+                    }
+                    if (vertexes[g].position == vertexes[c].position)
+                    {
+                        Vector3 u = vertexes[a].position - vertexes[c].position;
+                        Vector3 v = vertexes[b].position - vertexes[c].position;
+                        Vector3 tmpnormal = Vector3.Normalize(Vector3.Cross(u, v));
+                        normal += tmpnormal;
+                    }
+                }
+                vertexes[g].normal = Vector3.Normalize(normal);
+            }
+
             return new Mesh(((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
         }
 
