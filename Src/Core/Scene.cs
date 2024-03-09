@@ -22,7 +22,7 @@ namespace SpatialEngine
         public Shader SO_shader;
         public uint SO_id;
 
-        public unsafe SpatialObject(Mesh mesh, uint id)
+        public SpatialObject(Mesh mesh, uint id)
         {
             SO_mesh = mesh;
             SO_id = id;

@@ -221,11 +221,11 @@ namespace SpatialEngine.Networking
                         if (packet.id < scene.SpatialObjects.Count)
                         {
                             bodyInterface.DestroyBody(scene.SpatialObjects[packet.id].SO_rigidbody.rbID);
-                            scene.SpatialObjects[packet.id] = new SpatialObject(LoadModel(packet.Position, packet.Rotation, SpatialEngine.Resources.ModelPath, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation, (uint)packet.id);
+                            scene.SpatialObjects[packet.id] = new SpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation, (uint)packet.id);
                         }
                         else
                         {
-                            scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, SpatialEngine.Resources.ModelPath, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
+                            scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
                         }
                         stream.Close();
                         reader.Close();

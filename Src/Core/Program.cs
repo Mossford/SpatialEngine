@@ -141,14 +141,14 @@ namespace SpatialEngine
             physics = new Physics();
             physics.InitPhysics();
             
-            scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), Quaternion.Identity, ModelPath, "Floor.obj"), new Vector3(50,1,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(50,30,0), Quaternion.Identity, ModelPath, "FloorWall1.obj"), new Vector3(1,30,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(0,10,50), Quaternion.Identity, ModelPath, "FloorWall2.obj"), new Vector3(50,10,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(25,5,0), Quaternion.Identity, ModelPath, "FloorWall3.obj"), new Vector3(1,5,20), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(37,4,21), Quaternion.Identity, ModelPath, "FloorWall4.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(37,5,-21), Quaternion.Identity, ModelPath, "FloorWall5.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(-50,2,0), Quaternion.Identity, ModelPath, "FloorWall6.obj"), new Vector3(1,2,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, ModelPath, "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), Quaternion.Identity, "Floor.obj"), new Vector3(50,1,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(50,30,0), Quaternion.Identity, "FloorWall1.obj"), new Vector3(1,30,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(0,10,50), Quaternion.Identity, "FloorWall2.obj"), new Vector3(50,10,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(25,5,0), Quaternion.Identity, "FloorWall3.obj"), new Vector3(1,5,20), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(37,4,21), Quaternion.Identity, "FloorWall4.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(37,5,-21), Quaternion.Identity, "FloorWall5.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(-50,2,0), Quaternion.Identity, "FloorWall6.obj"), new Vector3(1,2,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
 
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
@@ -258,7 +258,7 @@ namespace SpatialEngine
         {
             if (keyboard.IsKeyPressed(Key.V))
             {
-                player.LaunchCube(ref scene, ModelPath);
+                player.LaunchCube(ref scene);
                 if (!NetworkManager.isServer && NetworkManager.didInit)
                 {
                     SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), (Activation)Convert.ToInt32((bodyInterface.IsActive(scene.SpatialObjects[^1].SO_rigidbody.rbID))));
