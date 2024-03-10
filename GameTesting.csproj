@@ -52,6 +52,6 @@
     <Exec Command="dotnet tool restore" />
   </Target>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="XCOPY &quot;$(SolutionDir)Src\res&quot; &quot;$(TargetDir)\res&quot; /E /I /Y /F" />
+    <Exec Command="XCOPY &quot;Src\res&quot; &quot;$(TargetDir)\res&quot; /E /I /Y /F" />
   </Target>
 </Project>
