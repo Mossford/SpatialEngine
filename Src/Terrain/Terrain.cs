@@ -5,6 +5,7 @@ using System;
 using System.Numerics;
 using static SpatialEngine.Globals;
 using Vertex = SpatialEngine.Rendering.Vertex;
+using SpatialEngine.SpatialMath;
 
 namespace SpatialEngine.Terrain
 {
@@ -39,7 +40,7 @@ namespace SpatialEngine.Terrain
             {
                 for (int x = 0; x < length; x++)
                 {
-                    Vector3 pos = new Vector3((lengthOffset + x) * scale, Math.SimplexNoise2D(x, y) * scale, (widthOffset - y) * scale);
+                    Vector3 pos = new Vector3((lengthOffset + x) * scale, Noise.CalcPixel2D(x, y, 0.1f) * 0.01f, (widthOffset - y) * scale);
                     Vector2 uv = new Vector2(x / (float)width, y / (float)length);
                     vertexes[vertIndex] = new Vertex(pos, Vector3.UnitY, uv);
                     if(x < length - 1 && y < width - 1)
@@ -60,7 +61,6 @@ namespace SpatialEngine.Terrain
 
             id = scene.SpatialObjects.Count;
             scene.AddSpatialObject(new Mesh(vertexes, ind, new Vector3(0, 4, 0), Quaternion.Identity), new Vector3(((length - 1) * scale) / 2f, 1, ((width - 1) * scale - 1) / 2f), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-
         }
     }
 }

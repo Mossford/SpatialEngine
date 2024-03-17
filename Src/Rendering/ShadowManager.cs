@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using static SpatialEngine.Globals;
-using static SpatialEngine.Math;
+using SpatialEngine.SpatialMath;
 
 namespace SpatialEngine.Rendering
 {
@@ -25,7 +25,7 @@ namespace SpatialEngine.Rendering
                 {
                     for (int z = 0; z < 2; ++z)
                     {
-                        Vector4 pt = ApplyMatrixVec4(new Vector4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f), inv);
+                        Vector4 pt = MathS.ApplyMatrixVec4(new Vector4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f), inv);
                         frustumCorners.Add(pt / pt.W);
                     }
                 }
@@ -47,7 +47,7 @@ namespace SpatialEngine.Rendering
             float maxZ = float.MinValue;
             foreach (Vector4 pt in frustumCorners)
             {
-                Vector4 trf = ApplyMatrixVec4(pt, lightView);
+                Vector4 trf = MathS.ApplyMatrixVec4(pt, lightView);
                 minX = float.Min(minX, trf.X);
                 maxX = float.Max(maxX, trf.X);
                 minY = float.Min(minY, trf.Y);

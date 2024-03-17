@@ -13,6 +13,7 @@ using Silk.NET.Maths;
 using Silk.NET.Input;
 using System.Net.Security;
 using Silk.NET.Vulkan;
+using SpatialEngine.SpatialMath;
 
 namespace SpatialEngine.Rendering
 {

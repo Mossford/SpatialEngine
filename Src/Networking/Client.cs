@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using SpatialEngine.Rendering;
 using System.Collections.Generic;
+using SpatialEngine.SpatialMath;
 
 namespace SpatialEngine.Networking
 {
@@ -62,7 +63,7 @@ namespace SpatialEngine.Networking
 
             ConnectPacket connectPacket = new ConnectPacket();
             SendRelib(connectPacket);
-            PlayerJoinPacket playerJoinPacket = new PlayerJoinPacket(0, player.position, Math.Vec3ToQuat(player.rotation), "Cube.obj");
+            PlayerJoinPacket playerJoinPacket = new PlayerJoinPacket(0, player.position, MathS.Vec3ToQuat(player.rotation), "Cube.obj");
             SendRelib(playerJoinPacket);
             disconnected = false;
         }
@@ -84,7 +85,7 @@ namespace SpatialEngine.Networking
                     SendUnrelib(packet);
                 }*/
                 //send own player pos and rot to server
-                PlayerPacket packet = new PlayerPacket(0, player.position, Math.Vec3ToQuat(player.rotation));
+                PlayerPacket packet = new PlayerPacket(0, player.position, MathS.Vec3ToQuat(player.rotation));
                 SendUnrelib(packet);
                 client.Update();
 

@@ -14,7 +14,7 @@ namespace SpatialEngine.Rendering
     public static class MissingTexture
     {
         public static byte[,,] pixels { get; private set; }
-        public static int size = 64;
+        public static int size = 128;
         static bool created = false;
 
         public static void Create()
