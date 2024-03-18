@@ -196,14 +196,19 @@ namespace SpatialEngine
             
             Input.Update();
 
+            for (int i = 0; i < scene.SpatialObjects.Count; i++)
+            {
+                scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
+            }
+            
+            GameManager.UpdateGame((float)dt);
+
             totalTimeUpdate += (float)dt;
             while (totalTimeUpdate >= 0.0166f)
             {
                 totalTimeUpdate -= 0.0166f;
                 FixedUpdate(0.0166f);
             }
-
-            GameManager.UpdateGame((float)dt);
         
             Input.Clear();
         }
@@ -223,7 +228,8 @@ namespace SpatialEngine
             }
             player.Movement(dt, keysPressed.ToArray());
             player.UpdatePlayer(dt);
-            //physics.UpdatePhysics(ref scene, dt);
+
+            GameManager.FixedUpdateGame(dt);
 
             if (NetworkManager.didInit)
             {

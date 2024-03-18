@@ -39,5 +39,10 @@ namespace SpatialGame
         {
             GameInput.Update(dt);
         }
+
+        public static void FixedUpdateGame(float dt)
+        {
+
+        }
     }
 }
