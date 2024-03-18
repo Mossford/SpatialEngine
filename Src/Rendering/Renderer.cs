@@ -171,6 +171,10 @@ namespace SpatialEngine.Rendering
 
             public unsafe void DrawSet(in List<SpatialObject> objs, int countBE, int countTO, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
             {
+                //return if scene is empty as will crash because obarray and others are empty since countBE - countTO is 0
+                if (objs.Count == 0)
+                    return;
+
                 gl.BindVertexArray(vao);
                 modelMatrixes.Bind();
                 shader.setMat4("view", view);
