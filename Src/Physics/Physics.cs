@@ -179,7 +179,9 @@ namespace SpatialEngine
 
         public RigidBody(float radius, Vector3 position, Quaternion rotation, MotionType motion, ObjectLayer layer)
         {
-            settings = new BodyCreationSettings(new SphereShape(radius), position, rotation, motion, layer);
+            SphereShape shape = new SphereShape(radius);
+            shape.Density = 1;
+            settings = new BodyCreationSettings(shape, position, rotation, motion, layer);
         }
 
         public RigidBody(in Vertex[] vertexes, Vector3 position, Quaternion rotation, MotionType motion, ObjectLayer layer)
