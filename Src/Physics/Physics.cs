@@ -204,7 +204,7 @@ namespace SpatialEngine
         {
             MassProperties massProp = new MassProperties();
             massProp.ScaleToMass(mass);
-            body.MotionProperties.SetMassProperties(AllowedDOFs.All, massProp);
+            body.MotionProperties.SetMassProperties(settings.AllowedDOFs, new MassProperties());
         }
 
         public void AddForce(Vector3 dir, float power)
