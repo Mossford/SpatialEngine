@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JoltPhysicsSharp;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 
 //Custom Engine things
@@ -25,9 +26,8 @@ using SpatialEngine.Rendering;
 using Shader = SpatialEngine.Rendering.Shader;
 using Texture = SpatialEngine.Rendering.Texture;
 using static SpatialEngine.Debugging;
-
+using static SpatialEngine.Input;
 using SpatialGame;
-using System.Runtime.CompilerServices;
 
 namespace SpatialEngine
 {
@@ -39,8 +39,6 @@ namespace SpatialEngine
         public static IWindow window;
         public const int SCR_WIDTH = 1920;
         public const int SCR_HEIGHT = 1080;
-        public static IInputContext input;
-        public static IKeyboard keyboard;
         public static string EngVer = "0.6.8";
         public static string OpenGlVersion = "";
         public static string Gpu = "";
@@ -113,10 +111,7 @@ namespace SpatialEngine
 
         static unsafe void OnLoad() 
         {
-            //hostThread = new Thread(host.Recive);
-            //hostThread.Start();
-            controller = new ImGuiController(gl = window.CreateOpenGL(), window, input = window.CreateInput());
-            keyboard = input.Keyboards.FirstOrDefault();
+            gl = window.CreateOpenGL();
             gl = GL.GetApi(window);
             byte* text = gl.GetString(GLEnum.Renderer);
             int textLength = 0;
@@ -139,37 +134,20 @@ namespace SpatialEngine
             gl.DebugMessageCallback(DebugProc, null);
             gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
 
+            //init systems
             scene = new Scene();
             physics = new Physics();
             physics.InitPhysics();
-            
-            scene.AddSpatialObject(LoadModel(new Vector3(0,0,0), Quaternion.Identity, "Floor.obj"), new Vector3(50,1,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(50,30,0), Quaternion.Identity, "FloorWall1.obj"), new Vector3(1,30,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(0,10,50), Quaternion.Identity, "FloorWall2.obj"), new Vector3(50,10,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(25,5,0), Quaternion.Identity, "FloorWall3.obj"), new Vector3(1,5,20), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(37,4,21), Quaternion.Identity, "FloorWall4.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(37,5,-21), Quaternion.Identity, "FloorWall5.obj"), new Vector3(13,4,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(-50,2,0), Quaternion.Identity, "FloorWall6.obj"), new Vector3(1,2,50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.AddSpatialObject(LoadModel(new Vector3(-30,3,-50), Quaternion.Identity, "FloorWall7.obj"), new Vector3(20,3,1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-
-            Terrain.Terrain test = new Terrain.Terrain(64, 64, 1);
-
-            for (int i = 0; i < scene.SpatialObjects.Count; i++)
-            {
-                vertCount += (uint)scene.SpatialObjects[i].SO_mesh.vertexes.Length;
-                indCount += (uint)scene.SpatialObjects[i].SO_mesh.indices.Length;
-            }
 
             Renderer.Init(scene);
-
-            player = new Player(15.0f, new Vector3(-33,12,-20), new Vector3(300, 15, 0));
             shader = new Shader(gl, "Default.vert", "Default.frag");
             texture = new Texture();
             texture.LoadTexture("RedDebug.png");
 
-            ImGui.SetWindowSize(new Vector2(400, 600));
+            NetworkManager.Init();
 
             //input stuffs
+            Input.Init();
             for (int i = 0; i < input.Keyboards.Count; i++)
                 input.Keyboards[i].KeyDown += KeyDown;
             for (int i = 0; i < input.Mice.Count; i++)
@@ -177,11 +155,9 @@ namespace SpatialEngine
                 input.Mice[i].Cursor.CursorMode = CursorMode.Normal;
                 input.Mice[i].MouseMove += OnMouseMove;
             }
-
-            //start host after everything has init
-            //host.Start();
-            NetworkManager.Init();
-
+            //imgui control stuff
+            controller = new ImGuiController(gl, window, input);
+            ImGui.SetWindowSize(new Vector2(400, 600));
 
             //init game
             GameManager.InitGame();
@@ -213,39 +189,12 @@ namespace SpatialEngine
             }
         }
 
-        static List<int> keysPressed = new List<int>();
         static float totalTimeUpdate = 0.0f;
         static void OnUpdate(double dt)
         {
             totalTime += (float)dt;
-            for (int i = 0; i < scene.SpatialObjects.Count; i++)
-            {
-                scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
-            }
-            if (keyboard.IsKeyPressed(Key.W))
-            {
-                keysPressed.Add((int)Key.W);
-            }
-            if (keyboard.IsKeyPressed(Key.S))
-            {
-                keysPressed.Add((int)Key.S);
-            }
-            if (keyboard.IsKeyPressed(Key.A))
-            {
-                keysPressed.Add((int)Key.A);
-            }
-            if (keyboard.IsKeyPressed(Key.D))
-            {
-                keysPressed.Add((int)Key.D);
-            }
-            if (keyboard.IsKeyPressed(Key.Space))
-            {
-                keysPressed.Add((int)Key.Space);
-            }
-            if (keyboard.IsKeyPressed(Key.ShiftLeft))
-            {
-                keysPressed.Add((int)Key.ShiftLeft);
-            }
+            
+            Input.Update();
 
             totalTimeUpdate += (float)dt;
             while (totalTimeUpdate >= 0.0166f)
@@ -253,9 +202,10 @@ namespace SpatialEngine
                 totalTimeUpdate -= 0.0166f;
                 FixedUpdate(0.0166f);
             }
-            keysPressed.Clear();
 
-            //GameManager.UpdateGame((float)dt);
+            GameManager.UpdateGame((float)dt);
+        
+            Input.Clear();
         }
 
         static void FixedUpdate(float dt)
