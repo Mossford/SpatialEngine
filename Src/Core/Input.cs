@@ -22,7 +22,6 @@ namespace SpatialEngine
 
         public static void Update()
         {
-            Console.WriteLine(keyboard.SupportedKeys.Count);
             for (int i = 0; i < keyboard.SupportedKeys.Count; i++)
             {
                 if (keyboard.IsKeyPressed(keyboard.SupportedKeys[i]))
