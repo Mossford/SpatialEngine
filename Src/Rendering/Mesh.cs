@@ -14,6 +14,7 @@ using Silk.NET.Input;
 using System.Net.Security;
 using Silk.NET.Vulkan;
 using SpatialEngine.SpatialMath;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SpatialEngine.Rendering
 {
@@ -208,21 +209,24 @@ namespace SpatialEngine.Rendering
                         Vector3 u = vertexes[b].position - vertexes[a].position;
                         Vector3 v = vertexes[c].position - vertexes[a].position;
                         Vector3 tmpnormal = Vector3.Normalize(Vector3.Cross(u, v));
-                        normal += tmpnormal;
+                        float aA = MathS.Vector3Angle(vertexes[b].position - vertexes[a].position, vertexes[c].position - vertexes[a].position);
+                        normal += tmpnormal * aA;
                     }
                     if (vertexes[g].position == vertexes[b].position)
                     {
                         Vector3 u = vertexes[c].position - vertexes[b].position;
                         Vector3 v = vertexes[a].position - vertexes[b].position;
                         Vector3 tmpnormal = Vector3.Normalize(Vector3.Cross(u, v));
-                        normal += tmpnormal;
+                        float aA = MathS.Vector3Angle(vertexes[c].position - vertexes[b].position, vertexes[a].position - vertexes[b].position);
+                        normal += tmpnormal * aA;
                     }
                     if (vertexes[g].position == vertexes[c].position)
                     {
                         Vector3 u = vertexes[a].position - vertexes[c].position;
                         Vector3 v = vertexes[b].position - vertexes[c].position;
                         Vector3 tmpnormal = Vector3.Normalize(Vector3.Cross(u, v));
-                        normal += tmpnormal;
+                        float aA = MathS.Vector3Angle(vertexes[a].position - vertexes[c].position, vertexes[b].position - vertexes[c].position);
+                        normal += tmpnormal * aA;
                     }
                 }
                 vertexes[g].normal = Vector3.Normalize(normal);

@@ -16,12 +16,14 @@ namespace SpatialEngine.Terrain
         public int width { get; private set; }
         public int length { get; private set; }
         public float scale { get; private set; }
+        public int density { get; private set; }
 
-        public Terrain(int width, int length, float scale = 1f)
+        public Terrain(int width, int length, float scale = 1f, int density = 1)
         {
-            this.width = width;
-            this.length = length;
+            this.width = width * density;
+            this.length = length * density;
             this.scale = scale;
+            this.density = density;
             CreateTerrain();
         }
 
@@ -40,7 +42,7 @@ namespace SpatialEngine.Terrain
             {
                 for (int x = 0; x < length; x++)
                 {
-                    Vector3 pos = new Vector3((lengthOffset + x) * scale, Noise.CalcPixel2D(x, y, 0.1f) * 0.01f, (widthOffset - y) * scale);
+                    Vector3 pos = new Vector3((lengthOffset + x) * scale / density, Noise.CalcPixel2D(x, y, 0.1f) * 0.01f / density, (widthOffset - y) * scale / density);
                     Vector2 uv = new Vector2(x / (float)width, y / (float)length);
                     vertexes[vertIndex] = new Vertex(pos, Vector3.UnitY, uv);
                     if(x < length - 1 && y < width - 1)
@@ -59,8 +61,29 @@ namespace SpatialEngine.Terrain
                 }
             }
 
+            /*for (int i = 0; i < ind.Length; i += 3)
+            {
+                int indexA = i;
+                int indexB = i + 1;
+                int indexC = i + 2;
+
+                Vertex vertA = vertexes[ind[indexA]];
+                Vertex vertB = vertexes[ind[indexB]];
+                Vertex vertC = vertexes[ind[indexC]];
+
+                Vector3 u = vertB.position - vertA.position;
+                Vector3 v = vertC.position - vertA.position;
+                Vector3 normal = Vector3.Cross(u,v);
+
+                vertexes[ind[indexA]].normal = normal;
+                vertexes[ind[indexB]].normal = normal;
+                vertexes[ind[indexC]].normal = normal;
+            }*/
+
+
             id = scene.SpatialObjects.Count;
             scene.AddSpatialObject(new Mesh(vertexes, ind, new Vector3(0, 4, 0), Quaternion.Identity), new Vector3(((length - 1) * scale) / 2f, 1, ((width - 1) * scale - 1) / 2f), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.SpatialObjects[id].SO_mesh.CalculateNormalsSmooth();
         }
     }
 }

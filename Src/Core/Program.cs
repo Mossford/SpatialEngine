@@ -271,7 +271,7 @@ namespace SpatialEngine
                 gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
 
             gl.UseProgram(shader.shader);
-            shader.setVec3("lightPos", new Vector3(0,10,-10));
+            shader.setVec3("lightPos", new Vector3(0,20,-10));
             gl.ActiveTexture(GLEnum.Texture0);
             texture.Bind();
             Renderer.Draw(scene, ref shader, player.camera.viewMat, player.camera.projMat, player.camera.position);

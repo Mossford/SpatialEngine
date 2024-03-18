@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using JoltPhysicsSharp;
 
 using SpatialEngine;
+using SpatialEngine.Rendering;
 using SpatialEngine.Terrain;
 using static SpatialEngine.Globals;
 using static SpatialEngine.Rendering.MeshUtils;
@@ -31,7 +33,11 @@ namespace SpatialGame
             scene.AddSpatialObject(LoadModel(new Vector3(-50, 2, 0), Quaternion.Identity, "FloorWall6.obj"), new Vector3(1, 2, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-30, 3, -50), Quaternion.Identity, "FloorWall7.obj"), new Vector3(20, 3, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
 
-            //Terrain.Terrain test = new Terrain.Terrain(64, 64, 1);
+            scene.AddSpatialObject(LoadModel(new Vector3(3,10,0), Quaternion.Identity, "Bunny.obj"));
+            scene.SpatialObjects[^1].SO_mesh.CalculateNormalsSmooth();
+            scene.AddSpatialObject(LoadModel(new Vector3(-3, 10, 0), Quaternion.Identity, "Bunnysmooth.obj"));
+
+            Terrain test = new Terrain(64, 64, 1, 1);
 
         }
 
