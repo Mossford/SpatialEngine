@@ -164,7 +164,6 @@ namespace SpatialEngine
         public BodyID rbID;
         public Body body;
         public BodyCreationSettings settings;
-        public ShapeSettings shape;
 
         Activation activation;
 
@@ -196,16 +195,16 @@ namespace SpatialEngine
         public void AddToPhysics(ref BodyInterface bodyInterface, Activation activation)
         {
             body = bodyInterface.CreateBody(settings);
-            rbID = body.ID.Index;
-            bodyInterface.AddBody(body.ID, activation);
+            rbID = body.ID;
+            bodyInterface.AddBody(rbID, 0);
             this.activation = activation;
-            //bodyInterface.AssignBodyID(in body);
         }
 
-        //to manually set any settings like mass
-        public void SetShape(ShapeSettings shape)
+        public void SetMass(float mass)
         {
-            this.shape = shape;
+            MassProperties massProp = new MassProperties();
+            massProp.ScaleToMass(mass);
+            body.MotionProperties.SetMassProperties(AllowedDOFs.All, massProp);
         }
 
         public void AddForce(Vector3 dir, float power)
