@@ -8,7 +8,15 @@
 * #### Custom way of representing objects in the game with a *SpatialObject* and scene loading *(soon)* and saving.
 
 
+## TODO
 
+* ### IMPORTANT fix jolt physics updated to new version follow [This code](https://github.com/amerkoleci/JoltPhysicsSharp/blob/main/src/samples/HelloWorld/Program.cs) for resetting up the boilerplate
+* ### Player needs a mesh
+* ### Documentation
+* ### Refactor shader system
+* ### ui rendering
+* ### Cascading Shadows
+* ### refactoring of systems?
 
 
 # How it works
@@ -214,19 +222,3 @@ for (int i = 0; i < renderSets.Count; i++)
 ## Networking
 
 ### The networking section contains important things like packet handling, connections between the server and clients and how to run this all in a correct fashion.
-
-
-
-
-
-
-
-## TODO
-
-* ### IMPORTANT fix jolt physics updated to new version follow [This code](https://github.com/amerkoleci/JoltPhysicsSharp/blob/main/src/samples/HelloWorld/Program.cs) for resetting up the boilerplate
-* ### Player needs a mesh
-* ### Documentation
-* ### Refactor shader system
-* ### ui rendering
-* ### Cascading Shadows
-* ### refactoring of systems?
