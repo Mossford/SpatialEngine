@@ -11,8 +11,8 @@
 ## TODO
 
 * ### IMPORTANT fix jolt physics updated to new version follow [This code](https://github.com/amerkoleci/JoltPhysicsSharp/blob/main/src/samples/HelloWorld/Program.cs) for resetting up the boilerplate
-> * #### Add setting mass to rigidbody
-> * #### Put physics in the Physics namespace
+> * Add setting mass to rigidbody
+> * Put physics in the Physics namespace
 * ### Player needs a mesh
 * ### Documentation
 * ### Refactor shader system
