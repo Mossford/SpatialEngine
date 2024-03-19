@@ -200,7 +200,7 @@ public class Mesh : IDisposable
 > 
 > There is a DrawMesh function which is intended to draw the mesh directly without going through the renderer. So if we create the mesh class without a SpatialObjct associated with it we can directly draw it if needed. It is noted that this is a slow way to draw the mesh and should not be done in big volumes.
 >
-> There are several Helper and "Helper" functions associated with the mesh class. These include the *SubdivideTriangle()*, *CalculateNormalsSmooth()*, and *Balloon()*.
+> There are several Helper and "Helper" functions associated with the mesh class. These include the **SubdivideTriangle()**, **CalculateNormalsSmooth()**, and **Balloon()**.
 >
 > The purpose of Subdivide triangle is to subdivide a mesh and was built of as an extension of having to create a sphere in code.
 >
