@@ -54,7 +54,7 @@ namespace SpatialEngine
         public SpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, uint id)
         {
             SO_mesh = mesh;
-            SO_rigidbody = new RigidBody(SO_mesh.vertexes, SO_mesh.position, SO_mesh.rotation, motion, layer);
+            SO_rigidbody = new RigidBody(SO_mesh, (int)SO_id, SO_mesh.position, SO_mesh.rotation, motion, layer);
             SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
             SO_id = id;
         }
@@ -62,7 +62,7 @@ namespace SpatialEngine
         public SpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, string vertPath, string fragPath, uint id)
         {
             SO_mesh = mesh;
-            SO_rigidbody = new RigidBody(SO_mesh.vertexes, SO_mesh.position, SO_mesh.rotation, motion, layer);
+            SO_rigidbody = new RigidBody(SO_mesh, (int)SO_id, SO_mesh.position, SO_mesh.rotation, motion, layer);
             SO_shader = new Shader(gl, vertPath, fragPath);
             SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
             SO_id = id;
@@ -104,7 +104,7 @@ namespace SpatialEngine
                 return;
             int id = SpatialObjects.Count;
             SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_rigidbody = new RigidBody(obj.SO_mesh.vertexes, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
+            obj.SO_rigidbody = new RigidBody(obj.SO_mesh, id, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
             SpatialObjects.Add(obj);
             idList.Add((uint)id);
             SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
