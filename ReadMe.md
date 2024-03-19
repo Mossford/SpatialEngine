@@ -221,6 +221,69 @@ for (int i = 0; i < renderSets.Count; i++)
 
 #### [The Mesh File](Src/Rendering/Mesh.cs)
 >The Mesh file contains all the important functions and data to represent a mesh that Opengl can take.
+> 
+> It contains the Vertex struct which holds the data required for the mesh. Currently it contains the Position of the vertex, Normal and UV coordinate of it as well. 
+>
+> It has im pretty sure the most refrences in the engine at 150 at the time of writing. It is represented in code as 
+
+```c#
+public struct Vertex
+{
+    public Vector3 position;
+    public Vector3 normal;
+    public Vector2 uv;
+}
+```
+
+> This leads to the Mesh class which holds an array of these vertexes, and an array of the indexes to each of those vertexes.
+> It also has the model location if the mesh was happened to be loaded from a file. It contains the position, rotation, and scale of that mesh.
+
+```c#
+public class Mesh : IDisposable
+{
+    public Vertex[] vertexes;
+    public uint[] indices;
+    public string modelLocation;
+    public Vector3 position = Vector3.Zero; 
+    public float scale = 1f;
+    public Quaternion rotation = Quaternion.Identity;
+    public Matrix4x4 modelMat;
+
+    ...
+}
+
+```
+
+> 
+> There is a DrawMesh function which is intended to draw the mesh directly without going through the renderer. So if we create the mesh class without a SpatialObjct associated with it we can directly draw it if needed. It is noted that this is a slow way to draw the mesh and should not be done in big volumes.
+>
+> There are several Helper and "Helper" functions associated with the mesh class. These include the *SubdivideTriangle()*, *CalculateNormalsSmooth()*, and *Balloon()*.
+>
+> The purpose of Subdivide triangle is to subdivide a mesh and was built of as an extension of having to create a sphere in code.
+>
+> The purpose of the Calculate Normals Smooth is in its name. It is to calculate the normals of a mesh so that the mesh is not flat shaded.
+>
+> The last function is a joke one where it is built off the main way to create a sphere and will take any mesh and turn it into a sphere if possible.
+>
+> The next functions are in testing right now and are an internal way to create a Mesh, with the intended goal to reduce copying data that the GC has to clean up.
+
+> The other things that are left in this file are an enum to hold the different types of meshes in the engine, Such as a sphere, cube, triangle, and a "Spiker".
+
+```c#
+public enum MeshType
+{
+    CubeMesh,
+    IcoSphereMesh,
+    SpikerMesh,
+    TriangleMesh,
+    FileMesh,
+    First = CubeMesh,
+    Last = FileMesh
+};
+```
+
+>
+> There is also the functions mentioned before for creaating Meshes but they are not internal and return a mesh to be copied. There is also the important function to load a mesh from file, which only supports obj files right now, as they are simple to do.
 
 
 ## Networking
