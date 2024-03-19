@@ -223,6 +223,7 @@ for (int i = 0; i < renderSets.Count; i++)
 
 ## TODO
 
+* ### IMPORTANT fix jolt physics updated to new version follow [This code](https://github.com/amerkoleci/JoltPhysicsSharp/blob/main/src/samples/HelloWorld/Program.cs) for resetting up the boilerplate
 * ### Player needs a mesh
 * ### Documentation
 * ### Refactor shader system
