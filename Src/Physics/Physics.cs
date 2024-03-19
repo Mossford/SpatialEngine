@@ -278,8 +278,6 @@ namespace SpatialEngine
                         break;
                     }
             }
-            Console.WriteLine(1f / body.MotionProperties.InverseMassUnchecked);
-            
         }
 
         public void AddForce(Vector3 dir, float power)
