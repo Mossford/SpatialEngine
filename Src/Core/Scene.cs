@@ -98,37 +98,37 @@ namespace SpatialEngine
             idList.Add((uint)id);
         }
 
-        public void AddSpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation)
+        public void AddSpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
         {
-            if(mesh == null)
+            if (mesh == null)
                 return;
             int id = SpatialObjects.Count;
             SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_rigidbody = new RigidBody(obj.SO_mesh, id, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
+            obj.SO_rigidbody = new RigidBody(obj.SO_mesh, id, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer, mass);
             SpatialObjects.Add(obj);
             idList.Add((uint)id);
             SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
         }
 
-        public void AddSpatialObject(Mesh mesh, Vector3 halfBoxSize, MotionType motion, ObjectLayer layer, Activation activation)
+        public void AddSpatialObject(Mesh mesh, Vector3 halfBoxSize, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
         {
-            if(mesh == null)
+            if (mesh == null)
                 return;
             int id = SpatialObjects.Count;
             SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_rigidbody = new RigidBody(halfBoxSize, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
+            obj.SO_rigidbody = new RigidBody(halfBoxSize, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer, mass);
             SpatialObjects.Add(obj);
             idList.Add((uint)id);
             SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
         }
 
-        public void AddSpatialObject(Mesh mesh, float radius, MotionType motion, ObjectLayer layer, Activation activation)
+        public void AddSpatialObject(Mesh mesh, float radius, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
         {
-            if(mesh == null)
+            if (mesh == null)
                 return;
             int id = SpatialObjects.Count;
             SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_rigidbody = new RigidBody(radius, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer);
+            obj.SO_rigidbody = new RigidBody(radius, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer, mass);
             SpatialObjects.Add(obj);
             idList.Add((uint)id);
             SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
