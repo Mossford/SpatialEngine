@@ -11,7 +11,6 @@
 ## TODO
 
 * ### Add to physics
-> * Add setting mass to rigidbody
 > * Put physics in the Physics namespace
 * ### Player needs a mesh
 * ### Documentation
