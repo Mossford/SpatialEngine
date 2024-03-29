@@ -22,8 +22,6 @@ namespace SpatialGame
 
         public static void InitGame()
         {
-            player = new Player(15.0f, new Vector3(-33, 12, -20), new Vector3(300, 15, 0));
-
             scene.AddSpatialObject(LoadModel(new Vector3(0, 0, 0), Quaternion.Identity, "Floor.obj"), new Vector3(50, 1, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(50, 30, 0), Quaternion.Identity, "FloorWall1.obj"), new Vector3(1, 30, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(0, 10, 50), Quaternion.Identity, "FloorWall2.obj"), new Vector3(50, 10, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
@@ -33,11 +31,7 @@ namespace SpatialGame
             scene.AddSpatialObject(LoadModel(new Vector3(-50, 2, 0), Quaternion.Identity, "FloorWall6.obj"), new Vector3(1, 2, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-30, 3, -50), Quaternion.Identity, "FloorWall7.obj"), new Vector3(20, 3, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
 
-            scene.AddSpatialObject(LoadModel(new Vector3(3,10,0), Quaternion.Identity, "Bunny.obj"));
-            scene.SpatialObjects[^1].SO_mesh.CalculateNormalsSmooth();
-            scene.AddSpatialObject(LoadModel(new Vector3(-3, 10, 0), Quaternion.Identity, "Bunnysmooth.obj"));
-
-            Terrain test = new Terrain(64, 64, 1, 1);
+            //Terrain test = new Terrain(64, 64, 1, 1);
 
         }
 

@@ -11,7 +11,6 @@
 ## TODO
 
 * ### Add to physics
-> * Add setting mass to rigidbody
 > * Put physics in the Physics namespace
 * ### Fix Networking bugs
 > * Really werid behavior when disconnecting and reconnecting 

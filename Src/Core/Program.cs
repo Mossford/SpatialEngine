@@ -146,6 +146,8 @@ namespace SpatialEngine
 
             NetworkManager.Init();
 
+            player = new Player(15.0f, new Vector3(-33, 12, -20), new Vector3(300, 15, 0));
+
             //input stuffs
             Input.Init();
             for (int i = 0; i < input.Keyboards.Count; i++)
@@ -220,7 +222,7 @@ namespace SpatialEngine
                 player.LaunchCube(ref scene);
                 if (!NetworkManager.isServer && NetworkManager.didInit)
                 {
-                    SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), (Activation)Convert.ToInt32((bodyInterface.IsActive(scene.SpatialObjects[^1].SO_rigidbody.rbID))));
+                    SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), Activation.Activate);
                     NetworkManager.client.SendRelib(packet);
                 }
                 vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;

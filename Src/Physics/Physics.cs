@@ -77,7 +77,7 @@ namespace SpatialEngine
         {
             foreach (SpatialObject obj in scene.SpatialObjects)
             {
-                if(obj.SO_rigidbody != null && bodyInterface.IsActive(obj.SO_rigidbody.rbID))
+                if(obj.SO_rigidbody is not null && bodyInterface.IsActive(obj.SO_rigidbody.rbID))
                 {
                     obj.SO_mesh.position = bodyInterface.GetPosition(obj.SO_rigidbody.rbID);
                     obj.SO_mesh.rotation = bodyInterface.GetRotation(obj.SO_rigidbody.rbID);
@@ -90,7 +90,7 @@ namespace SpatialEngine
         {
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                if (scene.SpatialObjects[i].SO_rigidbody != null)
+                if (scene.SpatialObjects[i].SO_rigidbody is not null)
                 {
                     bodyInterface.DestroyBody(scene.SpatialObjects[i].SO_rigidbody.rbID);
                 }
@@ -103,7 +103,7 @@ namespace SpatialEngine
         {
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                if(scene.SpatialObjects[i].SO_rigidbody != null)
+                if(scene.SpatialObjects[i].SO_rigidbody is not null)
                 {
                     bodyInterface.DestroyBody(scene.SpatialObjects[i].SO_rigidbody.rbID);
                 }
