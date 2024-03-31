@@ -217,6 +217,10 @@ namespace SpatialEngine.Rendering
                 int count = 0;
                 for (int i = countBE; i < countTO; i++)
                 {
+                    //early from the current object
+                    if (objs[i].SO_shader is null)
+                        continue;
+
                     int index = count;
                     if (count >= meshOffsets.Count)
                         index = GetOffsetIndex(countBE, count, i, objs);
@@ -231,8 +235,7 @@ namespace SpatialEngine.Rendering
                     //This naming is so fucking bad and has caused me multiple hours in trying to find what the hell the problem is
 
                     //use the object shader
-                    if(objs[i].SO_shader is not null)
-                        gl.UseProgram(objs[i].SO_shader.shader);
+                    gl.UseProgram(objs[i].SO_shader.shader);
 
                     gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
                     DrawCallCount++;
@@ -253,11 +256,16 @@ namespace SpatialEngine.Rendering
             renderSets.Add(new RenderSet());
             renderSets[0].CreateDrawSet(in scene.SpatialObjects, 0, scene.SpatialObjects.Count);
             //UiRenderer.Init();
+
+            RayTracer.Init(scene, maxRenders);
         }
 
         public static void Draw(in Scene scene, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
         {
-            int objTotalCount = scene.SpatialObjects.Count;
+
+            RayTracer.Draw(scene, view, proj, camPos);
+
+            /*int objTotalCount = scene.SpatialObjects.Count;
 
             // add a new render set if there is more objects than there is rendersets avaliable
             if (objTotalCount > MaxRenders * renderSets.Count)
@@ -335,6 +343,7 @@ namespace SpatialEngine.Rendering
             objectBeforeCount = objTotalCount;
 
             //UiRenderer.Draw();
+            */
         }
 
     }
