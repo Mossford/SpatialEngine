@@ -1,12 +1,18 @@
 #version 460 core
 layout (location = 0) in vec2 aPos;
 
-uniform int index;
+uniform int uindex;
+uniform int uindOffset;
+uniform int uindEnd;
 
-out int baseVertex;
+out int index;
+out int indOffset;
+out int indEnd;
 
 void main()
 {
-    baseVertex = index;
+    index = uindex;
+    indOffset = uindOffset;
+    indEnd = uindEnd;
     gl_Position = vec4(aPos, 0.0, 1.0); 
 }  

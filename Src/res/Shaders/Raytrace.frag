@@ -25,12 +25,11 @@ layout (std140, binding = 5) restrict buffer indices
     uint ind[];
 } indiceBuf;
 
-flat in int baseVertex;
+flat in int index;
+flat in int indOffset;
+flat in int indEnd;
 
 void main()
 {
-    mat4 test = model.modelMat[baseVertex];
-    vertex test2 = vertexBuf.vert[baseVertex];
-    uint test3 = indiceBuf.ind[baseVertex];
-    out_color = vec4(vec3(1 / baseVertex + 1), 1.0);
+    out_color = vec4(vec3(1), 1.0);
 }
