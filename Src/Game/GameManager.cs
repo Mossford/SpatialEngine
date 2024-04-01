@@ -22,6 +22,7 @@ namespace SpatialGame
 
         public static void InitGame()
         {
+            scene.AddSpatialObject(LoadModel(Vector3.Zero, Quaternion.Identity, "Cube.obj"), new Vector3(1, 1, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(0, 0, 0), Quaternion.Identity, "Floor.obj"), new Vector3(50, 1, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(50, 30, 0), Quaternion.Identity, "FloorWall1.obj"), new Vector3(1, 30, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(0, 10, 50), Quaternion.Identity, "FloorWall2.obj"), new Vector3(50, 10, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);

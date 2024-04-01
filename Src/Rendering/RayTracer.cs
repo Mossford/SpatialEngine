@@ -146,7 +146,7 @@ namespace SpatialEngine.Rendering
                     offset += objs[i].SO_mesh.vertexes.Length;
                     offsetByte += objs[i].SO_mesh.indices.Length;
                 }
-                meshOffsets.Add(new MeshOffset(offset, offsetByte * sizeof(uint)));
+                meshOffsets.Add(new MeshOffset(offset, offsetByte));
                 return meshOffsets.Count - 1;
             }
 
@@ -167,8 +167,14 @@ namespace SpatialEngine.Rendering
                     shader.setMat4("uProj", proj);
                     shader.setVec3("ucamPos", camPos);
                     shader.setInt("uindex", count);
-                    shader.setInt("uindOffset", meshOffsets[index].offsetByte / sizeof(uint));
+                    shader.setInt("uindOffset", meshOffsets[index].offsetByte);
                     shader.setInt("uindEnd", (meshOffsets[index].offsetByte / sizeof(uint)) + objs[i].SO_mesh.indices.Length);
+                    Console.WriteLine(objs[0].SO_mesh.indices[0]);
+                    Console.WriteLine(objs[0].SO_mesh.indices[1]);
+                    Console.WriteLine(objs[0].SO_mesh.indices[2]);
+                    Console.WriteLine(objs[0].SO_mesh.indices[3]);
+                    Console.WriteLine(objs[0].SO_mesh.indices[4]);
+                    Console.WriteLine(objs[0].SO_mesh.indices[5]);
                     quad.Draw();
                     //gl.UseProgram(shader.shader);
                     //gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
