@@ -163,9 +163,12 @@ namespace SpatialEngine.Rendering
                         index = GetOffsetIndex(countBE, count, i, objs);
 
                     gl.UseProgram(shader.shader);
-                    shader.setInt("index", count);
-                    shader.setInt("indOffset", meshOffsets[index].offsetByte / sizeof(uint));
-                    shader.setInt("indEnd", (meshOffsets[index].offsetByte / sizeof(uint)) + objs[i].SO_mesh.indices.Length);
+                    shader.setMat4("uView", view);
+                    shader.setMat4("uProj", proj);
+                    shader.setVec3("ucamPos", camPos);
+                    shader.setInt("uindex", count);
+                    shader.setInt("uindOffset", meshOffsets[index].offsetByte / sizeof(uint));
+                    shader.setInt("uindEnd", (meshOffsets[index].offsetByte / sizeof(uint)) + objs[i].SO_mesh.indices.Length);
                     quad.Draw();
                     //gl.UseProgram(shader.shader);
                     //gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
