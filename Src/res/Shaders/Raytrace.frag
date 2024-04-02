@@ -32,6 +32,12 @@ uniform vec3 ucamPos;
 uniform mat4 uView;
 uniform mat4 uProj;
 
+struct HitInfo
+{
+	vec3 color;
+	bool hit;
+};
+
 vec3 lightsource = vec3(0.0, 20.0, 20);
 
 bool rayTriIntersect(vec3 orig, vec3 dir, int index)
@@ -56,13 +62,14 @@ bool rayTriIntersect(vec3 orig, vec3 dir, int index)
 	return dt >= 0.0000001 && dist >= 0 && u >= 0 && v >= 0 && w >= 0;
 }
 
-vec3 castRay(vec3 orig, vec3 dir, int index)
+HitInfo castRay(vec3 orig, vec3 dir, int index)
 {
 	float t0;
 	float diffuse_light_intensity = 0.0;
 	vec3 normal;
 	vec3 hit;
 	vec3 color;
+	HitInfo info;
 
 	if (rayTriIntersect(orig, dir, index))
 	{
@@ -72,9 +79,13 @@ vec3 castRay(vec3 orig, vec3 dir, int index)
 		float diffuse_light_intensity = 0.0;
 		vec3 light_dir = lightsource - hit;
 		diffuse_light_intensity = 1.5 * max(0.0, dot(light_dir,normal));
-		return vec3(1.0, 0, 0);
+		info.color = vec3(1.0, 0, 0);
+		info.hit = true;
+		return info;
 	}
-	return vec3(102.0 / 255.0, 178.0 / 255.0, 204.0 / 255.0);
+	info.color =  vec3(102.0 / 255.0, 178.0 / 255.0, 204.0 / 255.0);
+	info.hit = false;
+	return info;
 }
 
 void main()
@@ -86,8 +97,26 @@ void main()
 
 	vec3 color = vec3(0);
 
-	color = castRay(ucamPos, rayDir, 0);
-	color = castRay(ucamPos, rayDir, 1);
+	HitInfo info;
+
+	info = castRay(ucamPos, rayDir, 0);
+	if(info.hit == true)
+	{
+		color += info.color;
+	}
+	else
+	{
+		//color = info.color;
+	}
+	info = castRay(ucamPos, rayDir, 1);
+	if(info.hit == true)
+	{
+		color += info.color;
+	}
+	else
+	{
+		//color = info.color;
+	}
 
     out_color = vec4(color, 1.0);
 }
