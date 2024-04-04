@@ -44,7 +44,15 @@ namespace SpatialEngine.SpatialMath
             if (denominator < 1e-15f)
                 return 0f;
             float dot = ClampValue(Vector3.Dot(a, b) / denominator, -1f, 1f);
-            return (MathF.Acos(dot)) * 180f/MathF.PI;
+            return (MathF.Acos(dot)) * 180f / MathF.PI;
+        }
+
+        public static Vector3 ProjectVector3ToPlane(Vector3 pos, Vector3 plane)
+        {
+            //zero check
+            if (Vector3.Dot(plane, pos) < 1e-15f)
+                return pos;
+            return pos - (Vector3.Dot(pos, plane) / plane.LengthSquared()) * plane;
         }
 
         public static Quaternion Vec3ToQuat(Vector3 vec)

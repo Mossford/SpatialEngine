@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http.Headers;
 using System.Numerics;
 using System.Reflection.Emit;
 using System.Threading;
@@ -24,8 +25,8 @@ namespace SpatialEngine
     public class BroadPhaseLayers
     {
         public static BroadPhaseLayer NON_MOVING = 0;
-	    public static BroadPhaseLayer MOVING = 1;
-	    public static uint NUM_LAYERS = 2;
+        public static BroadPhaseLayer MOVING = 1;
+        public static uint NUM_LAYERS = 2;
     }
 
     public unsafe class Physics
@@ -38,7 +39,7 @@ namespace SpatialEngine
         ObjectLayerPairFilter objectLayerPairFilter;
         BroadPhaseLayerInterface broadPhaseLayerInterface;
         ObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter;
-        
+
 
         public void InitPhysics()
         {
@@ -77,7 +78,7 @@ namespace SpatialEngine
         {
             foreach (SpatialObject obj in scene.SpatialObjects)
             {
-                if(obj.SO_rigidbody is not null && bodyInterface.IsActive(obj.SO_rigidbody.rbID))
+                if (obj.SO_rigidbody is not null && bodyInterface.IsActive(obj.SO_rigidbody.rbID))
                 {
                     obj.SO_mesh.position = bodyInterface.GetPosition(obj.SO_rigidbody.rbID);
                     obj.SO_mesh.rotation = bodyInterface.GetRotation(obj.SO_rigidbody.rbID);
@@ -85,7 +86,7 @@ namespace SpatialEngine
             }
             physicsSystem.Step(dt, 3);
         }
-        
+
         public void DestroyPhysics(ref Scene scene)
         {
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
@@ -103,7 +104,7 @@ namespace SpatialEngine
         {
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
             {
-                if(scene.SpatialObjects[i].SO_rigidbody is not null)
+                if (scene.SpatialObjects[i].SO_rigidbody is not null)
                 {
                     bodyInterface.DestroyBody(scene.SpatialObjects[i].SO_rigidbody.rbID);
                 }
@@ -140,7 +141,7 @@ namespace SpatialEngine
             BoxShapeSettings shape = new BoxShapeSettings(halfBoxSize);
             volume = halfBoxSize.X * halfBoxSize.Y * halfBoxSize.Z;
             shapeType = 0;
-            if(mass != -1f)
+            if (mass != -1f)
             {
                 shape.Density = mass / volume;
             }
@@ -297,7 +298,7 @@ namespace SpatialEngine
 
         public void SetRotation(Vector3 vec)
         {
-            Quaternion quat = new Quaternion(Vector3.Normalize(vec * 180/MathF.PI), 1.0f);
+            Quaternion quat = new Quaternion(Vector3.Normalize(vec * 180 / MathF.PI), 1.0f);
             bodyInterface.SetRotation(rbID, quat, Activation.Activate);
         }
 
@@ -324,6 +325,11 @@ namespace SpatialEngine
         public Vector3 GetAngVelocity()
         {
             return bodyInterface.GetAngularVelocity(rbID);
+        }
+
+        public Vector3 GetPointVelocity(Vector3 pos)
+        {
+            return bodyInterface.GetPointVelocity(rbID, (Double3)pos);
         }
 
         public void SetVelocity(Vector3 vec)
