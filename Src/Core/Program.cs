@@ -39,7 +39,7 @@ namespace SpatialEngine
         public static IWindow window;
         public const int SCR_WIDTH = 1920;
         public const int SCR_HEIGHT = 1080;
-        public static string EngVer = "0.6.8";
+        public static string EngVer = "0.6.9";
         public static string OpenGlVersion = "";
         public static string Gpu = "";
         

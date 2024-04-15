@@ -257,7 +257,7 @@ namespace SpatialEngine.Rendering
             renderSets[0].CreateDrawSet(in scene.SpatialObjects, 0, scene.SpatialObjects.Count);
             //UiRenderer.Init();
 
-            RayTracer.Init(scene, maxRenders);
+            //RayTracer.Init(scene, maxRenders);
         }
 
         public static void Draw(in Scene scene, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
@@ -341,7 +341,7 @@ namespace SpatialEngine.Rendering
             objectBeforeCount = objTotalCount;
 
             //UiRenderer.Draw();
-            RayTracer.Draw(scene, view, proj, camPos);
+            //RayTracer.Draw(scene, view, proj, camPos);
         }
 
     }
