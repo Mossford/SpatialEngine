@@ -180,6 +180,7 @@ namespace SpatialEngine.Rendering
                 shader.setMat4("view", view);
                 shader.setMat4("projection", proj);
                 shader.setVec3("viewPos", camPos);
+                shader.setBool("meshDraw", false);
                 int count = 0;
                 uint[] indCounts = new uint[countTO - countBE];
                 int[] offsetBytes = new int[countTO - countBE];

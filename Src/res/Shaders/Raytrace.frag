@@ -29,6 +29,7 @@ uniform int uindex;
 uniform int uindOffset;
 uniform int uindEnd;
 uniform vec3 ucamPos;
+uniform vec3 ucamDir;
 uniform mat4 uView;
 uniform mat4 uProj;
 
@@ -88,6 +89,55 @@ HitInfo castRay(vec3 orig, vec3 dir, int index)
 	return info;
 }
 
+//rasterize test
+vec3 pixelTriTest(vec2 point, vec3 camPos, vec3 camDir, int index)
+{
+	vec3 aPos = vertexBuf.vert[indiceBuf.ind[index * 3] / 4].pos;
+	vec3 bPos = vertexBuf.vert[indiceBuf.ind[index + 1 * 3] / 4].pos;
+	vec3 cPos = vertexBuf.vert[indiceBuf.ind[index + 2 * 3] / 4].pos;
+
+	vec3 uNor = bPos - aPos;
+    vec3 vNor = cPos - aPos;
+    vec3 normal = normalize(cross(uNor,vNor));
+
+	//back face cull test
+	vec3 triCenter = (aPos + bPos + cPos) / 3.0;
+	vec3 camDist = triCenter - camPos;
+    float dist = dot(camDist, normal);
+
+	//facing away
+    if(dist < 0)
+        return vec3(0.0, 1.0, 0.0);
+	
+	//check point
+
+	vec2 p1 = vec2(uProj * uView * model.modelMat[0] * vec4(aPos, 1.0));
+	vec2 p2 = vec2(uProj * uView * model.modelMat[0] * vec4(bPos, 1.0));
+	vec2 p3 = vec2(uProj * uView * model.modelMat[0] * vec4(cPos, 1.0));
+
+	vec2 x = p3 - p1;
+    vec2 y = p2 - p1;
+    vec2 b = point - p1; 
+
+    float xx = dot(x, x);
+    float yx = dot(y, x);
+    float bx = dot(b, x);
+    float yy = dot(y, y);
+    float by = dot(b, y);
+
+    float denom = xx*yy - yx*yx;
+    float u = (yy*bx - yx*by) / denom;
+    float v = (xx*by - yx*bx) / denom;
+
+	if((u >= 0) && (v >= 0) && (u + v < 1))
+	{
+		return vec3(1.0);
+	}
+
+	//no point found
+	return vec3(0.0);
+}
+
 void main()
 {
 	
@@ -97,7 +147,7 @@ void main()
 
 	vec3 color = vec3(0);
 
-	HitInfo info;
+	/*HitInfo info;
 
 	info = castRay(ucamPos, rayDir, 0);
 	if(info.hit == true)
@@ -116,7 +166,10 @@ void main()
 	else
 	{
 		//color = info.color;
-	}
+	}*/
+
+	color = pixelTriTest(fragPos, ucamPos, ucamDir, 0);
+	//color = pixelTriTest(fragPos, ucamPos, camDir, 1);
 
     out_color = vec4(color, 1.0);
 }

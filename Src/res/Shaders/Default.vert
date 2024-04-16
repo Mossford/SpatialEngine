@@ -18,15 +18,25 @@ out VS_OUT
 
 uniform mat4 projection;
 uniform mat4 view;
-//uniform mat4 model;
+uniform bool meshDraw;
+uniform mat4 modelMeshDraw;
 //uniform mat4 lightSpaceMatrix;
 
 void main()
 {
     int index = gl_DrawID;
-    vs_out.FragPos = vec3(model.modelMat[index] * vec4(aPos, 1.0));
-    vs_out.Normal = transpose(inverse(mat3(model.modelMat[index]))) * aNormal;
+    mat4 matrix = mat4(0.0);
+    if(!meshDraw)
+    {
+        matrix = model.modelMat[index];
+    }
+    if(meshDraw)
+    {
+        matrix = modelMeshDraw;
+    }
+    vs_out.FragPos = vec3(matrix * vec4(aPos, 1.0));
+    vs_out.Normal = transpose(inverse(mat3(matrix))) * aNormal;
     vs_out.TexCoords = aTexCoords;
     //vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
-    gl_Position = projection * view * model.modelMat[index] * vec4(aPos, 1.0);
+    gl_Position = projection * view * matrix * vec4(aPos, 1.0);
 }

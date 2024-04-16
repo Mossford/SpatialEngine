@@ -123,14 +123,14 @@ namespace SpatialEngine.Rendering
             gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(3 * sizeof(float)));
             gl.EnableVertexAttribArray(2);
             gl.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (void*)(6 * sizeof(float)));
-            gl.BindVertexArray(0);
             
             gl.UseProgram(shader.shader);
             gl.BindVertexArray(vao);
             shader.setMat4("view", view);
             shader.setMat4("projection", proj);
             shader.setVec3("viewPos", camPos);
-            shader.setMat4("model", modelMat);
+            shader.setMat4("modelMeshDraw", modelMat);
+            shader.setBool("meshDraw", true);
             gl.DrawElements(GLEnum.Triangles, (uint)indices.Length, GLEnum.UnsignedInt, (void*)0);
             gl.BindVertexArray(0);
 

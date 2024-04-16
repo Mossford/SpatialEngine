@@ -263,7 +263,7 @@ namespace SpatialEngine.Networking
                         SendRelibAllExclude(packet, client.Id);
 
                         //send signals to create a player for the current client if it joined after another client
-                        for (int i = 0; i < server.ClientCount; i++)
+                        for (int i = 0; i < server.ClientCount - 1; i++)
                         {
                             SendRelib(packet, client.Id);
                         }

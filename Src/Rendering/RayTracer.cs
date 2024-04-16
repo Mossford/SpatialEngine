@@ -166,6 +166,7 @@ namespace SpatialEngine.Rendering
                     shader.setMat4("uView", view);
                     shader.setMat4("uProj", proj);
                     shader.setVec3("ucamPos", camPos);
+                    shader.setVec3("ucamDir", player.camera.GetCamDir());
                     shader.setInt("uindex", count);
                     shader.setInt("uindOffset", meshOffsets[index].offsetByte);
                     shader.setInt("uindEnd", (meshOffsets[index].offsetByte / sizeof(uint)) + objs[i].SO_mesh.indices.Length);
