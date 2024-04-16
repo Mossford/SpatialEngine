@@ -86,7 +86,7 @@ namespace SpatialEngine
                 WindowOptions options = WindowOptions.Default with
                 {
                     Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
-                    Title = "GameTesting",
+                    Title = "SpatialEngine",
                     VSync = vsync,
                     PreferredDepthBufferBits = 24,
                     API = glApi,
