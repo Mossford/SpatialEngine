@@ -14,7 +14,7 @@
 > * Put physics in the Physics namespace
 * ### Fix Networking bugs
 > * Really werid behavior when disconnecting and reconnecting 
-> * Player mesh positions dont update
+> * Player mesh on first client does not update. Off by one error?
 * ### Player needs a mesh
 * ### Documentation
 * ### Refactor shader system
