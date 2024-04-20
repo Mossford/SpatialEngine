@@ -82,7 +82,7 @@ namespace SpatialEngine
 
             if (args.Length == 0)
             {
-                glApi.Version = new APIVersion(4, 6);
+                glApi.Version = new APIVersion(4, 3);
                 WindowOptions options = WindowOptions.Default with
                 {
                     Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
@@ -112,7 +112,7 @@ namespace SpatialEngine
         static unsafe void OnLoad() 
         {
             gl = window.CreateOpenGL();
-            gl = GL.GetApi(window);
+            //gl = GL.GetApi(window);
             byte* text = gl.GetString(GLEnum.Renderer);
             int textLength = 0;
             while (text[textLength] != 0)

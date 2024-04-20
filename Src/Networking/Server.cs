@@ -1,18 +1,14 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.IO;
-using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
 using Riptide;
+using JoltPhysicsSharp;
+using System.Collections.Generic;
 
 //engine stuff
 using static SpatialEngine.Globals;
 using static SpatialEngine.Rendering.MeshUtils;
-using System.Numerics;
-using JoltPhysicsSharp;
 using Riptide.Transports;
+using System.Collections;
 
 namespace SpatialEngine.Networking
 {
@@ -40,6 +36,9 @@ namespace SpatialEngine.Networking
         public ushort port;
         public string ip;
         public int maxConnections { get; protected set; }
+        //first is the current id and the key is the client id from the server which riptide does not auto correct
+        public Dictionary<uint, uint> connectionIds;
+        uint connectionCount = 0;
 
         bool stopping;
 
@@ -50,13 +49,15 @@ namespace SpatialEngine.Networking
             this.port = port;
             this.maxConnections = maxConnections;
             Message.InstancesPerPeer = 100;
+            connectionIds = new Dictionary<uint, uint>();
         }
 
         public void Start()
         {
             server = new Server();
-            server.ClientConnected += ClientConnected;
             server.MessageReceived += handleMessage;
+            server.ClientConnected += ClientConnected;
+            server.ClientDisconnected += ClientDisconnected;
             server.Start(port, (ushort)maxConnections, 0, false);
         }
 
@@ -74,9 +75,21 @@ namespace SpatialEngine.Networking
             }
         }
 
-        public void ClientConnected(object sender, EventArgs e)
+        public void ClientConnected(object sender, ServerConnectedEventArgs e)
         {
             
+        }
+
+        public void ClientDisconnected(object sender, ServerDisconnectedEventArgs e)
+        {
+            PlayerLeavePacket packet = new PlayerLeavePacket();
+            if (connectionIds[e.Client.Id] == connectionCount - 1)
+                packet.clientId = (int)connectionIds[e.Client.Id] - 1;
+            else
+                packet.clientId = (int)connectionIds[e.Client.Id];
+            SendRelibAll(packet);
+            connectionIds.Remove(e.Client.Id);
+            connectionCount--;
         }
 
         public Connection[] GetServerConnections()
@@ -250,8 +263,14 @@ namespace SpatialEngine.Networking
                         //send this packet to all clients except from sender
                         PlayerPacket packet = new PlayerPacket();
                         packet.ByteToPacket(data);
-                        //set id to the client id so the clients can have the correct spot in the list and subtract 1 as it does not include itself
-                        packet.id = client.Id - 1;
+                        if(connectionIds.Count == server.ClientCount)
+                        {
+                            //the client before the last client cannot display the last client beacuse of a off by one error so we add this fix
+                            if(connectionIds[client.Id] == connectionCount - 1)
+                                packet.id = (int)connectionIds[client.Id] - 1;
+                            else
+                                packet.id = (int)connectionIds[client.Id];
+                        }
                         SendUnrelibAllExclude(packet, client.Id);
                         break;
                     }
@@ -262,10 +281,18 @@ namespace SpatialEngine.Networking
                         packet.ByteToPacket(data);
                         SendRelibAllExclude(packet, client.Id);
 
+                        //add to our list of our id
+                        connectionCount++;
+                        connectionIds.Add(client.Id, connectionCount - 1);
+
                         //send signals to create a player for the current client if it joined after another client
-                        for (int i = 0; i < server.ClientCount - 1; i++)
+                        if(connectionCount == server.ClientCount)
                         {
-                            SendRelib(packet, client.Id);
+                            for (int i = 0; i < server.ClientCount - 1; i++)
+                            {
+                                if (server.Clients[i].Id != client.Id)
+                                    SendRelib(packet, client.Id);
+                            }
                         }
                         break;
                     }

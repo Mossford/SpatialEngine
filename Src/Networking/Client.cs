@@ -259,7 +259,8 @@ namespace SpatialEngine.Networking
                     {
                         PlayerPacket packet = new PlayerPacket();
                         packet.ByteToPacket(data);
-                        if(packet.id < playerMeshes.Count)
+                        //Console.WriteLine(packet.id + " " + playerMeshes.Count);
+                        if (packet.id < playerMeshes.Count)
                         {
                             playerMeshes[packet.id].position = packet.Position;
                             playerMeshes[packet.id].rotation = packet.Rotation;
@@ -271,6 +272,14 @@ namespace SpatialEngine.Networking
                         PlayerJoinPacket packet = new PlayerJoinPacket();
                         //hardcoded mesh location for now as using the packet causes it not to find the mesh
                         playerMeshes.Add(LoadModel(packet.Position, packet.Rotation, "Cube.obj"));
+                        break;
+                    }
+                case (ushort)PacketType.PlayerLeave:
+                    {
+                        PlayerLeavePacket packet = new PlayerLeavePacket();
+                        packet.ByteToPacket(data);
+                        Console.WriteLine(packet.clientId + "Left");
+                        playerMeshes.RemoveAt(packet.clientId);
                         break;
                     }
             }
