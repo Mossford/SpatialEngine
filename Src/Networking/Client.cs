@@ -70,6 +70,7 @@ namespace SpatialEngine.Networking
 
         public void Disconnect() 
         {
+            playerMeshes.Clear();
             client.Disconnect();
             disconnected = true;
         }
@@ -278,7 +279,6 @@ namespace SpatialEngine.Networking
                     {
                         PlayerLeavePacket packet = new PlayerLeavePacket();
                         packet.ByteToPacket(data);
-                        Console.WriteLine(packet.clientId + "Left");
                         playerMeshes.RemoveAt(packet.clientId);
                         break;
                     }

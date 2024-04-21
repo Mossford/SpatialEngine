@@ -77,19 +77,39 @@ namespace SpatialEngine.Networking
 
         public void ClientConnected(object sender, ServerConnectedEventArgs e)
         {
-            
+            //add to our list of our id
+            connectionCount++;
+            connectionIds.Add(e.Client.Id, connectionCount - 1);
         }
 
         public void ClientDisconnected(object sender, ServerDisconnectedEventArgs e)
         {
             PlayerLeavePacket packet = new PlayerLeavePacket();
-            if (connectionIds[e.Client.Id] == connectionCount - 1)
-                packet.clientId = (int)connectionIds[e.Client.Id] - 1;
-            else
-                packet.clientId = (int)connectionIds[e.Client.Id];
-            SendRelibAll(packet);
+
+            //using the algorithm for sending the player packets
+            int currentId = (int)connectionIds[e.Client.Id];
+
+            //start from one as we cannot access the client list as the client has been removed
+            for (int i = 0; i < server.ClientCount; i++)
+            {
+                //if we are the same client we skip
+                if (server.Clients[i].Id == e.Client.Id)
+                    continue;
+
+                if (currentId > connectionIds[server.Clients[i].Id])
+                {
+                    packet.clientId = currentId - 1;
+                    SendRelib(packet, server.Clients[i].Id);
+                }
+                else
+                {
+                    packet.clientId = currentId;
+                    SendRelib(packet, server.Clients[i].Id);
+                }
+            }
             connectionIds.Remove(e.Client.Id);
             connectionCount--;
+
         }
 
         public Connection[] GetServerConnections()
@@ -130,6 +150,17 @@ namespace SpatialEngine.Networking
                 server.SendToAll(msgUnrelib);
             }
         }
+
+        public void SendRelibAll(Packet packet)
+        {
+            if (!stopping)
+            {
+                Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
+                msgRelib.AddBytes(packet.ConvertToByte());
+                server.SendToAll(msgRelib);
+            }
+        }
+
         public void SendUnrelibAllExclude(Packet packet, ushort clientId)
         {
             if (!stopping)
@@ -148,24 +179,16 @@ namespace SpatialEngine.Networking
         {
             if (!stopping)
             {
-                Message msgUnrelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
-                msgUnrelib.AddBytes(packet.ConvertToByte());
+                Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
+                msgRelib.AddBytes(packet.ConvertToByte());
                 for (int i = 0; i < server.Clients.Length; i++)
                 {
                     if (clientId != server.Clients[i].Id)
-                        server.Send(msgUnrelib, server.Clients[i]);
+                    {
+                        Console.WriteLine(server.Clients[i].Id);
+                        server.Send(msgRelib, server.Clients[i]);
+                    }
                 }
-            }
-        }
-
-
-        public void SendRelibAll(Packet packet)
-        {
-            if (!stopping)
-            {
-                Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
-                msgRelib.AddBytes(packet.ConvertToByte());
-                server.SendToAll(msgRelib);
             }
         }
 
@@ -265,13 +288,29 @@ namespace SpatialEngine.Networking
                         packet.ByteToPacket(data);
                         if(connectionIds.Count == server.ClientCount)
                         {
-                            //the client before the last client cannot display the last client beacuse of a off by one error so we add this fix
-                            if(connectionIds[client.Id] == connectionCount - 1)
-                                packet.id = (int)connectionIds[client.Id] - 1;
-                            else
-                                packet.id = (int)connectionIds[client.Id];
+
+                            //if our client id is greater than the one before we subtract 1 from the sent id
+                            //if our client id is less than the one after we use the same value
+                            uint currentId = connectionIds[client.Id];
+
+                            for (int i = 0; i < connectionCount; i++)
+                            {
+                                //if we are the same client we skip
+                                if (connectionIds[server.Clients[i].Id] == currentId)
+                                    continue;
+
+                                if (currentId > connectionIds[server.Clients[i].Id])
+                                {
+                                    packet.id = (int)currentId - 1;
+                                    SendUnrelib(packet, server.Clients[i].Id);
+                                }
+                                else
+                                {
+                                    packet.id = (int)currentId;
+                                    SendUnrelib(packet, server.Clients[i].Id);
+                                }
+                            }
                         }
-                        SendUnrelibAllExclude(packet, client.Id);
                         break;
                     }
                 case (ushort)PacketType.PlayerJoin:
@@ -281,17 +320,12 @@ namespace SpatialEngine.Networking
                         packet.ByteToPacket(data);
                         SendRelibAllExclude(packet, client.Id);
 
-                        //add to our list of our id
-                        connectionCount++;
-                        connectionIds.Add(client.Id, connectionCount - 1);
-
                         //send signals to create a player for the current client if it joined after another client
-                        if(connectionCount == server.ClientCount)
+                        if (connectionCount == server.ClientCount)
                         {
-                            for (int i = 0; i < server.ClientCount - 1; i++)
+                            for (int i = 1; i < connectionCount; i++)
                             {
-                                if (server.Clients[i].Id != client.Id)
-                                    SendRelib(packet, client.Id);
+                                SendRelib(packet, client.Id);
                             }
                         }
                         break;
@@ -300,5 +334,6 @@ namespace SpatialEngine.Networking
         }
 
         public bool IsRunning() => server.IsRunning;
+
     }
 }

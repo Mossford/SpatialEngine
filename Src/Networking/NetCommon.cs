@@ -499,7 +499,7 @@ namespace SpatialEngine.Networking
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
             //type of packet
-            writer.Write((ushort)PacketType.PlayerJoin);
+            writer.Write((ushort)PacketType.PlayerLeave);
             //id
             writer.Write(clientId);
             stream.Close();
