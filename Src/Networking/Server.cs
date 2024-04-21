@@ -77,9 +77,7 @@ namespace SpatialEngine.Networking
 
         public void ClientConnected(object sender, ServerConnectedEventArgs e)
         {
-            //add to our list of our id
-            connectionCount++;
-            connectionIds.Add(e.Client.Id, connectionCount - 1);
+            connectionIds.Add(e.Client.Id, (uint)connectionIds.Count);
         }
 
         public void ClientDisconnected(object sender, ServerDisconnectedEventArgs e)
@@ -90,7 +88,7 @@ namespace SpatialEngine.Networking
             int currentId = (int)connectionIds[e.Client.Id];
 
             //start from one as we cannot access the client list as the client has been removed
-            for (int i = 0; i < server.ClientCount; i++)
+            for (int i = 0; i < connectionCount; i++)
             {
                 //if we are the same client we skip
                 if (server.Clients[i].Id == e.Client.Id)
@@ -320,14 +318,16 @@ namespace SpatialEngine.Networking
                         packet.ByteToPacket(data);
                         SendRelibAllExclude(packet, client.Id);
 
+                        connectionCount++;
+
                         //send signals to create a player for the current client if it joined after another client
-                        if (connectionCount == server.ClientCount)
-                        {
-                            for (int i = 1; i < connectionCount; i++)
+                        //if (connectionCount == server.ClientCount)
+                        //{
+                            for (int i = 0; i < connectionCount - 1; i++)
                             {
                                 SendRelib(packet, client.Id);
                             }
-                        }
+                        //}
                         break;
                     }
             }
