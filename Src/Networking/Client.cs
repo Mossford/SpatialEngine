@@ -280,6 +280,7 @@ namespace SpatialEngine.Networking
                     {
                         PlayerLeavePacket packet = new PlayerLeavePacket();
                         packet.ByteToPacket(data);
+                        Console.WriteLine(packet.clientId + " " + playerMeshes.Count);
                         playerMeshes.RemoveAt(packet.clientId);
                         break;
                     }

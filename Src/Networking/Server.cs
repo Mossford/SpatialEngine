@@ -78,20 +78,33 @@ namespace SpatialEngine.Networking
         public void ClientConnected(object sender, ServerConnectedEventArgs e)
         {
             connectionIds.Add(e.Client.Id, (uint)connectionIds.Count);
+            foreach (var item in connectionIds)
+            {
+                Console.WriteLine(item.Key + " " + item.Value);
+            }
         }
 
         public void ClientDisconnected(object sender, ServerDisconnectedEventArgs e)
         {
+            //reset all values in connectionId after the left client as we need to bring down it by one
+            for (int i = e.Client.Id - 1; i < connectionCount; i++)
+            {
+                connectionIds[(uint)i + 1] = (uint)i - 1;
+            }
+
+            connectionCount--;
+
             PlayerLeavePacket packet = new PlayerLeavePacket();
 
             //using the algorithm for sending the player packets
+            Console.WriteLine(e.Client.Id + "Id");
             int currentId = (int)connectionIds[e.Client.Id];
 
             //start from one as we cannot access the client list as the client has been removed
             for (int i = 0; i < connectionCount; i++)
             {
                 //if we are the same client we skip
-                if (server.Clients[i].Id == e.Client.Id)
+                if (i == e.Client.Id)
                     continue;
 
                 if (currentId > connectionIds[server.Clients[i].Id])
@@ -106,7 +119,10 @@ namespace SpatialEngine.Networking
                 }
             }
             connectionIds.Remove(e.Client.Id);
-            connectionCount--;
+            foreach (var item in connectionIds)
+            {
+                Console.WriteLine(item.Key + " " + item.Value);
+            }
 
         }
 
@@ -291,10 +307,10 @@ namespace SpatialEngine.Networking
                             //if our client id is less than the one after we use the same value
                             uint currentId = connectionIds[client.Id];
 
-                            for (int i = 0; i < connectionCount; i++)
+                            for (int i = 0; i < connectionIds.Count; i++)
                             {
                                 //if we are the same client we skip
-                                if (connectionIds[server.Clients[i].Id] == currentId)
+                                if (i == currentId)
                                     continue;
 
                                 if (currentId > connectionIds[server.Clients[i].Id])
