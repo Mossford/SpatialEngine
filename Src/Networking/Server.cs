@@ -77,7 +77,7 @@ namespace SpatialEngine.Networking
 
         public void ClientConnected(object sender, ServerConnectedEventArgs e)
         {
-            connectionIds.Add(e.Client.Id, (uint)connectionIds.Count);
+            connectionIds.Add(e.Client.Id, connectionCount - 1);
             foreach (var item in connectionIds)
             {
                 Console.WriteLine(item.Key + " " + item.Value);
@@ -87,9 +87,14 @@ namespace SpatialEngine.Networking
         public void ClientDisconnected(object sender, ServerDisconnectedEventArgs e)
         {
             //reset all values in connectionId after the left client as we need to bring down it by one
-            for (int i = e.Client.Id - 1; i < connectionCount; i++)
+            for (uint i = connectionIds[e.Client.Id]; i < server.Clients.Length; i++)
             {
-                connectionIds[(uint)i + 1] = (uint)i - 1;
+                //and skip the first client as will be -1
+                //if (connectionIds[server.Clients[i].Id] != 0)
+                //{
+                    //set the values at the keys of each client after the left client to be one less
+                    connectionIds[server.Clients[i].Id] = connectionIds[server.Clients[i].Id] - 1;
+                //}
             }
 
             connectionCount--;

@@ -404,7 +404,7 @@ namespace SpatialEngine.Rendering
                     else
                     {
                         ImGui.Text("Client not connected to server");
-                        ImGui.InputText("IP Address", ref ip, 24);
+                        ImGui.InputText("IP Address", ref ip, 24, ImGuiInputTextFlags.CharsNoBlank);
                         ImGui.InputInt("Port", ref port);
                         port = (int)MathF.Abs(port);
 

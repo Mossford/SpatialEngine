@@ -260,7 +260,7 @@ namespace SpatialEngine.Networking
                     {
                         PlayerPacket packet = new PlayerPacket();
                         packet.ByteToPacket(data);
-                        Console.WriteLine(packet.id + " " + playerMeshes.Count);
+                        //Console.WriteLine(packet.id + " " + playerMeshes.Count);
                         if (packet.id < playerMeshes.Count)
                         {
                             playerMeshes[packet.id].position = packet.Position;
