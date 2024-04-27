@@ -77,7 +77,7 @@ namespace SpatialEngine.Networking
 
         public void ClientConnected(object sender, ServerConnectedEventArgs e)
         {
-            connectionIds.Add(e.Client.Id, connectionCount - 1);
+            connectionIds.Add(e.Client.Id, (uint)connectionIds.Count);
             foreach (var item in connectionIds)
             {
                 Console.WriteLine(item.Key + " " + item.Value);
