@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 
 namespace SpatialEngine.Rendering
 {
-
-
     /// <summary>
     /// Framebuffers are in active texture 1
     /// </summary>
@@ -45,6 +43,7 @@ namespace SpatialEngine.Rendering
                 Globals.gl.DrawBuffer(DrawBufferMode.ColorAttachment0);
                 Globals.gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
             }
+
             Globals.gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
@@ -55,7 +54,18 @@ namespace SpatialEngine.Rendering
         {
             Globals.gl.Viewport(0, 0, width, height);
             Globals.gl.BindFramebuffer(FramebufferTarget.Framebuffer, id);
-            Globals.gl.Clear(mask);
+            if (mask == ClearBufferMask.ColorBufferBit)
+            {
+                Globals.gl.Clear(mask | ClearBufferMask.DepthBufferBit);
+            }
+            else if (mask == ClearBufferMask.DepthBufferBit)
+            {
+                Globals.gl.Clear(mask);
+            }
+            else if (mask == ClearBufferMask.StencilBufferBit)
+            {
+                Globals.gl.Clear(mask | ClearBufferMask.DepthBufferBit);
+            }
             draw();
             Globals.gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }

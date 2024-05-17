@@ -165,9 +165,6 @@ namespace SpatialEngine
 
             //init game
             GameManager.InitGame();
-
-            frameBuffer = new FrameBuffer(1920, 1080, ClearBufferMask.DepthBufferBit);
-            UiRenderer.AddElement(frameBuffer.texture, new(0, 0), 0f, 1f, new(1920, 1080));
         }
 
         static bool lockMouse = false;
@@ -268,12 +265,6 @@ namespace SpatialEngine
             player.camera.SetProjMatClose(window.Size.X, window.Size.Y);
 
             ImGuiMenu((float)dt);
-
-            gl.UseProgram(depthShader.shader);
-            depthShader.setMat4("projection", player.camera.projCloseMat);
-            depthShader.setMat4("view", player.camera.viewMat);
-            depthShader.setBool("meshDraw", false);
-            frameBuffer.Update(() => Renderer.DrawNoShader(scene));
 
             gl.ClearColor(Color.FromArgb(102, 178, 204));
             gl.Viewport(0,0, (uint)window.Size.X, (uint)window.Size.Y);

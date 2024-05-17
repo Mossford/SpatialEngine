@@ -12,9 +12,7 @@
 
 * ### Add to physics
 > * Put physics in the Physics namespace
-* ### Fix Networking bugs
-> * Really werid behavior when disconnecting and reconnecting 
-> * Meshes on clients after the first dont get the proper index
+* ### framebuffer color has no depth test
 * ### Player needs a mesh
 * ### Documentation
 * ### Refactor shader system
