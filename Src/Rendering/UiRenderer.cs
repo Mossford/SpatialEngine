@@ -35,6 +35,16 @@ namespace SpatialEngine.Rendering
             this.height = height;
         }
 
+        public UiElement(Texture texture, Vector2 pos, float rot = 0f, float scale = 1f, float length = 100, float height = 100)
+        {
+            this.texture = texture;
+            this.position = pos;
+            this.rotation = rot;
+            this.scale = scale;
+            this.length = length;
+            this.height = height;
+        }
+
         public void Dispose()
         {
             texture.Dispose();
@@ -105,7 +115,6 @@ namespace SpatialEngine.Rendering
         public unsafe void Draw(in Shader shader, in Matrix4x4 mat, in Texture texture)
         {
             Globals.gl.BindVertexArray(id);
-            Globals.gl.ActiveTexture(GLEnum.Texture0);
             texture.Bind();
             Globals.gl.UseProgram(shader.shader);
             shader.setMat4("model", mat);
@@ -137,7 +146,12 @@ namespace SpatialEngine.Rendering
             quad.Bind();
 
             uiElements = new List<UiElement>();
-            uiElements.Add(new UiElement("RedDebug.png", new(0,0), 0f, 1.0f));
+            //uiElements.Add(new UiElement("RedDebug.png", new(0,0), 0f, 1.0f));
+        }
+
+        public static void AddElement(Texture texture, Vector2 pos, float rotation, float scale, Vector2 dimension)
+        {
+            uiElements.Add(new UiElement(texture, pos, rotation, scale, dimension.X, dimension.Y));
         }
 
         public static void Draw()

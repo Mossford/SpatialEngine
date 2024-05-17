@@ -47,6 +47,10 @@ namespace SpatialEngine.Rendering
         }
     }
 
+
+    /// <summary>
+    /// Image textures are in activetexture 0
+    /// </summary>
     public class Texture : IDisposable
     {
         public uint id;
@@ -99,6 +103,29 @@ namespace SpatialEngine.Rendering
             textLocation = location;
         }
 
+        public unsafe void CreateFromFrameBuffer(in FrameBuffer buf)
+        {
+            id = gl.GenTexture();
+            gl.BindTexture(GLEnum.Texture2D, id);
+            if(buf.mask == ClearBufferMask.ColorBufferBit)
+                gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgb, buf.width, buf.height, 0, PixelFormat.Rgb, PixelType.UnsignedByte, (void*)null);
+            else if(buf.mask == ClearBufferMask.DepthBufferBit)
+                gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.DepthComponent, buf.width, buf.height, 0, PixelFormat.DepthComponent, PixelType.Float, (void*)null);
+            else if(buf.mask == ClearBufferMask.StencilBufferBit)
+                gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgb, buf.width, buf.height, 0, PixelFormat.Rgb, PixelType.UnsignedByte, (void*)null);
+            gl.TextureParameter(id, GLEnum.TextureMinFilter, (int)GLEnum.Nearest);
+            gl.TextureParameter(id, GLEnum.TextureMagFilter, (int)GLEnum.Nearest);
+            gl.TextureParameter(id, GLEnum.TextureWrapS, (int)GLEnum.Repeat);
+            gl.TextureParameter(id, GLEnum.TextureWrapT, (int)GLEnum.Repeat);
+            buf.Bind();
+            if (buf.mask == ClearBufferMask.ColorBufferBit)
+                gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, GLEnum.Texture2D, id, 0);
+            else if (buf.mask == ClearBufferMask.DepthBufferBit)
+                gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, GLEnum.Texture2D, id, 0);
+            else if (buf.mask == ClearBufferMask.StencilBufferBit)
+                gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, GLEnum.Texture2D, id, 0);
+            buf.Unbind();
+        }
         public void Bind()
         {
             gl.BindTexture(GLEnum.Texture2D, id);

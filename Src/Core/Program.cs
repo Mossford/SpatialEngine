@@ -72,8 +72,9 @@ namespace SpatialEngine
         static ImGuiController controller;
         static Vector2 LastMousePosition;
         static Shader shader;
+        static Shader depthShader;
         static Texture texture;
-
+        static FrameBuffer frameBuffer;
 
         public static void Main(string[] args)
         {
@@ -141,6 +142,7 @@ namespace SpatialEngine
 
             Renderer.Init(scene);
             shader = new Shader(gl, "Default.vert", "Default.frag");
+            depthShader = new Shader(gl, "Depth.vert", "Depth.frag");
             texture = new Texture();
             texture.LoadTexture("RedDebug.png");
 
@@ -163,6 +165,9 @@ namespace SpatialEngine
 
             //init game
             GameManager.InitGame();
+
+            frameBuffer = new FrameBuffer(1920, 1080, ClearBufferMask.DepthBufferBit);
+            UiRenderer.AddElement(frameBuffer.texture, new(0, 0), 0f, 1f, new(1920, 1080));
         }
 
         static bool lockMouse = false;
@@ -260,21 +265,29 @@ namespace SpatialEngine
 
             player.camera.SetViewMat();
             player.camera.SetProjMat(window.Size.X, window.Size.Y);
+            player.camera.SetProjMatClose(window.Size.X, window.Size.Y);
 
             ImGuiMenu((float)dt);
+
+            gl.UseProgram(depthShader.shader);
+            depthShader.setMat4("projection", player.camera.projCloseMat);
+            depthShader.setMat4("view", player.camera.viewMat);
+            depthShader.setBool("meshDraw", false);
+            frameBuffer.Update(() => Renderer.DrawNoShader(scene));
 
             gl.ClearColor(Color.FromArgb(102, 178, 204));
             gl.Viewport(0,0, (uint)window.Size.X, (uint)window.Size.Y);
 
             gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            gl.DepthFunc(GLEnum.Less);
+            gl.DepthFunc(GLEnum.Lequal);
             gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
             if(showWireFrame)
                 gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
 
+            UiRenderer.Draw();
+
             gl.UseProgram(shader.shader);
             shader.setVec3("lightPos", new Vector3(0,20,-10));
-            gl.ActiveTexture(GLEnum.Texture0);
             texture.Bind();
             Renderer.Draw(scene, ref shader, player.camera.viewMat, player.camera.projMat, player.camera.position);
 

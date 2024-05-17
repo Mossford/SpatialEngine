@@ -16,7 +16,7 @@ namespace SpatialEngine.Rendering
 
         public static void DrawShadows(Matrix4x4 proj, Matrix4x4 view, Vector3 lightDir)
         {
-            List<Vector4> frustumCorners = new();
+            /*List<Vector4> frustumCorners = new();
             Matrix4x4.Invert(proj * view, out Matrix4x4 inv);
 
             for (int x = 0; x < 2; ++x)
@@ -73,7 +73,11 @@ namespace SpatialEngine.Rendering
                 maxZ *= zMult;
             }
 
-            Matrix4x4 lightProjection = Matrix4x4.CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);
+            Matrix4x4 lightProjection = Matrix4x4.CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);*/
+
+
+
+
         }
     }
 }

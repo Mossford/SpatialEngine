@@ -14,6 +14,7 @@ namespace SpatialEngine.Rendering
 
         public Matrix4x4 viewMat;
         public Matrix4x4 projMat;
+        public Matrix4x4 projCloseMat;
 
         public Camera(Vector3 position, Vector3 rotation, float zoom = 60.0f)
         {
@@ -45,6 +46,13 @@ namespace SpatialEngine.Rendering
         public void SetProjMat(float winX, float winY)
         {
             projMat = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 180.0f * zoom, winX / winY, 0.1f, 100000.0f);
+        }
+
+        public void SetProjMatClose(float winX, float winY)
+        {
+            //used for depth buffer and for a more close range to get more data
+            //not meant for full rendering
+            projCloseMat = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 180.0f * zoom, winX / winY, 1f, 2000f);
         }
     }
 }
