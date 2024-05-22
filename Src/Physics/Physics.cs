@@ -286,6 +286,10 @@ namespace SpatialEngine
             bodyInterface.AddForce(rbID, dir * power);
         }
 
+        public void AddForceAtPos(Vector3 dir, Vector3 pos, float power)
+        {
+            bodyInterface.AddForceAndTorque(rbID, dir * power, Vector3.Cross(pos, dir));
+        }
         public void AddImpulseForce(Vector3 dir, float power)
         {
             bodyInterface.AddLinearVelocity(rbID, dir * power);
