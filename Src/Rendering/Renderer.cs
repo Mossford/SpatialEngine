@@ -19,7 +19,7 @@ namespace SpatialEngine.Rendering
         public static List<RenderSet> renderSets;
         static int objectBeforeCount = 0;
 
-        public static void Init(in Scene scene, int maxRenders = 10000)
+        public static void Init(in Scene scene, int maxRenders = 1000)
         {
             renderSets = new List<RenderSet>();
             MaxRenders = maxRenders;

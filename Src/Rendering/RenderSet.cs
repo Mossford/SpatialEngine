@@ -21,16 +21,26 @@ namespace SpatialEngine.Rendering
         public uint vbo { get; protected set; }
         public uint ebo { get; protected set; }
         List<MeshOffset> meshOffsets;
+        Vertex[] vertices;
+        uint[] indices;
+        Matrix4x4[] modelMats;
         BufferObject<Matrix4x4> modelMatrixes;
 
         public RenderSet()
         {
             meshOffsets = new List<MeshOffset>();
+            vertices = new Vertex[0];
+            indices = new uint[0];
+            modelMats = new Matrix4x4[0];
         }
 
         public unsafe void CreateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
         {
-            Matrix4x4[] models = new Matrix4x4[countTO - countBE];
+            if (countTO - countBE != modelMats.Length)
+            {
+                modelMats = new Matrix4x4[countTO - countBE];
+            }
+            
             int vertexSize = 0;
             int indiceSize = 0;
             for (int i = countBE; i < countTO; i++)
@@ -38,29 +48,36 @@ namespace SpatialEngine.Rendering
                 vertexSize += objs[i].SO_mesh.vertexes.Length;
                 indiceSize += objs[i].SO_mesh.indices.Length;
             }
-
-            Vertex[] verts = new Vertex[vertexSize];
-            uint[] inds = new uint[indiceSize];
+            
+            if (countTO - countBE != vertices.Length)
+            {
+                vertices = new Vertex[vertexSize];
+            }
+            if (countTO - countBE != indices.Length)
+            {
+                indices = new uint[indiceSize];
+            }
+            
             int countV = 0;
             int countI = 0;
             int count = 0;
             for (int i = countBE; i < countTO; i++)
             {
-                models[count] = objs[i].SO_mesh.modelMat;
+                modelMats[count] = objs[i].SO_mesh.modelMat;
                 for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                 {
-                    verts[countV] = objs[i].SO_mesh.vertexes[j];
+                    vertices[countV] = objs[i].SO_mesh.vertexes[j];
                     countV++;
                 }
                 for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
                 {
-                    inds[countI] = objs[i].SO_mesh.indices[j];
+                    indices[countI] = objs[i].SO_mesh.indices[j];
                     countI++;
                 }
                 count++;
             }
 
-            modelMatrixes = new BufferObject<Matrix4x4>(models, 3, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
+            modelMatrixes = new BufferObject<Matrix4x4>(modelMats.ToArray(), 3, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
 
             vao = gl.GenVertexArray();
             gl.BindVertexArray(vao);
@@ -69,9 +86,9 @@ namespace SpatialEngine.Rendering
             ebo = gl.GenBuffer();
             gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-            fixed (Vertex* buf = verts)
+            fixed (Vertex* buf = vertices.ToArray())
                 gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertexSize * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
-            fixed (uint* buf = inds)
+            fixed (uint* buf = indices.ToArray())
                 gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indiceSize * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
 
             gl.EnableVertexAttribArray(0);
@@ -85,63 +102,76 @@ namespace SpatialEngine.Rendering
 
         public unsafe void UpdateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
         {
-            Matrix4x4[] models = new Matrix4x4[countTO - countBE];
+            if (countTO - countBE != modelMats.Length)
+            {
+                modelMats = new Matrix4x4[countTO - countBE];
+            }
+            
             int vertexSize = 0;
             int indiceSize = 0;
             for (int i = countBE; i < countTO; i++)
             {
-                //maybe move offset calculation into here?
                 vertexSize += objs[i].SO_mesh.vertexes.Length;
                 indiceSize += objs[i].SO_mesh.indices.Length;
             }
-
-            Vertex[] verts = new Vertex[vertexSize];
-            uint[] inds = new uint[indiceSize];
+            
+            if (countTO - countBE != vertices.Length)
+            {
+                vertices = new Vertex[vertexSize];
+            }
+            if (countTO - countBE != indices.Length)
+            {
+                indices = new uint[indiceSize];
+            }
+            
             int countV = 0;
             int countI = 0;
             int count = 0;
             for (int i = countBE; i < countTO; i++)
             {
-                models[count] = objs[i].SO_mesh.modelMat;
+                modelMats[count] = objs[i].SO_mesh.modelMat;
                 for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                 {
-                    verts[countV] = objs[i].SO_mesh.vertexes[j];
+                    vertices[countV] = objs[i].SO_mesh.vertexes[j];
                     countV++;
                 }
                 for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
                 {
-                    inds[countI] = objs[i].SO_mesh.indices[j];
+                    indices[countI] = objs[i].SO_mesh.indices[j];
                     countI++;
                 }
                 count++;
             }
 
-            modelMatrixes.Update(models);
+            modelMatrixes.Update(modelMats.ToArray());
 
             gl.BindVertexArray(vao);
             gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
             gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
 
-            fixed (Vertex* buf = verts)
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(verts.Length * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
-            fixed (uint* buf = inds)
-                gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(inds.Length * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
+            fixed (Vertex* buf = vertices.ToArray())
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertices.Length * sizeof(Vertex)), buf, BufferUsageARB.StreamDraw);
+            fixed (uint* buf = indices.ToArray())
+                gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indices.Length * sizeof(uint)), buf, BufferUsageARB.StreamDraw);
 
             gl.BindVertexArray(0);
         }
 
         public void UpdateModelBuffer(in List<SpatialObject> objs, int countBE, int countTO)
         {
-            Matrix4x4[] models = new Matrix4x4[countTO - countBE];
+            if (countTO - countBE != modelMats.Length)
+            {
+                modelMats = new Matrix4x4[countTO - countBE];
+            }
 
             int count = 0;
             for (int i = countBE; i < countTO; i++)
             {
-                models[count] = objs[i].SO_mesh.modelMat;
+                modelMats[count] = objs[i].SO_mesh.modelMat;
                 count++;
             }
 
-            modelMatrixes.Update(models);
+            modelMatrixes.Update(modelMats.ToArray());
         }
 
         public void Dispose()
