@@ -1,5 +1,6 @@
 # **The Spatial Engine** 
 ## (A framework for building my own projects in c# and expanded off the ideas in [c++ Spatial Engine](https://github.com/Mosseelight/SpaceSimulationTesting) by me)
+## Warning that this was made in mind for my own projects, so this should not be used for any serious things without heavy modifications.
 
 ## Current Features
 * #### Runs on SilkNet using a custom built renderer on Opengl that uses batching of meshes for fast rendering of huge amounts of meshes. Uses custom loading of obj meshes and support for textures and soon a 2d custom renderer for ui.
