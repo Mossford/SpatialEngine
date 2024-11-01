@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using JoltPhysicsSharp;
+using Silk.NET.Input;
 
 //engine stuff
 using static SpatialEngine.Rendering.MeshUtils;
@@ -40,45 +41,45 @@ namespace SpatialEngine
             moveDir = Vector3.Zero;
         }
 
-        public void Movement(float delta, int[] keys)
+        public void Movement(float delta)
         {
             Vector3 up = Vector3.UnitY;
             Vector3 down = -Vector3.UnitY;
-            foreach (int key in keys)
+            if (Input.IsKeyDown(Key.W))
             {
-                switch (key)
-                {
-                case 87: // key W
-                    moveDir = camera.GetCamDir();
-                    moveDir = Vector3.Normalize(moveDir);
-                    UpdatePlayer(delta);
-                    break;
-                case 83: // key S
-                    moveDir = -camera.GetCamDir();
-                    moveDir = Vector3.Normalize(moveDir);
-                    UpdatePlayer(delta);
-                    break;
-                case 65: // key A
-                    moveDir = -Vector3.Cross(camera.GetCamDir(), camera.GetCameraUp());
-                    moveDir = Vector3.Normalize(moveDir);
-                    UpdatePlayer(delta);
-                    break;
-                case 68: // key D
-                    moveDir = Vector3.Cross(camera.GetCamDir(), camera.GetCameraUp());
-                    moveDir = Vector3.Normalize(moveDir);
-                    UpdatePlayer(delta);
-                    break;
-                case 32: // key Space
-                    moveDir = up;
-                    moveDir = Vector3.Normalize(moveDir);
-                    UpdatePlayer(delta);
-                    break;
-                case 340: // key Left Shift
-                    moveDir = down;
-                    moveDir = Vector3.Normalize(moveDir);
-                    UpdatePlayer(delta);
-                    break;
-                }
+                moveDir = camera.GetCamDir();
+                moveDir = Vector3.Normalize(moveDir);
+                UpdatePlayer(delta);
+            }
+            if (Input.IsKeyDown(Key.S))
+            {
+                moveDir = -camera.GetCamDir();
+                moveDir = Vector3.Normalize(moveDir);
+                UpdatePlayer(delta);
+            }
+            if (Input.IsKeyDown(Key.A))
+            {
+                moveDir = -Vector3.Cross(camera.GetCamDir(), camera.GetCameraUp());
+                moveDir = Vector3.Normalize(moveDir);
+                UpdatePlayer(delta);
+            }
+            if (Input.IsKeyDown(Key.D))
+            {
+                moveDir = Vector3.Cross(camera.GetCamDir(), camera.GetCameraUp());
+                moveDir = Vector3.Normalize(moveDir);
+                UpdatePlayer(delta);
+            }
+            if (Input.IsKeyDown(Key.Space))
+            {
+                moveDir = up;
+                moveDir = Vector3.Normalize(moveDir);
+                UpdatePlayer(delta);
+            }
+            if (Input.IsKeyDown(Key.ShiftLeft))
+            {
+                moveDir = down;
+                moveDir = Vector3.Normalize(moveDir);
+                UpdatePlayer(delta);
             }
         }
 

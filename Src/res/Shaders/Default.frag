@@ -23,7 +23,7 @@ void main()
     vec3 lightColor = vec3(1.0);
     float lightPower = 2.0;
     float distance = length(lightPos - fs_in.FragPos);
-    float attenuation = 1.0 / (distance * distance);
+    //float attenuation = 1.0 / (distance * distance);
     // ambient
     vec3 ambient = 0.15 * lightColor;
     // diffuse

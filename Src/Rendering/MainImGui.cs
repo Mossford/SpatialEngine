@@ -22,39 +22,6 @@ namespace SpatialEngine.Rendering
 {
     public static class MainImGui
     {
-        class ScrollingBuffer
-        {
-            int MaxSize;
-            int Offset;
-            List<Vector2> Data;
-            public ScrollingBuffer(int max_size = 2000)
-            {
-                MaxSize = max_size;
-                Offset = 0;
-                Data = new List<Vector2>(MaxSize);
-            }
-            public void AddPoint(float x, float y)
-            {
-                if (Data.Count < MaxSize)
-                    Data.Add(new Vector2(x, y));
-                else
-                {
-                    Data[Offset] = new Vector2(x, y);
-                    Offset = (Offset + 1) % MaxSize;
-                }
-            }
-            public void Erase()
-            {
-                if (Data.Count() > 0)
-                {
-                    Data.Clear();
-                    Offset = 0;
-                }
-            }
-        }
-
-        static ScrollingBuffer frameTimes = new ScrollingBuffer(20000);
-        static float HighestFT = 0.0f;
         static bool ShowSceneViewerMenu, ShowObjectViewerMenu, ShowConsoleViewerMenu, ShowNetworkViewerMenu;
         static int IMM_counter = 0;
         static Vector3 IMM_selposition = new Vector3();
@@ -65,12 +32,22 @@ namespace SpatialEngine.Rendering
         static float IMM_SpikerSphereSize = 0;
         static string IMM_input = "";
         static bool IMM_static = false;
+        static ImFontPtr font;
+        
+        static float fpsCount;
+        static float fpsTotal;
+        static float msCount;
+        static float msTotal;
+        static float fpsTime;
+        
+        public static void Init()
+        {
+            font = ImGui.GetFont();
+            font.Scale = 1.35f;
+        }
+        
         public static void ImGuiMenu(float deltaTime)
         {
-            if (deltaTime > HighestFT)
-                HighestFT = (float)deltaTime;
-            frameTimes.AddPoint(totalTime, deltaTime);
-
             ImGuiWindowFlags window_flags = 0;
             window_flags |= ImGuiWindowFlags.NoTitleBar;
             window_flags |= ImGuiWindowFlags.MenuBar;
@@ -83,25 +60,30 @@ namespace SpatialEngine.Rendering
             ImGui.Text("OpenGl " + OpenGlVersion);
             ImGui.Text("Gpu: " + Gpu);
             ImGui.Text(String.Format("{0:N3} ms/frame ({1:N1} FPS)", 1.0f / ImGui.GetIO().Framerate * 1000.0f, ImGui.GetIO().Framerate));
+            ImGui.Text(String.Format("{0:N3} ms Avg ({1:N1} FPS Avg)", msTotal / fpsCount, fpsTotal / fpsCount));
+            ImGui.Text(String.Format("DrawCall per frame: ({0:N1})", MathF.Round(drawCallCount)));
             ImGui.Text(String.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
             ImGui.Text(String.Format("RenderSets: {0}", Renderer.renderSets.Count));
             ImGui.Text(String.Format("Amount of Spatials: ({0})", scene.SpatialObjects.Count()));
-            ImGui.Text(String.Format("DrawCall Avg: ({0:N1}) DC/frame, DrawCall Total ({1})", MathF.Round(DrawCallCount / (totalTime / deltaTime)), DrawCallCount));
+            ImGui.Text(String.Format("DrawCall Avg: ({0:N1}) DC/frame, DrawCall Total ({1})", MathF.Round(drawCallCount / (totalTime / deltaTime)), drawCallCount));
             ImGui.Text(String.Format("Time Open {0:N1} minutes", totalTime / 60.0f));
-            //ImGui.Text(String.Format("Time taken for Update run %.2fms ", MathF.Abs(updateTime)));
-            //ImGui.Text(String.Format("Time taken for Fixed Update run %.2fms ", MathF.Abs(updateFixedTime)));
-
-            //float frameTimeHistory = 2.75f;
-            /*ImGui.SliderFloat("FrameTimeHistory", ref frameTimeHistory, 0.1f, 10.0f);
-            if (ImPlot.BeginPlot("##Scrolling", ImVec2(ImGui::GetContentRegionAvail().x,100))) 
+            
+            fpsTotal += ImGui.GetIO().Framerate;
+            msTotal += 1.0f / ImGui.GetIO().Framerate * 1000f;
+            fpsCount++;
+            msTotal++;
+            fpsTime += deltaTime;
+            if(fpsTime >= 10)
             {
-                ImPlot.SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoTickLabels, ImPlotAxisFlags_AutoFit);
-                ImPlot.SetupAxisLimits(ImAxis_X1,GetTime() - frameTimeHistory, GetTime(), ImGuiCond_Always);
-                ImPlot.SetupAxisLimits(ImAxis_Y1,0,HighestFT + (HighestFT * 0.25f), ImGuiCond_Always);
-                ImPlot.SetNextFillStyle(ImVec4(0,0.5,0.5,1),1.0f);
-                ImPlot.PlotShaded("FrameTime", &frameTimes.Data[0].x, &frameTimes.Data[0].y, frameTimes.Data.size(), -INFINITY, 0, frameTimes.Offset, 2 * sizeof(float));
-                ImPlot.EndPlot();
-            }*/
+                fpsTime = 0f;
+                fpsTotal = 0f;
+                fpsCount = 0;
+                msTotal = 0;
+                msCount = 0;
+            }
+
+            drawCallCount = 0;
+            
             ImGui.Checkbox("Wire Frame", ref showWireFrame);
             if (ImGui.Checkbox("Vsync", ref vsync))
             {
@@ -109,12 +91,9 @@ namespace SpatialEngine.Rendering
             }
 
             ImGui.Spacing();
-            //ImGui.DragFloat("Physics Speed", &PhysicsSpeed, 0.01f, -10.0f, 10.0f);
             ImGui.DragFloat3("Player Position", ref player.position, 1.0f, -50.0f, 50.0f);
             ImGui.DragFloat3("Player Rotation", ref player.rotation, 1.0f, -360.0f, 360.0f);
             ImGui.SliderFloat("Cam Fov", ref player.camera.zoom, 179.9f, 0.01f);
-            Vector3 chunkpos = player.position / 10;
-            ImGui.Text(String.Format("Player in ChunkPos: {0} {1} {2}", (int)chunkpos.X, (int)chunkpos.Y, (int)chunkpos.Z));
 
             if (ImGui.BeginMenuBar())
             {

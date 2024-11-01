@@ -202,7 +202,7 @@ namespace SpatialEngine.Rendering
 
             fixed (void* ptr = &obArray[0])
                 gl.MultiDrawElementsBaseVertex(GLEnum.Triangles, indCounts, GLEnum.UnsignedInt, (void**)ptr, offsets);
-            DrawCallCount++;
+            drawCallCount++;
             gl.BindVertexArray(0);
         }
 
@@ -235,7 +235,7 @@ namespace SpatialEngine.Rendering
                 gl.UseProgram(objs[i].SO_shader.shader);
 
                 gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
-                DrawCallCount++;
+                drawCallCount++;
                 count++;
             }
             gl.BindVertexArray(0);
@@ -275,7 +275,7 @@ namespace SpatialEngine.Rendering
 
             fixed (void* ptr = &obArray[0])
                 gl.MultiDrawElementsBaseVertex(GLEnum.Triangles, indCounts, GLEnum.UnsignedInt, (void**)ptr, offsets);
-            DrawCallCount++;
+            drawCallCount++;
             gl.BindVertexArray(0);
         }
     }

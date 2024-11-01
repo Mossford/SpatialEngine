@@ -179,7 +179,7 @@ namespace SpatialEngine.Rendering
                     quad.Draw();
                     //gl.UseProgram(shader.shader);
                     //gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
-                    DrawCallCount++;
+                    drawCallCount++;
                     count++;
                 }
                 gl.BindVertexArray(0);

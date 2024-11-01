@@ -6,6 +6,7 @@
     <RollForward>Major</RollForward>
     <PublishReadyToRun>true</PublishReadyToRun>
     <TieredCompilation>false</TieredCompilation>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>IconSpace.ico</ApplicationIcon>
@@ -43,6 +44,7 @@
     <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.17.1" />
     <PackageReference Include="Silk.NET.Windowing" Version="2.20.0" />
     <PackageReference Include="StbImageSharp" Version="2.27.13" />
+    <PackageReference Include="StbTrueTypeSharp" Version="1.26.12" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -50,6 +52,9 @@
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />
     <Exec Command="dotnet tool restore" />
+  </Target>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="XCOPY &quot;Src\res&quot; &quot;$(TargetDir)\res&quot; /E /I /Y /F" />
   </Target>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="XCOPY &quot;Src\res&quot; &quot;$(TargetDir)\res&quot; /E /I /Y /F" />

@@ -25,7 +25,6 @@ namespace SpatialEngine.Rendering
             MaxRenders = maxRenders;
             renderSets.Add(new RenderSet());
             renderSets[0].CreateDrawSet(in scene.SpatialObjects, 0, scene.SpatialObjects.Count);
-            UiRenderer.Init();
 
             //RayTracer.Init(scene, maxRenders);
         }

@@ -7,6 +7,8 @@ using static SpatialEngine.Globals;
 using System.IO;
 using System;
 using System.Drawing;
+using System.Numerics;
+using Silk.NET.Vulkan;
 
 namespace SpatialEngine.Rendering
 {
@@ -55,6 +57,9 @@ namespace SpatialEngine.Rendering
     {
         public uint id;
         public string textLocation;
+        public Vector2 size;
+        public InternalFormat internalFormat;
+        public GLEnum format;
 
         public unsafe void LoadTexture(string location)
         {
@@ -89,6 +94,9 @@ namespace SpatialEngine.Rendering
                 fixed (byte* data = MissingTexture.pixels)
                 {
                     gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgb, (uint)MissingTexture.size, (uint)MissingTexture.size, 0, GLEnum.Rgb, PixelType.UnsignedByte, data);
+                    internalFormat = InternalFormat.Rgb;
+                    format = GLEnum.Rgb;
+                    size = new Vector2(MissingTexture.size, MissingTexture.size);
                 }
             }
             else
@@ -96,6 +104,9 @@ namespace SpatialEngine.Rendering
                 fixed (byte* data = result.Data)
                 {
                     gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba, (uint)result.Width, (uint)result.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+                    internalFormat = InternalFormat.Rgba;
+                    format = GLEnum.Rgba;
+                    size = new Vector2(result.Width, result.Height);
                 }
             }
             gl.GenerateMipmap(GLEnum.Texture2D);
@@ -103,8 +114,44 @@ namespace SpatialEngine.Rendering
             textLocation = location;
         }
 
+        public unsafe void LoadTexture(in byte[] pixels, int width, int height, InternalFormat internalFormat,  GLEnum format)
+        {
+            id = gl.GenTexture();
+            gl.ActiveTexture(GLEnum.Texture0);
+            gl.BindTexture(GLEnum.Texture2D, id);
+
+            gl.TextureParameter(id, GLEnum.TextureMinFilter, (int)GLEnum.LinearMipmapLinear);
+            gl.TextureParameter(id, GLEnum.TextureMagFilter, (int)GLEnum.Linear);
+            gl.TextureParameter(id, GLEnum.TextureWrapS, (int)GLEnum.MirroredRepeat);
+            gl.TextureParameter(id, GLEnum.TextureWrapT, (int)GLEnum.MirroredRepeat);
+
+            fixed (byte* data = pixels)
+            {
+                gl.TexImage2D(GLEnum.Texture2D, 0, internalFormat, (uint)width, (uint)height, 0, format, PixelType.UnsignedByte, data);
+                this.internalFormat = internalFormat;
+                this.format = format;
+            }
+            size = new Vector2(width, height);
+            gl.GenerateMipmap(GLEnum.Texture2D);
+            gl.BindTexture(GLEnum.Texture2D, 0);
+        }
+
+        public unsafe void UpdateTexture(in byte[] pixels, int width, int height)
+        {
+            gl.ActiveTexture(GLEnum.Texture0);
+            gl.BindTexture(GLEnum.Texture2D, id);
+
+            fixed (byte* data = pixels)
+            {
+                gl.TexImage2D(GLEnum.Texture2D, 0, internalFormat, (uint)width, (uint)height, 0, format, PixelType.UnsignedByte, data);
+            }
+            gl.GenerateMipmap(GLEnum.Texture2D);
+            gl.BindTexture(GLEnum.Texture2D, 0);
+        }
+
         public unsafe void CreateFromFrameBuffer(in FrameBuffer buf)
         {
+            size = new Vector2(buf.width, buf.height);
             id = gl.GenTexture();
             gl.BindTexture(GLEnum.Texture2D, id);
             if(buf.mask == ClearBufferMask.ColorBufferBit)

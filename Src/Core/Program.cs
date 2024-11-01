@@ -39,7 +39,7 @@ namespace SpatialEngine
         public static IWindow window;
         public const int SCR_WIDTH = 1920;
         public const int SCR_HEIGHT = 1080;
-        public static string EngVer = "0.6.8 Stable";
+        public static string EngVer = "ENG:0.7 Stable";
         public static string OpenGlVersion = "";
         public static string Gpu = "";
         
@@ -47,7 +47,8 @@ namespace SpatialEngine
         public static Physics physics;
         public static PhysicsSystem physicsSystem;
         public static BodyInterface bodyInterface;
-
+        
+        public static bool showImguiDebug = false;
         public static bool showWireFrame = false;
         //going to be true because my gpu squeals if vsync is off
         public static bool vsync = true;
@@ -56,8 +57,10 @@ namespace SpatialEngine
 
         public static Player player;
 
-        public static uint DrawCallCount = 0;
+        public static uint drawCallCount = 0;
         public static float totalTime = 0.0f;
+        public static float deltaTime = 0.0f;
+        public const float fixedUpdateTime = 16.667f;
 
         /// <summary>
         /// In Seconds
@@ -65,6 +68,8 @@ namespace SpatialEngine
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GetTime() => totalTime;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float GetDeltaTime() => deltaTime;
     }
 
     public class Game
@@ -74,7 +79,6 @@ namespace SpatialEngine
         static Shader shader;
         static Shader depthShader;
         static Texture texture;
-        static FrameBuffer frameBuffer;
 
         public static void Main(string[] args)
         {
@@ -109,11 +113,10 @@ namespace SpatialEngine
             physics.CleanPhysics(ref scene);
             NetworkManager.Cleanup();
         }
-
+        
         static unsafe void OnLoad() 
         {
             gl = window.CreateOpenGL();
-            //gl = GL.GetApi(window);
             byte* text = gl.GetString(GLEnum.Renderer);
             int textLength = 0;
             while (text[textLength] != 0)
@@ -141,6 +144,8 @@ namespace SpatialEngine
             physics.InitPhysics();
 
             Renderer.Init(scene);
+            UiRenderer.Init();
+            UiTextHandler.Init();
             shader = new Shader(gl, "Default.vert", "Default.frag");
             depthShader = new Shader(gl, "Depth.vert", "Depth.frag");
             texture = new Texture();
@@ -152,6 +157,7 @@ namespace SpatialEngine
 
             //input stuffs
             Input.Init();
+            Mouse.Init();
             for (int i = 0; i < input.Keyboards.Count; i++)
                 input.Keyboards[i].KeyDown += KeyDown;
             for (int i = 0; i < input.Mice.Count; i++)
@@ -165,6 +171,7 @@ namespace SpatialEngine
 
             //init game
             GameManager.InitGame();
+            MainImGui.Init();
         }
 
         static bool lockMouse = false;
@@ -179,6 +186,15 @@ namespace SpatialEngine
             {
                 input.Mice.FirstOrDefault().Cursor.CursorMode = CursorMode.Normal;
                 lockMouse = false;
+            }
+            
+            if(!showImguiDebug && key == Key.F1)
+            {
+                showImguiDebug = true;
+            }
+            else if(showImguiDebug && key == Key.F1)
+            {
+                showImguiDebug = false;
             }
         }
 
@@ -198,6 +214,7 @@ namespace SpatialEngine
         {
             totalTime += (float)dt;
             
+            Input.Clear();
             Input.Update();
 
             for (int i = 0; i < scene.SpatialObjects.Count; i++)
@@ -207,19 +224,18 @@ namespace SpatialEngine
             
             GameManager.UpdateGame((float)dt);
 
-            totalTimeUpdate += (float)dt;
-            while (totalTimeUpdate >= 0.0166f)
+            totalTimeUpdate += (float)dt * 1000;
+            while (totalTimeUpdate >= fixedUpdateTime)
             {
-                totalTimeUpdate -= 0.0166f;
-                FixedUpdate(0.0166f);
+                totalTimeUpdate -= fixedUpdateTime;
+                FixedUpdate(fixedUpdateTime / 1000f);
             }
-        
-            Input.Clear();
+            
         }
 
         static void FixedUpdate(float dt)
         {
-            if (keyboard.IsKeyPressed(Key.V))
+            if (Input.IsKeyDown(Key.V))
             {
                 player.LaunchCube(ref scene);
                 if (!NetworkManager.isServer && NetworkManager.didInit)
@@ -230,7 +246,7 @@ namespace SpatialEngine
                 vertCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.vertexes.Length;
                 indCount += (uint)scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_mesh.indices.Length;
             }
-            player.Movement(dt, keysPressed.ToArray());
+            player.Movement(dt);
             player.UpdatePlayer(dt);
 
             GameManager.FixedUpdateGame(dt);
@@ -258,13 +274,16 @@ namespace SpatialEngine
 
         static unsafe void OnRender(double dt)
         {   
-            controller.Update((float)dt);
+            if(showImguiDebug)
+            {
+                controller.Update((float)dt);
+                ImGuiMenu((float)dt);
+            }
 
             player.camera.SetViewMat();
             player.camera.SetProjMat(window.Size.X, window.Size.Y);
             player.camera.SetProjMatClose(window.Size.X, window.Size.Y);
-
-            ImGuiMenu((float)dt);
+            
 
             gl.ClearColor(Color.FromArgb(102, 178, 204));
             gl.Viewport(0,0, (uint)window.Size.X, (uint)window.Size.Y);
@@ -274,13 +293,12 @@ namespace SpatialEngine
             gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
             if(showWireFrame)
                 gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
-
-            UiRenderer.Draw();
-
+            
             gl.UseProgram(shader.shader);
             shader.setVec3("lightPos", new Vector3(0,20,-10));
             texture.Bind();
             Renderer.Draw(scene, ref shader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+            UiRenderer.Draw();
 
             //render players
             if(NetworkManager.didInit && !NetworkManager.isServer)
@@ -295,7 +313,10 @@ namespace SpatialEngine
             SetNeededDebug(player.camera.projMat, player.camera.viewMat);
             DrawDebugItems();
 
-            controller.Render();
+            if (showImguiDebug)
+            {
+                controller.Render();
+            }
         }
 
         
