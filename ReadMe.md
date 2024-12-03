@@ -17,9 +17,6 @@
 * ### Player needs a mesh
 * ### Documentation
 * ### Refactor shader system
-* ### ui rendering
-> * Add in AABB checks with possible quadtree for input and buttons
-> * Text rendering (How the hell do this this)
 * ### Cascading Shadows
 * ### refactoring of systems?
 
