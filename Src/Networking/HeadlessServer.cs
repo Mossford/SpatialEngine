@@ -2,7 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-
+using SpatialEngine.Networking.Packets;
 using static SpatialEngine.Rendering.MeshUtils;
 using static SpatialEngine.Resources;
 using static SpatialEngine.Globals;

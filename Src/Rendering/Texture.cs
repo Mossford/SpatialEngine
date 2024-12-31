@@ -60,6 +60,23 @@ namespace SpatialEngine.Rendering
         public Vector2 size;
         public InternalFormat internalFormat;
         public GLEnum format;
+        
+        public unsafe void CreateTextureImage2D(int width, int height, InternalFormat internalFormat, GLEnum format, uint location)
+        {
+            this.size = new Vector2(width, height);
+            this.internalFormat = internalFormat;
+            this.format = format;
+
+            id = gl.GenTexture();
+            gl.ActiveTexture(GLEnum.Texture0);
+            gl.BindTexture(GLEnum.Texture2D, id);
+            gl.TextureParameter(id, GLEnum.TextureMinFilter, (int)GLEnum.Nearest);
+            gl.TextureParameter(id, GLEnum.TextureMagFilter, (int)GLEnum.Nearest);
+            gl.TextureParameter(id, GLEnum.TextureWrapS, (int)GLEnum.MirroredRepeat);
+            gl.TextureParameter(id, GLEnum.TextureWrapT, (int)GLEnum.MirroredRepeat);
+            gl.TexImage2D(GLEnum.Texture2D, 0, internalFormat, (uint)width, (uint)height, 0, format, GLEnum.Float, null);
+            gl.BindImageTexture(location, id, 0, false, 0, GLEnum.ReadOnly, internalFormat);
+        }
 
         public unsafe void LoadTexture(string location)
         {
@@ -175,6 +192,7 @@ namespace SpatialEngine.Rendering
         }
         public void Bind()
         {
+            gl.ActiveTexture(GLEnum.Texture0);
             gl.BindTexture(GLEnum.Texture2D, id);
         }
 

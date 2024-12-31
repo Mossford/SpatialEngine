@@ -7,7 +7,7 @@
     <PublishReadyToRun>true</PublishReadyToRun>
     <TieredCompilation>false</TieredCompilation>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
-    <RootNamespace>GameTesting</RootNamespace>
+    <RootNamespace>SpatialEngine</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>IconSpace.ico</ApplicationIcon>
@@ -55,9 +55,21 @@
     <Exec Command="dotnet tool restore" />
   </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="XCOPY &quot;Src\res&quot; &quot;$(TargetDir)\res&quot; /E /I /Y /F" />
+    <MakeDir Directories="$(TargetDir)res" />
+    <ItemGroup>
+      <FilesToCopy Include="Src\res\**\*" />
+    </ItemGroup>
+    <Copy
+            SourceFiles="@(FilesToCopy)"
+            DestinationFiles="@(FilesToCopy->'$(TargetDir)res\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="XCOPY &quot;Src\res&quot; &quot;$(TargetDir)\res&quot; /E /I /Y /F" />
+    <MakeDir Directories="$(TargetDir)res" />
+    <ItemGroup>
+      <FilesToCopy Include="Src\res\**\*" />
+    </ItemGroup>
+    <Copy
+            SourceFiles="@(FilesToCopy)"
+            DestinationFiles="@(FilesToCopy->'$(TargetDir)res\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 </Project>

@@ -13,7 +13,7 @@ using System.Linq;
 using JoltPhysicsSharp;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
-
+using SpatialEngine.Networking.Packets;
 
 //Custom Engine things
 using static SpatialEngine.Rendering.MeshUtils;
@@ -31,7 +31,6 @@ using SpatialGame;
 
 namespace SpatialEngine
 {
-
     public static class Globals
     {
         public static GL gl;

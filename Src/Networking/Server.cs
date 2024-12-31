@@ -9,6 +9,7 @@ using static SpatialEngine.Globals;
 using static SpatialEngine.Rendering.MeshUtils;
 using Riptide.Transports;
 using System.Collections;
+using SpatialEngine.Networking.Packets;
 
 namespace SpatialEngine.Networking
 {
