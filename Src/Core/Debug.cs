@@ -1,3 +1,4 @@
+using System;
 using JoltPhysicsSharp;
 using Silk.NET.Maths;
 using System.Numerics;
@@ -191,6 +192,103 @@ namespace SpatialEngine
             vaos.Clear();
             vbos.Clear();
             drawSizes.Clear();
+        }
+        
+        
+        public static unsafe void DebugProc(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint msg, nint userParam)
+        {
+            string _source;
+            string _type;
+            string _severity;
+
+            switch (source) 
+            {
+                case GLEnum.DebugSourceApi:
+                _source = "API";
+                break;
+
+                case GLEnum.DebugSourceWindowSystem:
+                _source = "WINDOW SYSTEM";
+                break;
+
+                case GLEnum.DebugSourceShaderCompiler:
+                _source = "SHADER COMPILER";
+                break;
+
+                case GLEnum.DebugSourceThirdParty:
+                _source = "THIRD PARTY";
+                break;
+
+                case GLEnum.DebugSourceApplication:
+                _source = "APPLICATION";
+                break;
+
+                case GLEnum.DebugSourceOther:
+                _source = "UNKNOWN";
+                break;
+
+                default:
+                _source = "UNKNOWN";
+                break;
+            }
+
+            switch (type) {
+                case GLEnum.DebugTypeError:
+                _type = "ERROR";
+                break;
+
+                case GLEnum.DebugTypeDeprecatedBehavior:
+                _type = "DEPRECATED BEHAVIOR";
+                break;
+
+                case GLEnum.DebugTypeUndefinedBehavior:
+                _type = "UDEFINED BEHAVIOR";
+                break;
+
+                case GLEnum.DebugTypePortability:
+                _type = "PORTABILITY";
+                break;
+
+                case GLEnum.DebugTypePerformance:
+                _type = "PERFORMANCE";
+                break;
+
+                case GLEnum.DebugTypeOther:
+                _type = "OTHER";
+                break;
+
+                case GLEnum.DebugTypeMarker:
+                _type = "MARKER";
+                break;
+
+                default:
+                _type = "UNKNOWN";
+                break;
+            }
+
+            switch (severity) {
+                case GLEnum.DebugSeverityHigh:
+                _severity = "HIGH";
+                break;
+
+                case GLEnum.DebugSeverityMedium:
+                _severity = "MEDIUM";
+                break;
+
+                case GLEnum.DebugSeverityLow:
+                _severity = "LOW";
+                break;
+
+                case GLEnum.DebugSeverityNotification:
+                _severity = "NOTIFICATION";
+                break;
+
+                default:
+                _severity = "UNKNOWN";
+                break;
+            }
+
+            Console.WriteLine(string.Format("{0}: {1} of {2} severity, raised from {3}: {4}", id, _type, _severity, _source, msg));
         }
     }
 }

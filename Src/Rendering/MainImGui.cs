@@ -87,7 +87,7 @@ namespace SpatialEngine.Rendering
             ImGui.Checkbox("Wire Frame", ref showWireFrame);
             if (ImGui.Checkbox("Vsync", ref vsync))
             {
-                window.VSync = vsync;
+                Globals.vsync = vsync;
             }
 
             ImGui.Spacing();

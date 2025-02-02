@@ -15,7 +15,7 @@ namespace SpatialEngine
 
         public static void Init()
         {
-            input = Globals.window.CreateInput();
+            input = Globals.snWindow.CreateInput();
             keyboard = input.Keyboards.FirstOrDefault();
             keysPressed = new Dictionary<int, int>();
         }
