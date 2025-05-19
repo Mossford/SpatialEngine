@@ -108,6 +108,9 @@ namespace SpatialEngine
             SpatialObjects.Add(obj);
             idList.Add((uint)id);
             SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
+            
+            vertCount += (uint)scene.SpatialObjects[^1].SO_mesh.vertexes.Length;
+            indCount += (uint)scene.SpatialObjects[^1].SO_mesh.indices.Length;
         }
 
         public void AddSpatialObject(Mesh mesh, Vector3 halfBoxSize, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
@@ -120,6 +123,9 @@ namespace SpatialEngine
             SpatialObjects.Add(obj);
             idList.Add((uint)id);
             SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
+            
+            vertCount += (uint)scene.SpatialObjects[^1].SO_mesh.vertexes.Length;
+            indCount += (uint)scene.SpatialObjects[^1].SO_mesh.indices.Length;
         }
 
         public void AddSpatialObject(Mesh mesh, float radius, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
@@ -132,6 +138,9 @@ namespace SpatialEngine
             SpatialObjects.Add(obj);
             idList.Add((uint)id);
             SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
+            
+            vertCount += (uint)scene.SpatialObjects[^1].SO_mesh.vertexes.Length;
+            indCount += (uint)scene.SpatialObjects[^1].SO_mesh.indices.Length;
         }
 
         public void Clear()

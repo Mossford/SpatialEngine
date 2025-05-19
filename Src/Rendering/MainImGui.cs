@@ -44,7 +44,6 @@ namespace SpatialEngine.Rendering
         {
             font = ImGui.GetFont();
             font.Scale = 1.35f;
-            showWireFrame = true;
         }
         
         public static void ImGuiMenu(float deltaTime)
