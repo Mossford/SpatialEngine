@@ -273,8 +273,7 @@ namespace SpatialEngine.Networking
                     {
                         PlayerJoinPacket packet = new PlayerJoinPacket();
                         //hardcoded mesh location for now as using the packet causes it not to find the mesh
-                        Console.WriteLine("added");
-                        playerMeshes.Add(LoadModel(packet.Position, packet.Rotation, "Cube.obj"));
+                        playerMeshes.Add(LoadModel(packet.Position, packet.Rotation, "Monkey.obj"));
                         break;
                     }
                 case (ushort)PacketType.PlayerLeave:

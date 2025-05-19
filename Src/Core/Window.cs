@@ -37,7 +37,7 @@ namespace SpatialEngine
 
         public static void Init()
         {
-            glApi.Version = new APIVersion(4, 3);
+            glApi.Version = new APIVersion(4, 6);
             WindowOptions options = WindowOptions.Default with
             {
                 Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
@@ -80,7 +80,6 @@ namespace SpatialEngine
             Marshal.Copy((IntPtr)text, textArray, 0, textLength);
             OpenGlVersion = System.Text.Encoding.Default.GetString(textArray);
             gl.Enable(GLEnum.DepthTest);
-            gl.Enable(GLEnum.Texture2D);
             gl.Enable(GLEnum.CullFace);
             gl.Enable(GLEnum.DebugOutput);
             gl.DebugMessageCallback(DebugProc, null);
@@ -153,6 +152,7 @@ namespace SpatialEngine
             
             Input.Clear();
             Input.Update();
+            Mouse.Update();
             
             if(lockMouse)
             {
@@ -180,7 +180,7 @@ namespace SpatialEngine
             if (Input.IsKeyDown(Key.V))
             {
                 player.LaunchCube(ref scene);
-                if (!NetworkManager.isServer && NetworkManager.didInit)
+                if (NetworkManager.didInit)
                 {
                     SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), Activation.Activate);
                     NetworkManager.client.SendRelib(packet);
@@ -195,11 +195,11 @@ namespace SpatialEngine
 
             if (NetworkManager.didInit)
             {
-                if(NetworkManager.isServer)
+                if(NetworkManager.serverStarted)
                 {
                     NetworkManager.server.Update(dt);
                 }
-                else
+                if(NetworkManager.clientStarted)
                 {
                     if(!NetworkManager.client.IsConnected())
                     {
@@ -243,7 +243,7 @@ namespace SpatialEngine
             UiRenderer.Draw();
 
             //render players
-            if(NetworkManager.didInit && !NetworkManager.isServer)
+            if(NetworkManager.didInit)
             {
                 for (int i = 0; i < NetworkManager.client.playerMeshes.Count; i++)
                 {

@@ -25,7 +25,7 @@ namespace SpatialEngine.Networking
         public static void Init()
         {
             NetworkManager.Init();
-            NetworkManager.InitServer();
+            NetworkManager.InitServer(true);
 
             physics = new Physics();
             scene = new Scene();

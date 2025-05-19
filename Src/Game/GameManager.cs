@@ -32,6 +32,11 @@ namespace SpatialGame
             scene.AddSpatialObject(LoadModel(new Vector3(-50, 2, 0), Quaternion.Identity, "FloorWall6.obj"), new Vector3(1, 2, 50), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.AddSpatialObject(LoadModel(new Vector3(-30, 3, -50), Quaternion.Identity, "FloorWall7.obj"), new Vector3(20, 3, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
 
+            for (int i = 0; i < 478; i++)
+            {
+                scene.AddSpatialObject(LoadModel(new Vector3(0, 3, 0), Quaternion.Identity, "Cube.obj"), new Vector3(1, 1, 1), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            }
+
             //Terrain test = new Terrain(64, 64, 1, 1);
 
         }

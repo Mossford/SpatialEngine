@@ -44,6 +44,7 @@ namespace SpatialEngine.Rendering
         {
             font = ImGui.GetFont();
             font.Scale = 1.35f;
+            showWireFrame = true;
         }
         
         public static void ImGuiMenu(float deltaTime)
@@ -316,7 +317,7 @@ namespace SpatialEngine.Rendering
             {
                 if(ImGui.Button("StartServer"))
                 {
-                    NetworkManager.InitServer();
+                    NetworkManager.InitServer(false);
                 }
                 if (ImGui.Button("StartClient"))
                 {
@@ -325,7 +326,7 @@ namespace SpatialEngine.Rendering
             }
             else
             {
-                if(NetworkManager.isServer)
+                if(NetworkManager.serverStarted)
                 {
                     if(NetworkManager.server.IsRunning())
                     {
@@ -358,11 +359,11 @@ namespace SpatialEngine.Rendering
                     {
                         if (ImGui.Button("StartServer"))
                         {
-                            NetworkManager.InitServer();
+                            NetworkManager.InitServer(false);
                         }
                     }
                 }
-                else
+                if(NetworkManager.clientStarted)
                 {
                     if(NetworkManager.client.IsConnected())
                     {
