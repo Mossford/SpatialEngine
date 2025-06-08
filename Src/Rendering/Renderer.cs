@@ -17,6 +17,8 @@ namespace SpatialEngine.Rendering
     {
         public static int MaxRenders;
         public static List<RenderSet> renderSets;
+        public static Shader defaultShader;
+        public static Shader defaultSingleShader;
         static int objectBeforeCount = 0;
 
         public static void Init(in Scene scene, int maxRenders = 1000)
@@ -25,7 +27,9 @@ namespace SpatialEngine.Rendering
             MaxRenders = maxRenders;
             renderSets.Add(new RenderSet());
             renderSets[0].CreateDrawSet(in scene.SpatialObjects, 0, scene.SpatialObjects.Count);
-
+            
+            defaultShader = new Shader(gl, "DefaultRenderSet.vert", "Default.frag");
+            defaultSingleShader = new Shader(gl, "DefaultModel.vert", "Default.frag");
             //RayTracer.Init(scene, maxRenders);
         }
 
@@ -103,7 +107,10 @@ namespace SpatialEngine.Rendering
             {
                 int objCount = (int)MathF.Min(MaxRenders, count) + (i * MaxRenders);
                 renderSets[i].UpdateModelBuffer(in scene.SpatialObjects, beCount, objCount);
-                renderSets[i].DrawSet(in scene.SpatialObjects, beCount, objCount, ref shader, view, proj, camPos);
+                if(Settings.RendererSettings.UseMultiDraw)
+                    renderSets[i].DrawSet(in scene.SpatialObjects, beCount, objCount, ref shader, view, proj, camPos);
+                else
+                    renderSets[i].DrawSetObject(in scene.SpatialObjects, beCount, objCount, ref shader, view, proj, camPos);
                 count -= MaxRenders;
                 beCount = objCount;
             }

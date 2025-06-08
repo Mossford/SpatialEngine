@@ -18,7 +18,11 @@ namespace SpatialEngine
             /// 1 = Updates every second or when a new object is added<br />
             /// 2 = Updates when a new object is added (aggressive optimization, but only updates on new object)
             /// </summary>
-            public static ushort OptimizeUpdatingBuffers = 1;
+            public static int OptimizeUpdatingBuffers = 1;
+            /// <summary>
+            /// 
+            /// </summary>
+            public static bool UseMultiDraw = true;
         }
     }
 }

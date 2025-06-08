@@ -19,7 +19,7 @@ out VS_OUT
 uniform mat4 projection;
 uniform mat4 view;
 uniform bool meshDraw;
-uniform mat4 modelMeshDraw;
+uniform int modelIndex;
 //uniform mat4 lightSpaceMatrix;
 
 void main()
@@ -32,7 +32,7 @@ void main()
     }
     if(meshDraw)
     {
-        matrix = modelMeshDraw;
+        matrix = model.modelMat[modelIndex];
     }
     vs_out.FragPos = vec3(matrix * vec4(aPos, 1.0));
     vs_out.Normal = transpose(inverse(mat3(matrix))) * aNormal;

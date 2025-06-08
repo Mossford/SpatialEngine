@@ -195,6 +195,16 @@ namespace SpatialEngine.Rendering
             return meshOffsets.Count - 1;
         }
 
+        /// <summary>
+        /// Draws the RenderSet using MultiDraw, warning that on Mesa drivers gl_DrawID will have some issues
+        /// </summary>
+        /// <param name="objs">The objects to draw</param>
+        /// <param name="countBE">The index to start from</param>
+        /// <param name="countTO">The index to end to</param>
+        /// <param name="shader">The shader to use</param>
+        /// <param name="view">View matrix</param>
+        /// <param name="proj">Projection matrix</param>
+        /// <param name="camPos">Camera position</param>
         public unsafe void DrawSet(in List<SpatialObject> objs, int countBE, int countTO, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
         {
             //return if scene is empty as will crash because obarray and others are empty since countBE - countTO is 0
@@ -236,7 +246,12 @@ namespace SpatialEngine.Rendering
             gl.BindVertexArray(0);
         }
 
-        //needs to have the shader be set as the objects shader
+        /// <summary>
+        /// Draws the RenderSet, but uses the shader from the SO_Object
+        /// </summary>
+        /// <param name="objs">The objects to draw</param>
+        /// <param name="countBE">The index to start from</param>
+        /// <param name="countTO">The index to end to</param>
         public unsafe void DrawSetObject(in List<SpatialObject> objs, int countBE, int countTO)
         {
             gl.BindVertexArray(vao);
@@ -270,8 +285,59 @@ namespace SpatialEngine.Rendering
             }
             gl.BindVertexArray(0);
         }
+        
+        /// <summary>
+        /// Draws the RenderSet, using a normal draw call for each object
+        /// slower, but should be fine on any driver
+        /// </summary>
+        /// <param name="objs">The objects to draw</param>
+        /// <param name="countBE">The index to start from</param>
+        /// <param name="countTO">The index to end to</param>
+        /// <param name="shader">The shader to use</param>
+        /// <param name="view">View matrix</param>
+        /// <param name="proj">Projection matrix</param>
+        /// <param name="camPos">Camera position</param>
+        public unsafe void DrawSetObject(in List<SpatialObject> objs, int countBE, int countTO, ref Shader shader, in Matrix4x4 view, in Matrix4x4 proj, in Vector3 camPos)
+        {
+            gl.BindVertexArray(vao);
+            modelMatrixes.Bind();
+            int count = 0;
+            for (int i = countBE; i < countTO; i++)
+            {
+                int index = count;
+                if (count >= meshOffsets.Count)
+                    index = GetOffsetIndex(countBE, count, i, objs);
+                //Because of opengls stupid documentation this draw call is suppose to take in the offset in indices by bytes then take in the offset in vertices instead of the offset in indices
+                // and its not the indices that are stored it wants the offsets as the indcies are already in a buffer which is what draw elements is using
+                //
+                //    indices
+                //        Specifies a pointer to the location where the indices are stored.
+                //    basevertex
+                //        Specifies a constant that should be added to each element of indices when chosing elements from the enabled vertex arrays. 
+                //
+                //This naming is so fucking bad and has caused me multiple hours in trying to find what the hell the problem is
 
-        //Just draw and have no shader work done
+                //use the object shader
+                shader.setMat4("view", view);
+                shader.setMat4("projection", proj);
+                shader.setVec3("viewPos", camPos);
+                shader.setBool("meshDraw", true);
+                shader.setInt("modelIndex", count);
+                gl.UseProgram(shader.shader);
+
+                gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
+                drawCallCount++;
+                count++;
+            }
+            gl.BindVertexArray(0);
+        }
+
+        /// <summary>
+        /// Draws but does not bind any shader inside the method
+        /// </summary>
+        /// <param name="objs">The objects to draw</param>
+        /// <param name="countBE">The index to start from</param>
+        /// <param name="countTO">The index to end to</param>
         public unsafe void DrawSetNoAssign(in List<SpatialObject> objs, int countBE, int countTO)
         {
             //return if scene is empty as will crash because obarray and others are empty since countBE - countTO is 0

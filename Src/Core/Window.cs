@@ -31,8 +31,7 @@ namespace SpatialEngine
         public static int MAX_SCR_HEIGHT;
         public static Vector2 size;
         public static Vector2 windowScale;
-
-        public static Shader defaultShader;
+        
         public static Texture defaultTexture;
 
         public static void Init()
@@ -79,6 +78,11 @@ namespace SpatialEngine
             textArray = new byte[textLength];
             Marshal.Copy((IntPtr)text, textArray, 0, textLength);
             OpenGlVersion = System.Text.Encoding.Default.GetString(textArray);
+            
+            //check for mesa drivers as it has a gl_drawId bug
+            if (OpenGlVersion.ToLower().Contains("mesa"))
+                Settings.RendererSettings.UseMultiDraw = false;
+            
             gl.Enable(GLEnum.DepthTest);
             gl.Enable(GLEnum.CullFace);
             gl.Enable(GLEnum.DebugOutput);
@@ -89,11 +93,10 @@ namespace SpatialEngine
             scene = new Scene();
             physics = new Physics();
             physics.InitPhysics();
-
+            
             Renderer.Init(scene);
             UiRenderer.Init();
             UiTextHandler.Init();
-            defaultShader = new Shader(gl, "Default.vert", "Default.frag");
             defaultTexture = new Texture();
             defaultTexture.LoadTexture("RedDebug.png");
 
@@ -234,10 +237,10 @@ namespace SpatialEngine
             if(showWireFrame)
                 gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
             
-            gl.UseProgram(defaultShader.shader);
-            defaultShader.setVec3("lightPos", new Vector3(0,20,-10));
+            gl.UseProgram(Renderer.defaultShader.shader);
+            Renderer.defaultShader.setVec3("lightPos", new Vector3(0,20,-10));
             defaultTexture.Bind();
-            Renderer.Draw(scene, ref defaultShader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+            Renderer.Draw(scene, ref Renderer.defaultShader, player.camera.viewMat, player.camera.projMat, player.camera.position);
             UiRenderer.Draw();
 
             //render players
@@ -246,7 +249,7 @@ namespace SpatialEngine
                 for (int i = 0; i < NetworkManager.client.playerMeshes.Count; i++)
                 {
                     NetworkManager.client.playerMeshes[i].SetModelMatrix();
-                    NetworkManager.client.playerMeshes[i].DrawMesh(ref defaultShader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+                    NetworkManager.client.playerMeshes[i].DrawMesh(ref Renderer.defaultSingleShader, player.camera.viewMat, player.camera.projMat, player.camera.position);
                 }
             }
 

@@ -129,7 +129,7 @@ namespace SpatialEngine.Rendering
             shader.setMat4("view", view);
             shader.setMat4("projection", proj);
             shader.setVec3("viewPos", camPos);
-            shader.setMat4("modelMeshDraw", modelMat);
+            shader.setMat4("model", modelMat);
             shader.setBool("meshDraw", true);
             gl.DrawElements(GLEnum.Triangles, (uint)indices.Length, GLEnum.UnsignedInt, (void*)0);
             gl.BindVertexArray(0);

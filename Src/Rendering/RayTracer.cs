@@ -162,25 +162,28 @@ namespace SpatialEngine.Rendering
                     if (count >= meshOffsets.Count)
                         index = GetOffsetIndex(countBE, count, i, objs);
 
-                    gl.UseProgram(shader.shader);
-                    shader.setMat4("uView", view);
-                    shader.setMat4("uProj", proj);
-                    shader.setVec3("ucamPos", camPos);
-                    shader.setVec3("ucamDir", player.camera.GetCamDir());
-                    shader.setInt("uindex", count);
-                    shader.setInt("uindOffset", meshOffsets[index].offsetByte);
-                    shader.setInt("uindEnd", (meshOffsets[index].offsetByte / sizeof(uint)) + objs[i].SO_mesh.indices.Length);
-                    //Console.WriteLine(objs[0].SO_mesh.indices[0]);
-                    //Console.WriteLine(objs[0].SO_mesh.indices[1]);
-                    //Console.WriteLine(objs[0].SO_mesh.indices[2]);
-                    //Console.WriteLine(objs[0].SO_mesh.indices[3]);
-                    //Console.WriteLine(objs[0].SO_mesh.indices[4]);
-                    //Console.WriteLine(objs[0].SO_mesh.indices[5]);
-                    quad.Draw();
-                    //gl.UseProgram(shader.shader);
-                    //gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
-                    drawCallCount++;
-                    count++;
+                    for (int j = 0; j < objs[i].SO_mesh.indices.Length / 3; j++)
+                    {
+                        gl.UseProgram(shader.shader);
+                        shader.setMat4("uView", view);
+                        shader.setMat4("uProj", proj);
+                        shader.setVec3("ucamPos", camPos);
+                        shader.setVec3("ucamDir", player.camera.GetCamDir());
+                        shader.setInt("uindex", (int)objs[i].SO_id);
+                        shader.setInt("triCount", j);
+                        shader.setInt("indexOffset", meshOffsets[index].offsetByte);
+                        //Console.WriteLine(objs[0].SO_mesh.indices[0]);
+                        //Console.WriteLine(objs[0].SO_mesh.indices[1]);
+                        //Console.WriteLine(objs[0].SO_mesh.indices[2]);
+                        //Console.WriteLine(objs[0].SO_mesh.indices[3]);
+                        //Console.WriteLine(objs[0].SO_mesh.indices[4]);
+                        //Console.WriteLine(objs[0].SO_mesh.indices[5]);
+                        quad.Draw();
+                        //gl.UseProgram(shader.shader);
+                        //gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
+                        drawCallCount++;
+                        count++;
+                    }
                 }
                 gl.BindVertexArray(0);
             }

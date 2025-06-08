@@ -11,7 +11,7 @@ namespace SpatialEngine
         public static GL gl;
         public static GraphicsAPI glApi = GraphicsAPI.Default;
         public static IWindow snWindow;
-        public static string EngVer = "ENG:0.75 Stable";
+        public static string EngVer = "ENG:0.76 Stable";
         public static string OpenGlVersion = "";
         public static string Gpu = "";
             

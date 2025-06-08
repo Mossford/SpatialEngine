@@ -26,8 +26,8 @@ layout (std140, binding = 5) restrict buffer indices
 } indiceBuf;
 
 uniform int uindex;
-uniform int uindOffset;
-uniform int uindEnd;
+uniform int indexOffset;
+uniform int triCount;
 uniform vec3 ucamPos;
 uniform vec3 ucamDir;
 uniform mat4 uView;
@@ -43,9 +43,9 @@ vec3 lightsource = vec3(0.0, 20.0, 20);
 
 bool rayTriIntersect(vec3 orig, vec3 dir, int index)
 {
-	vec3 aPos = vec3(vec4(vertexBuf.vert[indiceBuf.ind[index * 3] / 4].pos, 1.0));
-	vec3 bPos = vec3(vec4(vertexBuf.vert[indiceBuf.ind[index + 1 * 3] / 4].pos, 1.0));
-	vec3 cPos = vec3(vec4(vertexBuf.vert[indiceBuf.ind[index + 2 * 3] / 4].pos, 1.0));
+	vec3 aPos = vec3(model.modelMat[uindex] * vec4(vertexBuf.vert[indiceBuf.ind[index * 3 + indexOffset]].pos, 1.0));
+	vec3 bPos = vec3(model.modelMat[uindex] * vec4(vertexBuf.vert[indiceBuf.ind[index * 3 + 1 + indexOffset]].pos, 1.0));
+	vec3 cPos = vec3(model.modelMat[uindex] * vec4(vertexBuf.vert[indiceBuf.ind[index * 3 + 2 + indexOffset]].pos, 1.0));
 	vec3 edgeAB = bPos - aPos;
 	vec3 edgeAC = cPos - aPos;
 	vec3 normal = cross(edgeAB, edgeAC);
@@ -80,62 +80,13 @@ HitInfo castRay(vec3 orig, vec3 dir, int index)
 		float diffuse_light_intensity = 0.0;
 		vec3 light_dir = lightsource - hit;
 		diffuse_light_intensity = 1.5 * max(0.0, dot(light_dir,normal));
-		info.color = vec3(1.0, 0, 0);
+		info.color = vec3(0.7, 0.7, 0.7);
 		info.hit = true;
 		return info;
 	}
-	info.color =  vec3(102.0 / 255.0, 178.0 / 255.0, 204.0 / 255.0);
+	info.color = vec3(40.0 / 255.0, 40.0 / 255.0, 40.0 / 255.0);
 	info.hit = false;
 	return info;
-}
-
-//rasterize test
-vec3 pixelTriTest(vec2 point, vec3 camPos, vec3 camDir, int index)
-{
-	vec3 aPos = vertexBuf.vert[indiceBuf.ind[index * 3] / 4].pos;
-	vec3 bPos = vertexBuf.vert[indiceBuf.ind[index + 1 * 3] / 4].pos;
-	vec3 cPos = vertexBuf.vert[indiceBuf.ind[index + 2 * 3] / 4].pos;
-
-	vec3 uNor = bPos - aPos;
-    vec3 vNor = cPos - aPos;
-    vec3 normal = normalize(cross(uNor,vNor));
-
-	//back face cull test
-	vec3 triCenter = (aPos + bPos + cPos) / 3.0;
-	vec3 camDist = triCenter - camPos;
-    float dist = dot(camDist, normal);
-
-	//facing away
-    if(dist < 0)
-        return vec3(0.0, 1.0, 0.0);
-	
-	//check point
-
-	vec2 p1 = vec2(uProj * uView * model.modelMat[0] * vec4(aPos, 1.0));
-	vec2 p2 = vec2(uProj * uView * model.modelMat[0] * vec4(bPos, 1.0));
-	vec2 p3 = vec2(uProj * uView * model.modelMat[0] * vec4(cPos, 1.0));
-
-	vec2 x = p3 - p1;
-    vec2 y = p2 - p1;
-    vec2 b = point - p1; 
-
-    float xx = dot(x, x);
-    float yx = dot(y, x);
-    float bx = dot(b, x);
-    float yy = dot(y, y);
-    float by = dot(b, y);
-
-    float denom = xx*yy - yx*yx;
-    float u = (yy*bx - yx*by) / denom;
-    float v = (xx*by - yx*bx) / denom;
-
-	if((u >= 0) && (v >= 0) && (u + v < 1))
-	{
-		return vec3(1.0);
-	}
-
-	//no point found
-	return vec3(0.0);
 }
 
 void main()
@@ -147,29 +98,18 @@ void main()
 
 	vec3 color = vec3(0);
 
-	/*HitInfo info;
+	HitInfo info;
 
-	info = castRay(ucamPos, rayDir, 0);
+	info = castRay(ucamPos, rayDir, triCount);
 	if(info.hit == true)
 	{
-		color += info.color;
+		out_color = vec4(info.color, 1.0);
 	}
 	else
 	{
-		//color = info.color;
-	}
-	info = castRay(ucamPos, rayDir, 1);
-	if(info.hit == true)
-	{
-		color += info.color;
-	}
-	else
-	{
-		//color = info.color;
-	}*/
 
-	color = pixelTriTest(fragPos, ucamPos, ucamDir, 0);
-	//color = pixelTriTest(fragPos, ucamPos, camDir, 1);
-
-    out_color = vec4(color, 1.0);
+	}
+	
+	if(!info.hit)
+		discard;
 }

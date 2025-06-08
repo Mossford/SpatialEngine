@@ -57,7 +57,7 @@ namespace SpatialEngine.SpatialMath
 
         public static Quaternion Vec3ToQuat(Vector3 vec)
         {
-            float degToRad = MathF.PI / 180.0f;
+            /*float degToRad = MathF.PI / 180.0f;
             float yaw = -vec.Y * degToRad;
             float pitch = -vec.X * degToRad;
             float roll = vec.Z * degToRad;
@@ -65,7 +65,10 @@ namespace SpatialEngine.SpatialMath
             float qy = MathF.Cos(roll / 2f) * MathF.Sin(pitch / 2f) * MathF.Cos(yaw / 2f) + MathF.Sin(roll / 2f) * MathF.Cos(pitch / 2f) * MathF.Sin(yaw / 2f);
             float qz = MathF.Cos(roll / 2f) * MathF.Cos(pitch / 2f) * MathF.Sin(yaw / 2f) - MathF.Sin(roll / 2f) * MathF.Sin(pitch / 2f) * MathF.Cos(yaw / 2f);
             float qw = MathF.Cos(roll / 2f) * MathF.Cos(pitch / 2f) * MathF.Cos(yaw / 2f) + MathF.Sin(roll / 2f) * MathF.Sin(pitch / 2f) * MathF.Sin(yaw / 2f);
-            return new Quaternion(qx, qy, qz, qw);
+            return new Quaternion(qx, qy, qz, qw);*/
+            
+            float degToRad = MathF.PI / 180.0f;
+            return Quaternion.CreateFromYawPitchRoll(-vec.X * degToRad, vec.Y * degToRad, vec.Z * degToRad);
         }
 
         public static Vector3 QuatToVec3(Quaternion quat)
