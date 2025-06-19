@@ -17,17 +17,30 @@ namespace SpatialEngine.Terrain
         public int length { get; private set; }
         public float scale { get; private set; }
         public int density { get; private set; }
+        public float noiseScale { get; private set; }
+        public float heightMult { get; private set; }
 
-        public Terrain(int width, int length, float scale = 1f, int density = 1)
+        /// <summary>
+        /// Creates terrain object
+        /// </summary>
+        /// <param name="width">the width in number of vertexes</param>
+        /// <param name="length">the height in number of vertexes</param>
+        /// <param name="scale">the scale of the terrain</param>
+        /// <param name="density">multiplier to the width and height</param>
+        public Terrain(int width, int length, float scale = 1f, int density = 1, float noiseScale = 0.1f, float heightMult = 0.01f)
         {
             this.width = width * density;
             this.length = length * density;
             this.scale = scale;
             this.density = density;
+            this.noiseScale = noiseScale;
+            this.heightMult = heightMult;
             CreateTerrain();
         }
 
-
+        /// <summary>
+        /// Creates terrain mesh and adds it to the scene
+        /// </summary>
         public void CreateTerrain()
         {
             Vertex[] vertexes = new Vertex[width * length];
@@ -42,7 +55,7 @@ namespace SpatialEngine.Terrain
             {
                 for (int x = 0; x < length; x++)
                 {
-                    Vector3 pos = new Vector3((lengthOffset + x) * scale / density, Noise.CalcPixel2D(x, y, 0.1f) * 0.01f / density, (widthOffset - y) * scale / density);
+                    Vector3 pos = new Vector3((lengthOffset + x) / density, Noise.CalcPixel2D(x, y, noiseScale) * heightMult / density, (widthOffset - y) / density) * scale;
                     Vector2 uv = new Vector2(x / (float)width, y / (float)length);
                     vertexes[vertIndex] = new Vertex(pos, Vector3.UnitY, uv);
                     if(x < length - 1 && y < width - 1)
@@ -82,7 +95,7 @@ namespace SpatialEngine.Terrain
 
 
             id = scene.SpatialObjects.Count;
-            scene.AddSpatialObject(new Mesh(vertexes, ind, new Vector3(0, 4, 0), Quaternion.Identity), new Vector3(((length - 1) * scale) / 2f, 1, ((width - 1) * scale - 1) / 2f), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            scene.AddSpatialObject(new Mesh(vertexes, ind, new Vector3(0, 4, 0), Quaternion.Identity), new Vector3(((length - 1) * (scale / density)) / 2f, 1, ((width - 1) * (scale / density) - 1) / 2f), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
             scene.SpatialObjects[id].SO_mesh.CalculateNormalsSmooth();
         }
     }

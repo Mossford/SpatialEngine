@@ -63,10 +63,10 @@ namespace SpatialEngine.Rendering
             for (int i = 0; i < uiElements.Count; i++)
             {
                 Matrix4x4 model = Matrix4x4.Identity;
-                model *= Matrix4x4.CreateScale(uiElements[i].width * uiElements[i].scale, uiElements[i].height * uiElements[i].scale, 1f);
+                model *= Matrix4x4.CreateOrthographic(Window.size.X, Window.size.Y, -1, 1);
+                model *= Matrix4x4.CreateScale(uiElements[i].width * uiElements[i].scale * Window.scaleFromBase.X, uiElements[i].height * uiElements[i].scale * Window.scaleFromBase.X, 1f);
                 model *= Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, uiElements[i].rotation * conv);
                 model *= Matrix4x4.CreateTranslation(new(uiElements[i].position.X, uiElements[i].position.Y, 0f));
-                model *= Matrix4x4.CreateOrthographic(Window.size.X, Window.size.Y, -1, 1);
 
                 switch(uiElements[i].type)
                 {

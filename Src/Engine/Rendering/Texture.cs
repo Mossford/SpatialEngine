@@ -77,6 +77,23 @@ namespace SpatialEngine.Rendering
             gl.TexImage2D(GLEnum.Texture2D, 0, internalFormat, (uint)width, (uint)height, 0, format, GLEnum.Float, null);
             gl.BindImageTexture(location, id, 0, false, 0, GLEnum.ReadOnly, internalFormat);
         }
+        
+        public unsafe void CreateTextureImage3D(int width, int height, InternalFormat internalFormat, GLEnum format, uint location, int border)
+        {
+            this.size = new Vector2(width, height);
+            this.internalFormat = internalFormat;
+            this.format = format;
+
+            id = gl.GenTexture();
+            gl.ActiveTexture(GLEnum.Texture0);
+            gl.BindTexture(GLEnum.Texture2DArray, id);
+            gl.TexImage2D(GLEnum.Texture2DArray, 0, internalFormat, (uint)width, (uint)height, border, format, GLEnum.Float, null);
+            gl.TexParameterI(GLEnum.Texture2DArray, GLEnum.TextureMinFilter, (int)GLEnum.Nearest);
+            gl.TexParameterI(GLEnum.Texture2DArray, GLEnum.TextureMagFilter, (int)GLEnum.Nearest);
+            gl.TexParameterI(GLEnum.Texture2DArray, GLEnum.TextureWrapS, (int)GLEnum.ClampToBorder);
+            gl.TexParameterI(GLEnum.Texture2DArray, GLEnum.TextureWrapT, (int)GLEnum.ClampToBorder);
+            gl.BindImageTexture(location, id, 0, false, 0, GLEnum.ReadOnly, internalFormat);
+        }
 
         public unsafe void LoadTexture(string location)
         {
@@ -190,6 +207,7 @@ namespace SpatialEngine.Rendering
                 gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, GLEnum.Texture2D, id, 0);
             buf.Unbind();
         }
+        
         public void Bind()
         {
             gl.ActiveTexture(GLEnum.Texture0);

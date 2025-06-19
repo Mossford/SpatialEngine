@@ -47,6 +47,34 @@ namespace SpatialEngine.Rendering
             Globals.gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
+        public FrameBuffer(uint width, uint height, ClearBufferMask mask, Texture texture)
+        {
+            this.width = width;
+            this.height = height;
+            this.mask = mask;
+            this.texture = texture;
+
+            id = Globals.gl.GenFramebuffer();
+            Globals.gl.BindFramebuffer(FramebufferTarget.Framebuffer, id);
+            if (mask == ClearBufferMask.ColorBufferBit)
+            {
+                Globals.gl.DrawBuffer(DrawBufferMode.ColorAttachment0);
+                Globals.gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
+            }
+            else if (mask == ClearBufferMask.DepthBufferBit)
+            {
+                Globals.gl.DrawBuffer(DrawBufferMode.None);
+                Globals.gl.ReadBuffer(ReadBufferMode.None);
+            }
+            else if (mask == ClearBufferMask.StencilBufferBit)
+            {
+                Globals.gl.DrawBuffer(DrawBufferMode.ColorAttachment0);
+                Globals.gl.ReadBuffer(ReadBufferMode.ColorAttachment0);
+            }
+
+            Globals.gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        }
+
         //mask specifies weather it is in color, depth or stencil mode
         //https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClear.xhtml
 

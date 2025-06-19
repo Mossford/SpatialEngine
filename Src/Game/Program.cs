@@ -1,10 +1,11 @@
-﻿using static SpatialEngine.Resources;
+﻿using SpatialEngine;
+using static SpatialEngine.Resources;
 using static SpatialEngine.Globals;
 using SpatialEngine.Networking;
 
-namespace SpatialEngine
+namespace SpatialGame
 {
-public class Game
+    public class Game
     {
         public static void Main(string[] args)
         {
@@ -13,7 +14,7 @@ public class Game
 
             if (args.Length == 0)
             {
-                Window.Init();
+                Window.Init(GameManager.InitGame, GameManager.UpdateGame, GameManager.FixedUpdateGame);
             }
             else if (args[0] == "server")
             {

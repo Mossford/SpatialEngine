@@ -31,16 +31,25 @@ namespace SpatialEngine
         public static int MAX_SCR_HEIGHT;
         public static Vector2 size;
         public static Vector2 windowScale;
+        public static Vector2 scaleFromBase;
         
         public static Texture defaultTexture;
 
-        public static void Init()
+        static Action init;
+        static Action<float> update;
+        static Action<float> fixedUpdate;
+
+        public static void Init(Action init, Action<float> update, Action<float> fixedUpdate)
         {
+            Window.init = init;
+            Window.update = update;
+            Window.fixedUpdate = fixedUpdate;
+            
             glApi.Version = new APIVersion(4, 6);
             WindowOptions options = WindowOptions.Default with
             {
                 Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
-                Title = "SpatialEngine",
+                Title = "TheConquest",
                 VSync = vsync,
                 PreferredDepthBufferBits = 24,
                 API = glApi,
@@ -63,6 +72,7 @@ namespace SpatialEngine
             snWindow.WindowState = WindowState.Normal;
             size = (Vector2)snWindow.FramebufferSize;
             windowScale = size / (Vector2)snWindow.Size;
+            scaleFromBase = size / new Vector2(SCR_WIDTH, SCR_HEIGHT);
             
             byte* text = gl.GetString(GLEnum.Renderer);
             int textLength = 0;
@@ -115,7 +125,7 @@ namespace SpatialEngine
             ImGui.SetWindowSize(new Vector2(400, 600));
 
             //init game
-            GameManager.InitGame();
+            init.Invoke();
             MainImGui.Init();
         }
         
@@ -150,12 +160,14 @@ namespace SpatialEngine
             //adjust for dpi scaling because x11 and wayland are amazing
             size = (Vector2)snWindow.FramebufferSize;
             windowScale = size / (Vector2)snWindow.Size;
+            scaleFromBase = size / new Vector2(SCR_WIDTH, SCR_HEIGHT);
             
             totalTime += (float)dt;
             
             Input.Clear();
             Input.Update();
             Mouse.Update();
+            UiRenderer.Update();
             
             if(lockMouse)
             {
@@ -168,7 +180,7 @@ namespace SpatialEngine
                 scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
             }
             
-            GameManager.UpdateGame((float)dt);
+            update.Invoke((float)dt);
 
             totalTimeUpdate += (float)dt * 1000;
             while (totalTimeUpdate >= fixedUpdateTime)
@@ -192,7 +204,7 @@ namespace SpatialEngine
             player.Movement(dt);
             player.UpdatePlayer(dt);
 
-            GameManager.FixedUpdateGame(dt);
+            fixedUpdate.Invoke(dt);
 
             if (NetworkManager.didInit)
             {

@@ -15,7 +15,7 @@ namespace SpatialEngine.Rendering
     {
         public string text;
         public Vector2 position;
-        public int width;
+        int width;
         public int height;
         public float scale;
         public float rotation;
@@ -32,12 +32,12 @@ namespace SpatialEngine.Rendering
             
         }
 
-        public UiText(string text, Vector2 pos, int width, int height, float scaleImage, float rotation, int textHeight, int numLines)
+        public UiText(string text, Vector2 pos, float scaleImage, float rotation, int textHeight, int numLines)
         {
             this.text = text;
             this.position = pos;
-            this.width = width;
-            this.height = height;
+            this.width = (int)Window.size.X;
+            this.height = textHeight;
             this.scale = scaleImage;
             this.rotation = rotation;
             this.textHeight = textHeight;
@@ -106,15 +106,16 @@ namespace SpatialEngine.Rendering
             texture = new Texture();
             texture.LoadTexture(bitmap, width, height, Silk.NET.OpenGL.InternalFormat.Red, Silk.NET.OpenGL.GLEnum.Red);
             elementIndex = UiRenderer.uiElements.Count;
-            UiRenderer.AddElement(texture, position, rotation, scale, new Vector2(imageWidth, imageHeight), UiElementType.text);
+            //add on the length from the actual text to center it to a position
+            UiRenderer.AddElement(texture, new Vector2(position.X + (width - x), position.Y), rotation, scale, new Vector2(imageWidth, imageHeight), UiElementType.text);
         }
         
-        public unsafe void CreateText(string text, Vector2 pos, int width, int height, float scaleImage, float rotation, int textHeight, int numLines)
+        public unsafe void CreateText(string text, Vector2 pos, float scaleImage, float rotation, int textHeight, int numLines)
         {
             this.text = text;
             this.position = pos;
-            this.width = width;
-            this.height = height;
+            this.width = (int)Window.size.X;
+            this.height = textHeight;
             this.scale = scaleImage;
             this.rotation = rotation;
             this.textHeight = textHeight;
@@ -125,7 +126,7 @@ namespace SpatialEngine.Rendering
 
             float tempScale = stbtt_ScaleForPixelHeight(UiTextHandler.font, textHeight);
 
-            height = textHeight * numLines;
+            height += textHeight * (numLines - 1);
 
             bitmap = new byte[width * height];
 
@@ -178,15 +179,16 @@ namespace SpatialEngine.Rendering
             texture = new Texture();
             texture.LoadTexture(bitmap, width, height, Silk.NET.OpenGL.InternalFormat.Red, Silk.NET.OpenGL.GLEnum.Red);
             elementIndex = UiRenderer.uiElements.Count;
-            UiRenderer.AddElement(texture, position, rotation, scale, new Vector2(imageWidth, imageHeight), UiElementType.text);
+            //add on the length from the actual text to center it to a position
+            UiRenderer.AddElement(texture, new Vector2(position.X + (width - x), position.Y), rotation, scale, new Vector2(imageWidth, imageHeight), UiElementType.text);
         }
         
-        public unsafe void UpdateText(string text, Vector2 pos, int width, int height, float scaleImage, float rotation, int textHeight, int numLines)
+        public unsafe void UpdateText(string text, Vector2 pos, float scaleImage, float rotation, int textHeight, int numLines)
         {
             this.text = text;
             this.position = pos;
-            this.width = width;
-            this.height = height;
+            this.width = (int)Window.size.X;
+            this.height = textHeight;
             this.scale = scaleImage;
             this.rotation = rotation;
             this.textHeight = textHeight;
@@ -197,7 +199,7 @@ namespace SpatialEngine.Rendering
 
             float tempScale = stbtt_ScaleForPixelHeight(UiTextHandler.font, textHeight);
 
-            height = textHeight * numLines;
+            height += textHeight * (numLines - 1);
 
             bitmap = new byte[width * height];
 
@@ -248,25 +250,9 @@ namespace SpatialEngine.Rendering
 
             UiRenderer.uiElements[elementIndex].color = color;
             UiRenderer.uiElements[elementIndex].scale = scaleImage;
-            UiRenderer.uiElements[elementIndex].position = pos;
+            UiRenderer.uiElements[elementIndex].position = new Vector2(pos.X + (width - x), pos.Y);
             UiRenderer.uiElements[elementIndex].rotation = rotation;
             UiRenderer.uiElements[elementIndex].texture.UpdateTexture(bitmap, width, height);
-        }
-        
-        public unsafe void UpdateText(Vector2 pos, int width, int height, float scaleImage, float rotation)
-        {
-            this.position = pos;
-            this.width = width;
-            this.height = height;
-            this.scale = scaleImage;
-            this.rotation = rotation;
-            
-            UiRenderer.uiElements[elementIndex].width = width;
-            UiRenderer.uiElements[elementIndex].height = height;
-            UiRenderer.uiElements[elementIndex].color = color;
-            UiRenderer.uiElements[elementIndex].scale = scaleImage;
-            UiRenderer.uiElements[elementIndex].position = pos;
-            UiRenderer.uiElements[elementIndex].rotation = rotation;
         }
         
         public void Dispose()
