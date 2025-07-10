@@ -105,6 +105,7 @@ namespace SpatialEngine
             physics.InitPhysics();
             
             Renderer.Init(scene);
+            RayTracer.Init(scene);
             UiRenderer.Init();
             UiTextHandler.Init();
             defaultTexture = new Texture();
@@ -248,11 +249,21 @@ namespace SpatialEngine
             gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
             if(showWireFrame)
                 gl.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
-            
-            gl.UseProgram(Renderer.defaultShader.shader);
-            Renderer.defaultShader.setVec3("lightPos", new Vector3(0,20,-10));
-            defaultTexture.Bind();
-            Renderer.Draw(scene, ref Renderer.defaultShader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+
+            if (!Settings.RendererSettings.EnableRayTracing)
+            {
+                gl.UseProgram(Renderer.defaultShader.shader);
+                Renderer.defaultShader.setVec3("lightPos", new Vector3(0,20,-10));
+                defaultTexture.Bind();
+                Renderer.Draw(scene, ref Renderer.defaultShader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+            }
+            else
+            {
+                gl.UseProgram(RayTracer.shader.shader);
+                defaultTexture.Bind();
+                RayTracer.shader.setVec3("lightPos", new Vector3(0,20,-10));
+                RayTracer.Draw(scene, player.camera.viewMat, player.camera.projMat, player.camera.position);
+            }
             UiRenderer.Draw();
 
             //render players

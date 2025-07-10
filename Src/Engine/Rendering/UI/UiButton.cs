@@ -12,13 +12,13 @@ using Silk.NET.Input;
 
 namespace SpatialEngine.Rendering
 {
-    public class Button
+    public class UiButton
     {
         public Vector2 position;
         public Vector2 size;
         Action onClick;
 
-        public Button(Vector2 position, Vector2 size, Action onClick)
+        public UiButton(Vector2 position, Vector2 size, Action onClick)
         {
             this.position = position;
             this.size = size;

@@ -23,7 +23,7 @@ namespace SpatialEngine.Rendering
         static Shader uiTextShader;
         static Shader uiImageShader;
         public static List<UiElement> uiElements;
-        public static List<Button> buttons;
+        public static List<UiButton> buttons;
         //will reuse this quad for all elements
         static UiQuad quad;
 
@@ -36,7 +36,7 @@ namespace SpatialEngine.Rendering
             quad.Bind();
 
             uiElements = new List<UiElement>();
-            buttons = new List<Button>();
+            buttons = new List<UiButton>();
         }
 
         public static void AddElement(Texture texture, Vector2 pos, float rotation, float scale, Vector2 dimension, UiElementType type)

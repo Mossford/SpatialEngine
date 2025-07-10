@@ -27,13 +27,20 @@ namespace SpatialEngine.Rendering
         //if intersect for now set to red
 
         record MeshOffset(int offset, int offsetByte);
+        
+        //thank you rider
+        struct RayVertex(Vector3 pos, Vector2 uv)
+        {
+            public Vector4 pos { get; init; } = new Vector4(pos, 1.0f);
+            public Vector4 uv { get; init; } = new Vector4(uv, 1.0f, 1.0f);
+        }
 
         public class RayTraceRenderSet : IDisposable
         {
             List<MeshOffset> meshOffsets;
             BufferObject<Matrix4x4> modelMatrixes;
-            BufferObject<Vertex> vertexes;
-            BufferObject<uint> indices;
+            BufferObject<RayVertex> vertexes;
+            BufferObject<Vector4> indices;
 
             public RayTraceRenderSet()
             {
@@ -51,8 +58,8 @@ namespace SpatialEngine.Rendering
                     indiceSize += objs[i].SO_mesh.indices.Length;
                 }
 
-                Vertex[] verts = new Vertex[vertexSize];
-                uint[] inds = new uint[indiceSize];
+                RayVertex[] verts = new RayVertex[vertexSize];
+                Vector4[] inds = new Vector4[indiceSize / 3];
                 int countV = 0;
                 int countI = 0;
                 int count = 0;
@@ -61,20 +68,20 @@ namespace SpatialEngine.Rendering
                     models[count] = objs[i].SO_mesh.modelMat;
                     for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                     {
-                        verts[countV] = objs[i].SO_mesh.vertexes[j];
+                        verts[countV] = new RayVertex(objs[i].SO_mesh.vertexes[j].position, objs[i].SO_mesh.vertexes[j].uv);
                         countV++;
                     }
-                    for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
+                    for (int j = 0; j < objs[i].SO_mesh.indices.Length; j += 3)
                     {
-                        inds[countI] = objs[i].SO_mesh.indices[j];
+                        inds[countI] = new Vector4(objs[i].SO_mesh.indices[j], objs[i].SO_mesh.indices[j + 1], objs[i].SO_mesh.indices[j + 2], 1f);
                         countI++;
                     }
                     count++;
                 }
 
                 modelMatrixes = new BufferObject<Matrix4x4>(models, 3, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
-                vertexes = new BufferObject<Vertex>(verts, 4, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
-                indices = new BufferObject<uint>(inds, 5, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
+                vertexes = new BufferObject<RayVertex>(verts, 4, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
+                indices = new BufferObject<Vector4>(inds, 5, BufferTargetARB.ShaderStorageBuffer, BufferUsageARB.StreamDraw);
             }
 
             public unsafe void UpdateDrawSet(in List<SpatialObject> objs, int countBE, int countTO)
@@ -89,8 +96,8 @@ namespace SpatialEngine.Rendering
                     indiceSize += objs[i].SO_mesh.indices.Length;
                 }
 
-                Vertex[] verts = new Vertex[vertexSize];
-                uint[] inds = new uint[indiceSize];
+                RayVertex[] verts = new RayVertex[vertexSize];
+                Vector4[] inds = new Vector4[indiceSize / 3];
                 int countV = 0;
                 int countI = 0;
                 int count = 0;
@@ -99,12 +106,12 @@ namespace SpatialEngine.Rendering
                     models[count] = objs[i].SO_mesh.modelMat;
                     for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
                     {
-                        verts[countV] = objs[i].SO_mesh.vertexes[j];
+                        verts[countV] = new RayVertex(objs[i].SO_mesh.vertexes[j].position, objs[i].SO_mesh.vertexes[j].uv);
                         countV++;
                     }
-                    for (int j = 0; j < objs[i].SO_mesh.indices.Length; j++)
+                    for (int j = 0; j < objs[i].SO_mesh.indices.Length; j += 3)
                     {
-                        inds[countI] = objs[i].SO_mesh.indices[j];
+                        inds[countI] = new Vector4(objs[i].SO_mesh.indices[j], objs[i].SO_mesh.indices[j + 1], objs[i].SO_mesh.indices[j + 2], 1f);
                         countI++;
                     }
                     count++;
@@ -161,37 +168,23 @@ namespace SpatialEngine.Rendering
                     int index = count;
                     if (count >= meshOffsets.Count)
                         index = GetOffsetIndex(countBE, count, i, objs);
+                    
+                    shader.setMat4("uView", view);
+                    shader.setMat4("uProj", proj);
+                    shader.setVec3("ucamPos", camPos);
+                    shader.setVec3("ucamDir", player.camera.GetCamDir());
+                    shader.setInt("uindex", count);
+                    shader.setInt("vertStart", meshOffsets[count].offset);
+                    shader.setInt("triCount", objs[i].SO_mesh.indices.Length / 3);
+    
+                    quad.Draw();
 
-                    for (int j = 0; j < objs[i].SO_mesh.indices.Length / 3; j++)
-                    {
-                        gl.UseProgram(shader.shader);
-                        shader.setMat4("uView", view);
-                        shader.setMat4("uProj", proj);
-                        shader.setVec3("ucamPos", camPos);
-                        shader.setVec3("ucamDir", player.camera.GetCamDir());
-                        shader.setInt("uindex", (int)objs[i].SO_id);
-                        shader.setInt("triCount", j);
-                        shader.setInt("indexOffset", meshOffsets[index].offsetByte);
-                        //Console.WriteLine(objs[0].SO_mesh.indices[0]);
-                        //Console.WriteLine(objs[0].SO_mesh.indices[1]);
-                        //Console.WriteLine(objs[0].SO_mesh.indices[2]);
-                        //Console.WriteLine(objs[0].SO_mesh.indices[3]);
-                        //Console.WriteLine(objs[0].SO_mesh.indices[4]);
-                        //Console.WriteLine(objs[0].SO_mesh.indices[5]);
-                        quad.Draw();
-                        //gl.UseProgram(shader.shader);
-                        //gl.DrawElementsBaseVertex(GLEnum.Triangles, (uint)objs[i].SO_mesh.indices.Length, GLEnum.UnsignedInt, (void*)meshOffsets[index].offsetByte, meshOffsets[index].offset);
-                        drawCallCount++;
-                        count++;
-                    }
+                    drawCallCount++;
+                    count++;
                 }
                 gl.BindVertexArray(0);
             }
         }
-
-
-
-
 
         public static int MaxRenders;
         public static List<RayTraceRenderSet> renderSets;
@@ -199,7 +192,7 @@ namespace SpatialEngine.Rendering
 
         //quad for the fragment shader
         static UiQuad quad;
-        static Shader shader;
+        public static Shader shader;
 
         public static void Init(in Scene scene, int maxRenders = 10000)
         {

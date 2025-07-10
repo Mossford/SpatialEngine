@@ -42,6 +42,9 @@ namespace SpatialEngine.Rendering.ImGUI
             ImGui.Checkbox("UseMultiDraw", ref Settings.RendererSettings.UseMultiDraw);
             MainImGui.HelpMarker("Enables MultiDraw for lower draw calls");
             
+            ImGui.Checkbox("EnableRayTracing", ref Settings.RendererSettings.EnableRayTracing);
+            MainImGui.HelpMarker("Enables gpu RayTracing");
+            
             ImGui.End();
         }
     }

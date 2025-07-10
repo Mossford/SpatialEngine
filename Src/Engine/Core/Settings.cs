@@ -23,6 +23,8 @@ namespace SpatialEngine
             /// 
             /// </summary>
             public static bool UseMultiDraw = true;
+
+            public static bool EnableRayTracing = true;
         }
     }
 }
