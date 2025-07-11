@@ -174,9 +174,6 @@ namespace SpatialEngine.Rendering
                     shader.setVec3("ucamPos", camPos);
                     shader.setVec3("ucamDir", player.camera.GetCamDir());
                     shader.setInt("uindex", count);
-                    shader.setFloat("speedOfRay", 10);
-                    shader.setFloat("mass", 100000000000);
-                    shader.setInt("raySteps", 50);
                     shader.setInt("vertStart", meshOffsets[count].offset);
                     shader.setInt("triCount", objs[i].SO_mesh.indices.Length / 3);
     
