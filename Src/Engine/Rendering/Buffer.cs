@@ -24,21 +24,32 @@ namespace SpatialEngine.Rendering
             this.bufAccess = bufferAccess;
             this.index = index;
             id = gl.GenBuffer();
-            Bind();
+            gl.BindBuffer(bufType, id);
             fixed (void* buf = data)
                 gl.BufferData(bufType, (nuint)(data.Length * sizeof(TDataType)), buf, bufAccess);
         }
 
-        public void Update(Span<TDataType> data)
+        public void Realloc(Span<TDataType> data)
         {
-            Bind();
+            gl.BindBuffer(bufType, id);
             fixed (void* buf = data)
                 gl.BufferData(bufType, (nuint)(data.Length * sizeof(TDataType)), buf, bufAccess);
+        }
+        
+        public void SubUpdate(Span<TDataType> data)
+        {
+            gl.BindBuffer(bufType, id);
+            fixed (void* buf = data)
+                gl.BufferSubData(bufType, 0, (nuint)(data.Length * sizeof(TDataType)), buf);
         }
 
         public void Bind()
         {
-            gl.BindBufferBase(bufType, index, id);
+            if (bufType == BufferTargetARB.ShaderStorageBuffer ||
+                bufType == BufferTargetARB.UniformBuffer)
+                gl.BindBufferBase(bufType, index, id);
+            else
+                gl.BindBuffer(bufType, id);
         }
 
         public void Dispose() 

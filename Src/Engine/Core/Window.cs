@@ -32,8 +32,6 @@ namespace SpatialEngine
         public static Vector2 size;
         public static Vector2 windowScale;
         public static Vector2 scaleFromBase;
-        
-        public static Texture defaultTexture;
 
         static Action init;
         static Action<float> update;
@@ -49,7 +47,7 @@ namespace SpatialEngine
             WindowOptions options = WindowOptions.Default with
             {
                 Size = new Vector2D<int>(SCR_WIDTH, SCR_HEIGHT),
-                Title = "SpatialEngine",
+                Title = "SpatialEngine - " + EngVer,
                 VSync = vsync,
                 PreferredDepthBufferBits = 24,
                 API = glApi,
@@ -58,6 +56,7 @@ namespace SpatialEngine
             snWindow.Load += OnLoad;
             snWindow.Update += OnUpdate;
             snWindow.Render += OnRender;
+            snWindow.Closing += Clean;
             snWindow.Run();
         }
 
@@ -100,16 +99,16 @@ namespace SpatialEngine
             gl.DebugMessageControl(GLEnum.DontCare, GLEnum.DontCare, GLEnum.DebugSeverityNotification, 0, null, false);
 
             //init systems
-            scene = new Scene();
+            currentScene = new Scene();
             physics = new Physics();
             physics.InitPhysics();
+            TextureManager.Init();
             
-            Renderer.Init(scene);
-            RayTracer.Init(scene);
+            Renderer.Init(currentScene);
+            ParticleManager.Init();
+            RayTracer.Init(currentScene);
             UiRenderer.Init();
             UiTextHandler.Init();
-            defaultTexture = new Texture();
-            defaultTexture.LoadTexture("RedDebug.png");
 
             NetworkManager.Init();
 
@@ -169,6 +168,7 @@ namespace SpatialEngine
             Input.Update();
             Mouse.Update();
             UiRenderer.Update();
+            ParticleManager.Update((float)dt);
             
             if(lockMouse)
             {
@@ -176,11 +176,7 @@ namespace SpatialEngine
                 player.Look((int)mousePosMoved.X, (int)mousePosMoved.Y, false, false);
             }
             
-            for (int i = 0; i < scene.SpatialObjects.Count; i++)
-            {
-                scene.SpatialObjects[i].SO_mesh.SetModelMatrix();
-            }
-            
+            currentScene.Update();
             update.Invoke((float)dt);
 
             totalTimeUpdate += (float)dt * 1000;
@@ -193,39 +189,21 @@ namespace SpatialEngine
 
         static void FixedUpdate(float dt)
         {
-            if (Input.IsKeyDown(Key.V))
-            {
-                player.LaunchCube(ref scene);
-                if (NetworkManager.didInit)
-                {
-                    SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(scene.SpatialObjects.Count - 1, scene.SpatialObjects[^1].SO_mesh.position, scene.SpatialObjects[^1].SO_mesh.rotation, scene.SpatialObjects[^1].SO_mesh.modelLocation, scene.SpatialObjects[^1].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[^1].SO_rigidbody.rbID), Activation.Activate);
-                    NetworkManager.client.SendRelib(packet);
-                }
-            }
-            player.Movement(dt);
-            player.UpdatePlayer(dt);
-
             fixedUpdate.Invoke(dt);
 
             if (NetworkManager.didInit)
             {
                 if(NetworkManager.serverStarted)
                 {
-                    NetworkManager.server.Update(dt);
+                    SpatialServer.Update(dt);
                 }
                 if(NetworkManager.clientStarted)
                 {
-                    if(!NetworkManager.client.IsConnected())
-                    {
-                        physics.UpdatePhysics(ref scene, dt);
-                    }
-                    NetworkManager.client.Update(dt);
+                    SpatialClient.Update(dt);
                 }
             }
-            else
-            {
-                physics.UpdatePhysics(ref scene, dt);
-            }
+            
+            physics.UpdatePhysics(ref currentScene, dt);
         }
 
         static unsafe void OnRender(double dt)
@@ -253,28 +231,17 @@ namespace SpatialEngine
             if (!Settings.RendererSettings.EnableRayTracing)
             {
                 gl.UseProgram(Renderer.defaultShader.shader);
-                Renderer.defaultShader.setVec3("lightPos", new Vector3(0,20,-10));
-                defaultTexture.Bind();
-                Renderer.Draw(scene, ref Renderer.defaultShader, player.camera.viewMat, player.camera.projMat, player.camera.position);
+                Renderer.defaultShader.setVec3("lightPos", player.position);
+                Renderer.Draw(currentScene, ref Renderer.defaultShader, player.camera.viewMat, player.camera.projMat, player.camera.position);
             }
             else
             {
                 gl.UseProgram(RayTracer.shader.shader);
-                defaultTexture.Bind();
-                RayTracer.shader.setVec3("lightPos", new Vector3(0,20,-10));
-                RayTracer.Draw(scene, player.camera.viewMat, player.camera.projMat, player.camera.position);
+                RayTracer.shader.setVec3("lightPos",  player.position);
+                RayTracer.Draw(currentScene, player.camera.viewMat, player.camera.projMat, player.camera.position);
             }
+            ParticleManager.Render(player.camera.viewMat, player.camera.projMat);
             UiRenderer.Draw();
-
-            //render players
-            if(NetworkManager.didInit)
-            {
-                for (int i = 0; i < NetworkManager.client.playerMeshes.Count; i++)
-                {
-                    NetworkManager.client.playerMeshes[i].SetModelMatrix();
-                    NetworkManager.client.playerMeshes[i].DrawMesh(ref Renderer.defaultSingleShader, player.camera.viewMat, player.camera.projMat, player.camera.position);
-                }
-            }
 
             SetNeededDebug(player.camera.projMat, player.camera.viewMat);
             DrawDebugItems();
@@ -283,6 +250,15 @@ namespace SpatialEngine
             {
                 controller.Render();
             }
+        }
+
+        static void Clean()
+        {
+            ParticleManager.Clean();
+            
+            physics.CleanPhysics(ref currentScene);
+            NetworkManager.Cleanup();
+            currentScene.Clear();
         }
     }
 }

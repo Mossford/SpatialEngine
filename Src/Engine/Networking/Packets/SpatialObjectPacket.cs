@@ -9,13 +9,16 @@ namespace SpatialEngine.Networking.Packets
         public int id;
         public Vector3 Position;
         public Quaternion Rotation;
+        public Vector3 Velocity;
+        public Vector3 AngVelocity;
+        public bool Enabled;
 
         public SpatialObjectPacket()
         {
 
         }
 
-        public SpatialObjectPacket(int id, Vector3 position, Quaternion rotation)
+        public SpatialObjectPacket(int id, Vector3 position, Quaternion rotation, bool enabled = true)
         {
             this.id = id;
             this.Position = position;
@@ -39,6 +42,15 @@ namespace SpatialEngine.Networking.Packets
             writer.Write(Rotation.Y);
             writer.Write(Rotation.Z);
             writer.Write(Rotation.W);
+            //velocity
+            writer.Write(Velocity.X);
+            writer.Write(Velocity.Y);
+            writer.Write(Velocity.Z);
+            //ang velocity
+            writer.Write(AngVelocity.X);
+            writer.Write(AngVelocity.Y);
+            writer.Write(AngVelocity.Z);
+            writer.Write(Enabled);
             stream.Close();
             writer.Close();
 
@@ -51,17 +63,11 @@ namespace SpatialEngine.Networking.Packets
             BinaryReader reader = new BinaryReader(stream);
             ushort type = reader.ReadUInt16();
             id = reader.ReadInt32();
-            //position
-            float posX = reader.ReadSingle();
-            float posY = reader.ReadSingle();
-            float posZ = reader.ReadSingle();
-            Position = new Vector3(posX, posY, posZ);
-            //rotation
-            float rotX = reader.ReadSingle();
-            float rotY = reader.ReadSingle();
-            float rotZ = reader.ReadSingle();
-            float rotW = reader.ReadSingle();
-            Rotation = new Quaternion(rotX, rotY, rotZ, rotW);
+            Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            Rotation = new Quaternion(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            Velocity = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            AngVelocity = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            Enabled = reader.ReadBoolean();
             stream.Close();
             reader.Close();
         }

@@ -11,11 +11,11 @@ namespace SpatialEngine
         public static GL gl;
         public static GraphicsAPI glApi = GraphicsAPI.Default;
         public static IWindow snWindow;
-        public static string EngVer = "ENG:0.76 Stable";
+        public static string EngVer = "0.80 Alpha 2";
         public static string OpenGlVersion = "";
         public static string Gpu = "";
             
-        public static Scene scene;
+        public static Scene currentScene;
         public static Physics physics;
         public static PhysicsSystem physicsSystem;
         public static BodyInterface bodyInterface;
@@ -43,5 +43,10 @@ namespace SpatialEngine
         public static float GetTime() => totalTime;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GetDeltaTime() => deltaTime;
+
+        public static void SetCurrentScene(in Scene scene)
+        {
+            currentScene = scene;
+        }
     }
 }

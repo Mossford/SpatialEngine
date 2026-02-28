@@ -18,6 +18,7 @@ using static SpatialEngine.Resources;
 using SpatialEngine.Networking;
 using System.Net;
 using SpatialEngine.Rendering.ImGUI;
+using SpatialGame;
 using ImGui = ImGuiNET.ImGui;
 
 namespace SpatialEngine.Rendering
@@ -61,7 +62,8 @@ namespace SpatialEngine.Rendering
             ImGui.Text(String.Format("DrawCall per frame: ({0:N1})", MathF.Round(drawCallCount)));
             ImGui.Text(String.Format("{0} verts, {1} indices ({2} tris)", vertCount, indCount, indCount / 3));
             ImGui.Text(String.Format("RenderSets: {0}", Renderer.renderSets.Count));
-            ImGui.Text(String.Format("Amount of Spatials: ({0})", scene.SpatialObjects.Count()));
+            ImGui.Text(String.Format("Amount of Spatials: ({0})", currentScene.SpatialObjects.Count));
+            ImGui.Text(String.Format("Amount of Particles: ({0})", ParticleManager.currentParticles));
             ImGui.Text(String.Format("DrawCall Avg: ({0:N1}) DC/frame, DrawCall Total ({1})", MathF.Round(drawCallCount / (totalTime / deltaTime)), drawCallCount));
             ImGui.Text(String.Format("Time Open {0:N1} minutes", totalTime / 60.0f));
             

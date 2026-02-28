@@ -18,13 +18,20 @@ namespace SpatialEngine
             /// 1 = Updates every second or when a new object is added<br />
             /// 2 = Updates when a new object is added (aggressive optimization, but only updates on new object)
             /// </summary>
-            public static int OptimizeUpdatingBuffers = 1;
+            public static int OptimizeUpdatingBuffers = 0;
             /// <summary>
             /// 
             /// </summary>
-            public static bool UseMultiDraw = true;
+            public static bool UseMultiDraw = false;
 
             public static bool EnableRayTracing = false;
+            public static int MaxParticles = 100000;
+            
+            //buffer indexes
+            public const int ModelMatrixBuffer = 3;
+            public const int RayTracerVertBuffer = 4;
+            public const int RayTracerIndBuffer = 5;
+            public const int ParticleBuffer = 6;
         }
     }
 }

@@ -94,9 +94,9 @@ namespace SpatialEngine.Terrain
             }*/
 
 
-            id = scene.SpatialObjects.Count;
-            scene.AddSpatialObject(new Mesh(vertexes, ind, new Vector3(0, 4, 0), Quaternion.Identity), new Vector3(((length - 1) * (scale / density)) / 2f, 1, ((width - 1) * (scale / density) - 1) / 2f), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
-            scene.SpatialObjects[id].SO_mesh.CalculateNormalsSmooth();
+            id = currentScene.SpatialObjects.Count;
+            currentScene.AddSpatialObject(new Mesh(vertexes, ind, new Vector3(0, 4, 0), Quaternion.Identity), new Vector3(((length - 1) * (scale / density)) / 2f, 1, ((width - 1) * (scale / density) - 1) / 2f), MotionType.Static, Layers.NON_MOVING, Activation.DontActivate);
+            currentScene.SpatialObjects[id].mesh.CalculateNormalsSmooth();
         }
     }
 }

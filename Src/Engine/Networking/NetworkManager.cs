@@ -10,11 +10,10 @@ namespace SpatialEngine.Networking
 {
     public static class NetworkManager
     {
-        public static SpatialClient client;
-        public static SpatialServer server;
         public static bool serverStarted;
         public static bool clientStarted;
         public static bool didInit;
+        public static bool clientInit;
 
         public static void Init()
         {
@@ -23,28 +22,62 @@ namespace SpatialEngine.Networking
 
         public static void InitClient()
         {
-            client = new SpatialClient();
-            client.Start("127.0.0.1", 58301);
+            SpatialClient.Init();
+            clientInit = true;
             didInit = true;
+        }
+        
+        public static void StartClient(string ip = "127.0.0.1", ushort port = 58301)
+        {
+            SpatialClient.Init();
+            SpatialClient.Connect(ip, port);
+            didInit = true;
+            clientInit = true;
+            clientStarted = true;
+        }
+        
+        public static void ConnectClient(string ip = "127.0.0.1", ushort port = 58301)
+        {
+            SpatialClient.Connect("127.0.0.1", 58301);
+            didInit = true;
+            clientInit = true;
             clientStarted = true;
         }
 
-        public static void InitServer(bool headless) 
+        public static void StartServer(bool headless, string ip = "127.0.0.1", ushort port = 58301, int maxConnections = 10) 
         {
             if (headless)
             {
-                server = new SpatialServer("127.0.0.1");
-                server.Start();
+                SpatialServer.Init(ip, port, maxConnections);
+                SpatialServer.Start();
                 didInit = true;
                 serverStarted = true;
             }
             else
             {
-                server = new SpatialServer("127.0.0.1");
-                server.Start();
+                SpatialServer.Init(ip, port, maxConnections);
+                SpatialServer.Start();
                 didInit = true;
                 serverStarted = true;
-                InitClient();
+                StartClient();
+            }
+        }
+        
+        public static void StartServerNoClient(bool headless, string ip = "127.0.0.1", ushort port = 58301, int maxConnections = 10) 
+        {
+            if (headless)
+            {
+                SpatialServer.Init(ip, port, maxConnections);
+                SpatialServer.Start();
+                didInit = true;
+                serverStarted = true;
+            }
+            else
+            {
+                SpatialServer.Init(ip, port, maxConnections);
+                SpatialServer.Start();
+                didInit = true;
+                serverStarted = true;
             }
         }
 
@@ -54,11 +87,13 @@ namespace SpatialEngine.Networking
             {
                 if(serverStarted)
                 {
-                    server.Close();
+                    SpatialServer.Close();
+                    serverStarted = false;
                 }
                 if(clientStarted)
                 {
-                    client.Close();
+                    SpatialClient.Close();
+                    clientStarted = false;
                 }
             }
         }

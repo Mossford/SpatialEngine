@@ -25,10 +25,10 @@ namespace SpatialEngine.Networking
         public static void Init()
         {
             NetworkManager.Init();
-            NetworkManager.InitServer(true);
+            NetworkManager.StartServer(true);
 
             physics = new Physics();
-            scene = new Scene();
+            currentScene = new Scene();
             physics.InitPhysics();
             GameManager.InitGame();
 
@@ -58,15 +58,15 @@ namespace SpatialEngine.Networking
 
         public static void Update(float dt)
         {
-            physics.UpdatePhysics(ref scene, dt);
+            physics.UpdatePhysics(ref currentScene, dt);
 
-            for (int i = 0; i < scene.SpatialObjects.Count; i++)
+            for (int i = 0; i < currentScene.SpatialObjects.Count; i++)
             {
-                SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
-                NetworkManager.server.SendUnrelibAll(packet);
+                SpatialObjectPacket packet = new SpatialObjectPacket(i, currentScene.SpatialObjects[i].mesh.position, currentScene.SpatialObjects[i].mesh.rotation);
+                SpatialServer.SendUnrelibAll(packet);
             }
 
-            NetworkManager.server.Update(dt);
+            SpatialServer.Update(dt);
         }
     }
 }

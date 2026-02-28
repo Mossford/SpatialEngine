@@ -22,8 +22,8 @@ namespace SpatialEngine.Rendering.ImGUI
 {
     public class NetworkViewer
     {
-        static int port = 0;
-        static string ip = "";
+        static int port = 58301;
+        static string ip = "127.0.0.1";
         static byte[] byteBuf = new byte[24];
         public static void Draw()
         {
@@ -33,24 +33,24 @@ namespace SpatialEngine.Rendering.ImGUI
             {
                 if(ImGui.Button("StartServer"))
                 {
-                    NetworkManager.InitServer(false);
+                    NetworkManager.StartServer(false);
                 }
                 if (ImGui.Button("StartClient"))
                 {
-                    NetworkManager.InitClient();
+                    NetworkManager.StartClient();
                 }
             }
             else
             {
                 if(NetworkManager.serverStarted)
                 {
-                    if(NetworkManager.server.IsRunning())
+                    if(SpatialServer.IsRunning())
                     {
                         ImGui.Text("Running Server on: ");
                         ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{NetworkManager.server.ip}:{NetworkManager.server.port}");
+                        ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{SpatialServer.ip}:{SpatialServer.port}");
                         int currentSel = 0;
-                        Connection[] connections = NetworkManager.server.GetServerConnections();
+                        Connection[] connections = SpatialServer.GetServerConnections();
                         if (ImGui.BeginListBox("##Connections", new Vector2(ImGui.GetWindowSize().X, (connections.Length + 1) * ImGui.GetTextLineHeightWithSpacing())))
                         {
                             for (int n = 0; n < connections.Length; n++)
@@ -68,49 +68,50 @@ namespace SpatialEngine.Rendering.ImGUI
 
                         if (ImGui.Button("Stop Server"))
                         {
-                            NetworkManager.server.Stop();
+                            SpatialServer.Stop();
                         }
                     }
                     else
                     {
                         if (ImGui.Button("StartServer"))
                         {
-                            NetworkManager.InitServer(false);
+                            NetworkManager.StartServer(false);
                         }
                     }
                 }
-                if(NetworkManager.clientStarted)
+                if(SpatialClient.IsConnected())
                 {
-                    if(NetworkManager.client.IsConnected())
-                    {
-                        ImGui.Text("Connected to Server: ");
-                        ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{NetworkManager.client.connectIp}:{NetworkManager.client.connectPort}");
-                        Connection clientConnect = NetworkManager.client.GetConnection();
-                        ImGui.Text("Client on: ");
-                        ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{clientConnect}");
-                        ImGui.Text(string.Format($"Ping: {NetworkManager.client.GetPing() * 1000f:0.00}ms"));
+                    ImGui.Text("Connected to Server: ");
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{SpatialClient.connectIp}:{SpatialClient.connectPort}");
+                    Connection clientConnect = SpatialClient.GetConnection();
+                    ImGui.Text("Client on: ");
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{clientConnect}");
+                    ImGui.Text(string.Format($"Ping: {SpatialClient.GetPing() * 1000f:0.00}ms"));
 
-                        if(ImGui.Button("Disconnect"))
-                        {
-                            NetworkManager.client.Disconnect();
-                        }
+                    if(ImGui.Button("Disconnect"))
+                    {
+                        SpatialClient.Disconnect();
                     }
-                    else
-                    {
-                        ImGui.Text("Client not connected to server");
-                        ImGui.InputText("IP Address", ref ip, 24, ImGuiInputTextFlags.CharsNoBlank);
-                        ImGui.InputInt("Port", ref port);
-                        port = (int)MathF.Abs(port);
+                }
+                else
+                {
+                    ImGui.Text("Client not connected to server");
+                    ImGui.InputText("IP Address", ref ip, 24, ImGuiInputTextFlags.CharsNoBlank);
+                    ImGui.InputInt("Port", ref port);
+                    port = (int)MathF.Abs(port);
 
-                        if (ImGui.Button("Connect"))
+                    if (ImGui.Button("Connect"))
+                    {
+                        if (IPAddress.TryParse(ip, out IPAddress address))
                         {
-                            if (IPAddress.TryParse(ip, out IPAddress address))
+                            if (!NetworkManager.clientInit)
                             {
-                                NetworkManager.client.Connect(address.ToString(), (ushort)port);
+                                NetworkManager.InitClient();
                             }
-                        }
+                            NetworkManager.ConnectClient(address.ToString(), (ushort)port);
+                        } 
                     }
                 }    
             }

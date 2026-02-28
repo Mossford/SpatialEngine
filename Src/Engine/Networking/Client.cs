@@ -15,69 +15,75 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using SpatialEngine.Rendering;
 using System.Collections.Generic;
+using System.Numerics;
 using SpatialEngine.Networking.Packets;
 using SpatialEngine.SpatialMath;
 
 namespace SpatialEngine.Networking
 {
-    public class SpatialClient
+    public static class SpatialClient
     {
         public static Client client;
 
-        public ushort connectPort;
-        public string connectIp;
+        public static ushort connectPort;
+        public static string connectIp;
 
-        bool disconnected;
-        bool stopping;
+        static bool disconnected;
+        static bool stopping;
 
-        bool waitPing = false;
+        static bool waitPing = false;
+        
+        static Action<byte[]> handleServerPacket;
+        public static event EventHandler ClientConnect;
+        public static event EventHandler ClientDisconnect;
+        public static event EventHandler OtherClientConnected;
+        public static event EventHandler OtherClientDisconnected;
 
-        public float currentPing { get; protected set; }
-        public int pingCount { get; protected set; } = 0;
-        float lastPing = 0f;
+        public static float currentPing { get; set; }
+        public static int pingCount { get; set; } = 0;
+        static float lastPing = 0f;
 
-        // the other clients meshes, they only need position and rotation so a mesh is all that is needed
-        public List<Mesh> playerMeshes;
-
-        public SpatialClient()
+        public static List<ClientPlayer> joinedPlayers;
+        
+        public static void SetServerHandle(Action<byte[]> action)
+        {
+            handleServerPacket = action;
+        }
+        
+        public static void Init()
         {
             Message.InstancesPerPeer = 100;
-            playerMeshes = new List<Mesh>();
-        }
-
-        public void Start(string ip, ushort port)
-        {
-            connectIp = ip;
-            connectPort = port;
+            joinedPlayers = new List<ClientPlayer>();
             client = new Client();
             client.Connected += Connected;
             client.Disconnected += Disconnected;
             client.MessageReceived += handleMessage;
-            Connect(connectIp, connectPort);
         }
 
-        public void Connect(string ip, ushort port)
+        public static void Connect(string ip, ushort port)
         {
-            client.Connect($"{ip}:{port}", 5, 0, null, false);
+            if (!client.Connect($"{ip}:{port}", 5, 0, null, false))
+            {
+                return;
+            }
             connectIp = ip;
             connectPort = port;
 
             ConnectPacket connectPacket = new ConnectPacket();
             SendRelib(connectPacket);
-            PlayerJoinPacket playerJoinPacket = new PlayerJoinPacket(0, player.position, MathS.Vec3ToQuat(player.rotation), "Cube.obj");
+            PlayerJoinPacket playerJoinPacket = new PlayerJoinPacket(0, player.position, MathS.Vec3ToQuat(player.rotation));
             SendRelib(playerJoinPacket);
             disconnected = false;
         }
 
-        public void Disconnect() 
+        public static void Disconnect() 
         {
-            playerMeshes.Clear();
             client.Disconnect();
             disconnected = true;
         }
 
         static float accu = 0f;
-        public void Update(float deltaTime)
+        public static void Update(float deltaTime)
         {
             if (!stopping && !disconnected)
             {
@@ -86,9 +92,6 @@ namespace SpatialEngine.Networking
                     SpatialObjectPacket packet = new SpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation);
                     SendUnrelib(packet);
                 }*/
-                //send own player pos and rot to server
-                PlayerPacket packet = new PlayerPacket(0, player.position, MathS.Vec3ToQuat(player.rotation));
-                SendUnrelib(packet);
                 client.Update();
 
 
@@ -102,18 +105,19 @@ namespace SpatialEngine.Networking
             }
         }
 
-        void Connected(object sender, EventArgs e)
+        static void Connected(object sender, EventArgs e)
         {
-               
+            ClientConnect?.Invoke(null, EventArgs.Empty);
         }
 
-        void Disconnected(object sender, EventArgs e)
+        static void Disconnected(object sender, EventArgs e)
         {
             connectIp = "";
             connectPort = 0;
+            ClientDisconnect?.Invoke(null, EventArgs.Empty);
         }
 
-        public void SendUnrelib(Packet packet)
+        public static void SendUnrelib(Packet packet)
         {
             if(client.IsConnected || !stopping)
             {
@@ -124,9 +128,9 @@ namespace SpatialEngine.Networking
         }
 
         //calling this a lot causes null error on the message create
-        public void SendRelib(Packet packet)
+        public static void SendRelib(Packet packet)
         {
-            if (client.IsConnected || !stopping)
+            if (client is not null && (client.IsConnected || !stopping))
             {
                 Message msgRelib = Message.Create(MessageSendMode.Reliable, packet.GetPacketType());
                 msgRelib.AddBytes(packet.ConvertToByte());
@@ -134,14 +138,14 @@ namespace SpatialEngine.Networking
             }
         }
 
-        public void Close()
+        public static void Close()
         {
             client.Disconnect();
             stopping = true;
             client = null;
         }
 
-        public void handleMessage(object sender, MessageReceivedEventArgs e)
+        public static void handleMessage(object sender, MessageReceivedEventArgs e)
         {
             if (!stopping)
                 HandlePacketClient(e.Message.GetBytes());
@@ -149,7 +153,7 @@ namespace SpatialEngine.Networking
 
         //gets the ping of the client and removes the delay caused by waiting 16ms for an update so a true ping can
         //be returned. With checking for if the ping is less than 0 which returns the ping before it
-        public float GetPing()
+        public static float GetPing()
         {
             if(currentPing - 0.0166f > 0f)
             {
@@ -162,7 +166,7 @@ namespace SpatialEngine.Networking
             
         }
 
-        async Task GetPingAsync()
+        static async Task GetPingAsync()
         {
             await Task.Run(() => 
             {
@@ -194,7 +198,7 @@ namespace SpatialEngine.Networking
 
         //Handles packets that come from the server
 
-        void HandlePacketClient(byte[] data)
+        static void HandlePacketClient(byte[] data)
         {
             MemoryStream stream = new MemoryStream(data);
             BinaryReader reader = new BinaryReader(stream);
@@ -225,11 +229,14 @@ namespace SpatialEngine.Networking
 
                         SpatialObjectPacket packet = new SpatialObjectPacket();
                         packet.ByteToPacket(data);
-                        if (packet.id >= scene.SpatialObjects.Count)
+                        if (packet.id >= currentScene.SpatialObjects.Count)
                             break;
                         //will set the mesh now that physics will run on the server
-                        scene.SpatialObjects[packet.id].SO_mesh.position = packet.Position;
-                        scene.SpatialObjects[packet.id].SO_mesh.rotation = packet.Rotation;
+                        currentScene.SpatialObjects[packet.id].rigidbody.SetPosition(packet.Position);
+                        currentScene.SpatialObjects[packet.id].rigidbody.SetRotation(packet.Rotation);
+                        currentScene.SpatialObjects[packet.id].rigidbody.SetVelocity(packet.Velocity);
+                        currentScene.SpatialObjects[packet.id].rigidbody.SetAngularVelocity(packet.AngVelocity);
+                        currentScene.SpatialObjects[packet.id].enabled = packet.Enabled;
                         stream.Close();
                         reader.Close();
                         break;
@@ -238,14 +245,37 @@ namespace SpatialEngine.Networking
                     {
                         SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
                         packet.ByteToPacket(data);
-                        if (packet.id < scene.SpatialObjects.Count)
+                        if (packet.id < currentScene.SpatialObjects.Count)
                         {
-                            bodyInterface.DestroyBody(scene.SpatialObjects[packet.id].SO_rigidbody.rbID);
-                            scene.SpatialObjects[packet.id] = new SpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation, (uint)packet.id);
+                            currentScene.SpatialObjects[packet.id].rigidbody.RemoveFromPhysics();
+                            currentScene.SpatialObjects[packet.id] = new SpatialObject(
+                                LoadModel(packet.Position, 
+                                    packet.Rotation, 
+                                    packet.ModelLocation, 
+                                    packet.Scale), 
+                                (MotionType)packet.MotionType, 
+                                (ObjectLayer)packet.ObjectLayer, 
+                                (Activation)packet.Activation, 
+                                currentScene.SpatialObjects[packet.id].id);
+                            currentScene.SpatialObjects[packet.id].enabled = packet.Enabled;
+                            currentScene.SpatialObjects[packet.id].texture = TextureManager.RetrieveTexture(packet.TextureLocation);
+                            currentScene.SpatialObjects[packet.id].rigidbody.SetVelocity(packet.Velocity);
+                            currentScene.SpatialObjects[packet.id].rigidbody.SetAngularVelocity(packet.AngVelocity);
                         }
                         else
                         {
-                            scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
+                            currentScene.AddSpatialObject(
+                                LoadModel(packet.Position, 
+                                    packet.Rotation, 
+                                    packet.ModelLocation, 
+                                    packet.Scale), 
+                                (MotionType)packet.MotionType, 
+                                (ObjectLayer)packet.ObjectLayer, 
+                                (Activation)packet.Activation);
+                            currentScene.SpatialObjects[^1].enabled = packet.Enabled;
+                            currentScene.SpatialObjects[^1].texture = TextureManager.RetrieveTexture(packet.TextureLocation);
+                            currentScene.SpatialObjects[^1].rigidbody.SetVelocity(packet.Velocity);
+                            currentScene.SpatialObjects[^1].rigidbody.SetAngularVelocity(packet.AngVelocity);
                         }
                         stream.Close();
                         reader.Close();
@@ -261,33 +291,41 @@ namespace SpatialEngine.Networking
                     {
                         PlayerPacket packet = new PlayerPacket();
                         packet.ByteToPacket(data);
-                        //Console.WriteLine(packet.id + " " + playerMeshes.Count);
-                        if (packet.id < playerMeshes.Count)
+                        if (packet.id < joinedPlayers.Count)
                         {
-                            playerMeshes[packet.id].position = packet.Position;
-                            playerMeshes[packet.id].rotation = packet.Rotation;
+                            joinedPlayers[packet.id].position = packet.Position;
+                            joinedPlayers[packet.id].rotation = packet.Rotation;
                         }
                         break;
                     }
                 case (ushort)PacketType.PlayerJoin:
                     {
                         PlayerJoinPacket packet = new PlayerJoinPacket();
-                        //hardcoded mesh location for now as using the packet causes it not to find the mesh
-                        playerMeshes.Add(LoadModel(packet.Position, packet.Rotation, "Monkey.obj"));
+                        joinedPlayers.Add(new ClientPlayer(packet.id, packet.Position, packet.Rotation));
+                        OtherClientConnected?.Invoke(null, new OtherClientConnectEvent()
+                        {
+                            client = joinedPlayers.Count - 1
+                        });
                         break;
                     }
                 case (ushort)PacketType.PlayerLeave:
                     {
                         PlayerLeavePacket packet = new PlayerLeavePacket();
                         packet.ByteToPacket(data);
-                        Console.WriteLine(packet.clientId + " " + playerMeshes.Count);
-                        playerMeshes.RemoveAt(packet.clientId);
+                        joinedPlayers.RemoveAt(packet.clientId);
+                        OtherClientDisconnected?.Invoke(null, new OtherClientConnectEvent()
+                        {
+                            client = packet.clientId
+                        });
                         break;
                     }
             }
+            
+            if(handleServerPacket is not null)
+                handleServerPacket.Invoke(data);
         }
 
-        public Connection GetConnection() => client.Connection;
-        public bool IsConnected() => client.IsConnected;
+        public static Connection GetConnection() => client.Connection;
+        public static bool IsConnected() => client is not null && client.IsConnected;
     }
 }

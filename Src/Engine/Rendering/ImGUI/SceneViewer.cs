@@ -16,11 +16,11 @@ namespace SpatialEngine.Rendering.ImGUI
 
             if (ImGui.TreeNode("Objects"))
             {
-                for (int i = 0; i < scene.SpatialObjects.Count(); i++)
+                for (int i = 0; i < currentScene.SpatialObjects.Count(); i++)
                 {
-                    if (ImGui.TreeNode(string.Format("Object {0}", scene.SpatialObjects[i].SO_id)))
+                    if (ImGui.TreeNode(string.Format("Object {0}", i)))
                     {
-                        ImGui.DragFloat3("Object Position", ref scene.SpatialObjects[i].SO_mesh.position, 0.05f, -100000.0f, 100000.0f);
+                        ImGui.DragFloat3("Object Position", ref currentScene.SpatialObjects[i].mesh.position, 0.05f, -100000.0f, 100000.0f);
                         ImGui.TreePop();
                     }
                 }

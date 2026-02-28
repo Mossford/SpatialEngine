@@ -10,6 +10,7 @@ using static SpatialEngine.Rendering.MeshUtils;
 using Riptide.Transports;
 using System.Collections;
 using SpatialEngine.Networking.Packets;
+using SpatialEngine.Rendering;
 
 namespace SpatialEngine.Networking
 {
@@ -30,30 +31,36 @@ namespace SpatialEngine.Networking
     
     */
     
-    public class SpatialServer
+    public static class SpatialServer
     {
         public static Server server;
 
-        public ushort port;
-        public string ip;
-        public int maxConnections { get; protected set; }
+        public static ushort port;
+        public static string ip;
+        public static int maxConnections { get; set; }
         //first is the current id and the key is the client id from the server which riptide does not auto correct
-        public Dictionary<uint, uint> connectionIds;
-        uint connectionCount = 0;
+        public static Dictionary<uint, uint> connectionIds;
+        static uint connectionCount = 0;
 
-        bool stopping;
+        static bool stopping;
+        static Action<byte[], Connection> handleClientPacket;
 
 
-        public SpatialServer(string ip, ushort port = 58301, int maxConnections = 10)
+        public static void Init(string ip, ushort port = 58301, int maxConnections = 10)
         {
-            this.ip = ip;
-            this.port = port;
-            this.maxConnections = maxConnections;
+            SpatialServer.ip = ip;
+            SpatialServer.port = port;
+            SpatialServer.maxConnections = maxConnections;
             Message.InstancesPerPeer = 100;
             connectionIds = new Dictionary<uint, uint>();
         }
 
-        public void Start()
+        public static void SetClientHandle(Action<byte[], Connection> action)
+        {
+            handleClientPacket = action;
+        }
+
+        public static void Start()
         {
             server = new Server();
             server.MessageReceived += handleMessage;
@@ -62,13 +69,13 @@ namespace SpatialEngine.Networking
             server.Start(port, (ushort)maxConnections, 0, false);
         }
 
-        public void Stop()
+        public static void Stop()
         {
             stopping = true;
             server.Stop();
         }
 
-        public void Update(float deltaTime)
+        public static void Update(float deltaTime)
         {
             if(!stopping)
             {
@@ -76,16 +83,12 @@ namespace SpatialEngine.Networking
             }
         }
 
-        public void ClientConnected(object sender, ServerConnectedEventArgs e)
+        public static void ClientConnected(object sender, ServerConnectedEventArgs e)
         {
             connectionIds.Add(e.Client.Id, (uint)connectionIds.Count);
-            foreach (var item in connectionIds)
-            {
-                Console.WriteLine(item.Key + " " + item.Value);
-            }
         }
 
-        public void ClientDisconnected(object sender, ServerDisconnectedEventArgs e)
+        public static void ClientDisconnected(object sender, ServerDisconnectedEventArgs e)
         {
             //reset all values in connectionId after the left client as we need to bring down it by one
             for (uint i = connectionIds[e.Client.Id]; i < server.Clients.Length; i++)
@@ -103,7 +106,6 @@ namespace SpatialEngine.Networking
             PlayerLeavePacket packet = new PlayerLeavePacket();
 
             //using the algorithm for sending the player packets
-            Console.WriteLine(e.Client.Id + "Id");
             int currentId = (int)connectionIds[e.Client.Id];
 
             //start from one as we cannot access the client list as the client has been removed
@@ -125,14 +127,10 @@ namespace SpatialEngine.Networking
                 }
             }
             connectionIds.Remove(e.Client.Id);
-            foreach (var item in connectionIds)
-            {
-                Console.WriteLine(item.Key + " " + item.Value);
-            }
 
         }
 
-        public Connection[] GetServerConnections()
+        public static Connection[] GetServerConnections()
         {
             if(stopping)
             {
@@ -141,7 +139,7 @@ namespace SpatialEngine.Networking
             return server.Clients;
         }
 
-        public void SendUnrelib(Packet packet, ushort clientId)
+        public static void SendUnrelib(Packet packet, ushort clientId)
         {
             if(!stopping)
             {
@@ -151,7 +149,7 @@ namespace SpatialEngine.Networking
             }
         }
 
-        public void SendRelib(Packet packet, ushort clientId)
+        public static void SendRelib(Packet packet, ushort clientId)
         {
             if (!stopping)
             {
@@ -161,7 +159,7 @@ namespace SpatialEngine.Networking
             }
         }
 
-        public void SendUnrelibAll(Packet packet)
+        public static void SendUnrelibAll(Packet packet)
         {
             if (!stopping)
             {
@@ -171,7 +169,7 @@ namespace SpatialEngine.Networking
             }
         }
 
-        public void SendRelibAll(Packet packet)
+        public static void SendRelibAll(Packet packet)
         {
             if (!stopping)
             {
@@ -181,7 +179,7 @@ namespace SpatialEngine.Networking
             }
         }
 
-        public void SendUnrelibAllExclude(Packet packet, ushort clientId)
+        public static void SendUnrelibAllExclude(Packet packet, ushort clientId)
         {
             if (!stopping)
             {
@@ -195,7 +193,7 @@ namespace SpatialEngine.Networking
             }
         }
 
-        public void SendRelibAllExclude(Packet packet, ushort clientId)
+        public static void SendRelibAllExclude(Packet packet, ushort clientId)
         {
             if (!stopping)
             {
@@ -205,20 +203,19 @@ namespace SpatialEngine.Networking
                 {
                     if (clientId != server.Clients[i].Id)
                     {
-                        Console.WriteLine(server.Clients[i].Id);
                         server.Send(msgRelib, server.Clients[i]);
                     }
                 }
             }
         }
 
-        public void handleMessage(object sender, MessageReceivedEventArgs e)
+        public static void handleMessage(object sender, MessageReceivedEventArgs e)
         {
             if (!stopping)
                 HandlePacketServer(e.Message.GetBytes(), e.FromConnection);
         }
 
-        public void Close()
+        public static void Close()
         {
             stopping = true;
             server.Stop();
@@ -227,7 +224,7 @@ namespace SpatialEngine.Networking
 
         //Handles packets that come from the client
 
-        void HandlePacketServer(byte[] data, Connection client)
+        static void HandlePacketServer(byte[] data, Connection client)
         {
             MemoryStream stream = new MemoryStream(data);
             BinaryReader reader = new BinaryReader(stream);
@@ -238,7 +235,7 @@ namespace SpatialEngine.Networking
 
             //packet type
             ushort type = reader.ReadUInt16();
-
+            
             switch (type)
             {
                 case (ushort)PacketType.Ping:
@@ -251,20 +248,20 @@ namespace SpatialEngine.Networking
                     {
                         ConnectReturnPacket packet = new ConnectReturnPacket();
                         SendRelib(packet, client.Id);
-
-                        //scene sync when connect
-                        SceneSyncStart packet2 = new SceneSyncStart();
-                        SendRelib(packet2, client.Id);
                         break;
                     }
                 case (ushort)PacketType.SpatialObject:
                     {
                         SpatialObjectPacket packet = new SpatialObjectPacket();
                         packet.ByteToPacket(data);
-                        if (packet.id >= scene.SpatialObjects.Count)
+                        if (packet.id >= currentScene.SpatialObjects.Count)
                             break;
-                        scene.SpatialObjects[packet.id].SO_rigidbody.SetPosition((Double3)packet.Position);
-                        scene.SpatialObjects[packet.id].SO_rigidbody.SetRotation(packet.Rotation);
+                        
+                        currentScene.SpatialObjects[packet.id].rigidbody.SetPosition(packet.Position);
+                        currentScene.SpatialObjects[packet.id].rigidbody.SetRotation(packet.Rotation);
+                        currentScene.SpatialObjects[packet.id].rigidbody.SetVelocity(packet.Velocity);
+                        currentScene.SpatialObjects[packet.id].rigidbody.SetAngularVelocity(packet.AngVelocity);
+                        currentScene.SpatialObjects[packet.id].enabled = packet.Enabled;
                         stream.Close();
                         reader.Close();
                         break;
@@ -274,14 +271,36 @@ namespace SpatialEngine.Networking
                     {
                         SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket();
                         packet.ByteToPacket(data);
-                        if (packet.id < scene.SpatialObjects.Count)
+                        if (packet.id < currentScene.SpatialObjects.Count)
                         {
-                            bodyInterface.DestroyBody(scene.SpatialObjects[packet.id].SO_rigidbody.rbID);
-                            scene.SpatialObjects[packet.id] = new SpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation, (uint)packet.id);
+                            currentScene.SpatialObjects[packet.id].rigidbody.RemoveFromPhysics();
+                            currentScene.SpatialObjects[packet.id] = new SpatialObject(
+                                LoadModel(packet.Position, 
+                                packet.Rotation, 
+                                packet.ModelLocation, packet.Scale), 
+                                (MotionType)packet.MotionType, 
+                                (ObjectLayer)packet.ObjectLayer, 
+                                (Activation)packet.Activation, 
+                                currentScene.SpatialObjects[packet.id].id);
+                            currentScene.SpatialObjects[packet.id].enabled = packet.Enabled;
+                            currentScene.SpatialObjects[packet.id].texture = TextureManager.RetrieveTexture(packet.TextureLocation);
+                            currentScene.SpatialObjects[packet.id].rigidbody.SetVelocity(packet.Velocity);
+                            currentScene.SpatialObjects[packet.id].rigidbody.SetAngularVelocity(packet.AngVelocity);
                         }
                         else
                         {
-                            scene.AddSpatialObject(LoadModel(packet.Position, packet.Rotation, packet.ModelLocation), (MotionType)packet.MotionType, (ObjectLayer)packet.ObjectLayer, (Activation)packet.Activation);
+                            currentScene.AddSpatialObject(
+                                LoadModel(packet.Position, 
+                                    packet.Rotation, 
+                                    packet.ModelLocation,
+                                    packet.Scale), 
+                                (MotionType)packet.MotionType, 
+                                (ObjectLayer)packet.ObjectLayer, 
+                                (Activation)packet.Activation);
+                            currentScene.SpatialObjects[^1].enabled = packet.Enabled;
+                            currentScene.SpatialObjects[^1].texture = TextureManager.RetrieveTexture(packet.TextureLocation);
+                            currentScene.SpatialObjects[^1].rigidbody.SetVelocity(packet.Velocity);
+                            currentScene.SpatialObjects[^1].rigidbody.SetAngularVelocity(packet.AngVelocity);
                         }
                         stream.Close();
                         reader.Close();
@@ -292,11 +311,14 @@ namespace SpatialEngine.Networking
                     }
                 case (ushort)PacketType.SceneSyncClear:
                     {
-                        for (int i = 0; i < scene.SpatialObjects.Count; i++)
+                        for (int i = 0; i < currentScene.SpatialObjects.Count; i++)
                         {
-                            SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(i, scene.SpatialObjects[i].SO_mesh.position, scene.SpatialObjects[i].SO_mesh.rotation, 
-                                scene.SpatialObjects[i].SO_mesh.modelLocation, scene.SpatialObjects[i].SO_rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(scene.SpatialObjects[i].SO_rigidbody.rbID), 
-                                (Activation)Convert.ToInt32(bodyInterface.IsActive(scene.SpatialObjects[i].SO_rigidbody.rbID)));
+                            SpawnSpatialObjectPacket packet = new SpawnSpatialObjectPacket(i, currentScene.SpatialObjects[i].mesh.position, currentScene.SpatialObjects[i].mesh.rotation, 
+                                currentScene.SpatialObjects[i].mesh.scale, currentScene.SpatialObjects[i].texture.textLocation,
+                                currentScene.SpatialObjects[i].mesh.modelLocation, currentScene.SpatialObjects[i].rigidbody.settings.MotionType, bodyInterface.GetObjectLayer(currentScene.SpatialObjects[i].rigidbody.rbID), 
+                                (Activation)Convert.ToInt32(bodyInterface.IsActive(currentScene.SpatialObjects[i].rigidbody.rbID)), currentScene.SpatialObjects[i].enabled);
+                            packet.Velocity = currentScene.SpatialObjects[i].rigidbody.GetVelocity();
+                            packet.AngVelocity = currentScene.SpatialObjects[i].rigidbody.GetAngVelocity();
                             SendRelib(packet, client.Id);
                         }
                         break;
@@ -353,9 +375,12 @@ namespace SpatialEngine.Networking
                         break;
                     }
             }
+            
+            if(handleClientPacket is not null)
+                handleClientPacket.Invoke(data, client);
         }
 
-        public bool IsRunning() => server.IsRunning;
+        public static bool IsRunning() => server is not null && server.IsRunning;
 
     }
 }

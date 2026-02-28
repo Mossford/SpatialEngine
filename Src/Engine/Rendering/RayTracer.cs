@@ -54,8 +54,8 @@ namespace SpatialEngine.Rendering
                 int indiceSize = 0;
                 for (int i = countBE; i < countTO; i++)
                 {
-                    vertexSize += objs[i].SO_mesh.vertexes.Length;
-                    indiceSize += objs[i].SO_mesh.indices.Length;
+                    vertexSize += objs[i].mesh.vertexes.Length;
+                    indiceSize += objs[i].mesh.indices.Length;
                 }
 
                 RayVertex[] verts = new RayVertex[vertexSize];
@@ -65,15 +65,15 @@ namespace SpatialEngine.Rendering
                 int count = 0;
                 for (int i = countBE; i < countTO; i++)
                 {
-                    models[count] = objs[i].SO_mesh.modelMat;
-                    for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
+                    models[count] = objs[i].mesh.modelMat;
+                    for (int j = 0; j < objs[i].mesh.vertexes.Length; j++)
                     {
-                        verts[countV] = new RayVertex(objs[i].SO_mesh.vertexes[j].position, objs[i].SO_mesh.vertexes[j].uv);
+                        verts[countV] = new RayVertex(objs[i].mesh.vertexes[j].position, objs[i].mesh.vertexes[j].uv);
                         countV++;
                     }
-                    for (int j = 0; j < objs[i].SO_mesh.indices.Length; j += 3)
+                    for (int j = 0; j < objs[i].mesh.indices.Length; j += 3)
                     {
-                        inds[countI] = new Vector4(objs[i].SO_mesh.indices[j], objs[i].SO_mesh.indices[j + 1], objs[i].SO_mesh.indices[j + 2], 1f);
+                        inds[countI] = new Vector4(objs[i].mesh.indices[j], objs[i].mesh.indices[j + 1], objs[i].mesh.indices[j + 2], count);
                         countI++;
                     }
                     count++;
@@ -92,8 +92,8 @@ namespace SpatialEngine.Rendering
                 for (int i = countBE; i < countTO; i++)
                 {
                     //maybe move offset calculation into here?
-                    vertexSize += objs[i].SO_mesh.vertexes.Length;
-                    indiceSize += objs[i].SO_mesh.indices.Length;
+                    vertexSize += objs[i].mesh.vertexes.Length;
+                    indiceSize += objs[i].mesh.indices.Length;
                 }
 
                 RayVertex[] verts = new RayVertex[vertexSize];
@@ -103,23 +103,23 @@ namespace SpatialEngine.Rendering
                 int count = 0;
                 for (int i = countBE; i < countTO; i++)
                 {
-                    models[count] = objs[i].SO_mesh.modelMat;
-                    for (int j = 0; j < objs[i].SO_mesh.vertexes.Length; j++)
+                    models[count] = objs[i].mesh.modelMat;
+                    for (int j = 0; j < objs[i].mesh.vertexes.Length; j++)
                     {
-                        verts[countV] = new RayVertex(objs[i].SO_mesh.vertexes[j].position, objs[i].SO_mesh.vertexes[j].uv);
+                        verts[countV] = new RayVertex(objs[i].mesh.vertexes[j].position, objs[i].mesh.vertexes[j].uv);
                         countV++;
                     }
-                    for (int j = 0; j < objs[i].SO_mesh.indices.Length; j += 3)
+                    for (int j = 0; j < objs[i].mesh.indices.Length; j += 3)
                     {
-                        inds[countI] = new Vector4(objs[i].SO_mesh.indices[j], objs[i].SO_mesh.indices[j + 1], objs[i].SO_mesh.indices[j + 2], 1f);
+                        inds[countI] = new Vector4(objs[i].mesh.indices[j], objs[i].mesh.indices[j + 1], objs[i].mesh.indices[j + 2], count);
                         countI++;
                     }
                     count++;
                 }
 
-                modelMatrixes.Update(models);
-                vertexes.Update(verts);
-                indices.Update(inds);
+                modelMatrixes.Realloc(models);
+                vertexes.Realloc(verts);
+                indices.Realloc(inds);
             }
 
             public void UpdateModelBuffer(in List<SpatialObject> objs, int countBE, int countTO)
@@ -129,11 +129,11 @@ namespace SpatialEngine.Rendering
                 int count = 0;
                 for (int i = countBE; i < countTO; i++)
                 {
-                    models[count] = objs[i].SO_mesh.modelMat;
+                    models[count] = objs[i].mesh.modelMat;
                     count++;
                 }
 
-                modelMatrixes.Update(models);
+                modelMatrixes.Realloc(models);
             }
 
             public void Dispose()
@@ -150,8 +150,8 @@ namespace SpatialEngine.Rendering
                 int offsetByte = 0;
                 for (int i = countBE; i < index; i++)
                 {
-                    offset += objs[i].SO_mesh.vertexes.Length;
-                    offsetByte += objs[i].SO_mesh.indices.Length;
+                    offset += objs[i].mesh.vertexes.Length;
+                    offsetByte += objs[i].mesh.indices.Length;
                 }
                 meshOffsets.Add(new MeshOffset(offset, offsetByte));
                 return meshOffsets.Count - 1;
@@ -174,8 +174,9 @@ namespace SpatialEngine.Rendering
                     shader.setVec3("ucamPos", camPos);
                     shader.setVec3("ucamDir", player.camera.GetCamDir());
                     shader.setInt("uindex", count);
-                    shader.setInt("vertStart", meshOffsets[count].offset);
-                    shader.setInt("triCount", objs[i].SO_mesh.indices.Length / 3);
+                    shader.setInt("vertStart", meshOffsets[count].offsetByte);
+                    shader.setInt("triCount", objs[i].mesh.indices.Length / 3);
+                    shader.setInt("totalTriCount", meshOffsets[^1].offsetByte / 3);
     
                     quad.Draw();
 

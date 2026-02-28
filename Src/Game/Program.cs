@@ -22,10 +22,6 @@ namespace SpatialGame
                 //and starts running the update loop
                 HeadlessServer.Init();
             }
-
-            scene.SaveScene(ScenePath, "Main.txt");
-            physics.CleanPhysics(ref scene);
-            NetworkManager.Cleanup();
         }
     }
 }

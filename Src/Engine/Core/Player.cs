@@ -15,7 +15,7 @@ namespace SpatialEngine
     public class Player
     {
         public Camera camera;
-        Vector3 moveDir;
+        public Vector3 moveDir;
         public Vector3 position;
         public Vector3 rotation;
         public float speed;
@@ -39,6 +39,8 @@ namespace SpatialEngine
             //scene.SpatialObjects[id].SO_mesh.position = position;
             //scene.SpatialObjects[id].SO_mesh.rotation = Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
             moveDir = Vector3.Zero;
+            
+            camera.Update();
         }
 
         public void Movement(float delta)
@@ -95,20 +97,20 @@ namespace SpatialEngine
 
         public void LaunchObject(ref Scene scene, string name)
         {
-            scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, name), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
+            scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, name, Vector3.One), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.SpatialObjects[scene.SpatialObjects.Count - 1].rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
         }
 
         public void LaunchCube(ref Scene scene)
         {
-            scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, "Cube.obj"), new Vector3(1.0f), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
+            scene.AddSpatialObject(LoadModel(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, "cube.obj", Vector3.One * 0.2f), new Vector3(0.1f), MotionType.Dynamic, Layers.MOVING, Activation.Activate);
+            scene.SpatialObjects[scene.SpatialObjects.Count - 1].rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
         }
 
         public void LaunchSphere(ref Scene scene)
         {
             scene.AddSpatialObject(CreateSphereMesh(camera.position + (camera.GetCamDir() * 13.0f), Quaternion.Identity, 2), 1.0f, MotionType.Dynamic, Layers.MOVING, Activation.Activate);
-            scene.SpatialObjects[scene.SpatialObjects.Count - 1].SO_rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
+            scene.SpatialObjects[scene.SpatialObjects.Count - 1].rigidbody.AddImpulseForce(Vector3.Normalize(camera.GetCamDir()), 100.0f);
         }
     }
 }

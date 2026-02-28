@@ -29,16 +29,20 @@ uniform vec3 ucamDir;
 uniform vec3 lightPos;
 uniform mat4 uView;
 uniform mat4 uProj;
+uniform int totalTriCount;
 
-ivec3 getIndex(int i)
+ivec4 GetIndex(int i)
 {
-	return ivec3(indiceBuf.ind[i]) + vertStart;
+	return ivec4(ivec3(indiceBuf.ind[i]) + vertStart, indiceBuf.ind[i].w);
 }
 
-bool rayTriIntersect(vec3 orig, vec3 dir, int triIndex, vec3 a, vec3 b, vec3 c, out float t, out vec2 uv)
+ivec4 GetIndexGlobal(int i)
 {
-	ivec3 triangle = getIndex(triIndex);
+	return ivec4(indiceBuf.ind[i]);
+}
 
+bool RayTriIntersect(vec3 orig, vec3 dir, int triIndex, vec3 a, vec3 b, vec3 c, out float t, out vec2 uv)
+{
 	vec3 edge1 = b - a;
 	vec3 edge2 = c - a;
 	vec3 pvec = cross(dir, edge2);
@@ -58,9 +62,105 @@ bool rayTriIntersect(vec3 orig, vec3 dir, int triIndex, vec3 a, vec3 b, vec3 c, 
 		return false;
 
 	t = dot(edge2, qvec) * invDet;
-	uv.x = u;
-	uv.y = v;
-		return t > 0.0;
+	uv = vec2(u, v);
+	return t > 0.0;
+}
+
+bool RayAabbIntersect(vec3 orig, vec3 dir, vec3 minPos, vec3 maxPos)
+{
+	vec3 invDir = 1.0 / dir;
+	vec3 t0s = (minPos - orig) * invDir;
+	vec3 t1s = (maxPos - orig) * invDir;
+
+	vec3 ts = min(t0s, t1s);
+	vec3 tb = max(t0s, t1s);
+
+	float tmin = max(max(ts.x, ts.y), ts.z);
+	float tmax = min(min(tb.x, tb.y), tb.z);
+
+	return tmax >= max(tmin, 0.0);
+}
+
+bool RayTrace(vec3 dir, vec3 start, out vec4 lighting)
+{
+	float closestT = 1e20;
+	bool hit = false;
+	vec3 normal;
+	vec2 uv;
+	vec3 hitPos;
+	
+	for (int i = 0; i < triCount; i++)
+	{
+		ivec4 triangle = GetIndex(i);
+
+		vec3 a = vec3(model.modelMat[triangle.w] * vertexBuf.vert[triangle.x].pos);
+		vec3 b = vec3(model.modelMat[triangle.w] * vertexBuf.vert[triangle.y].pos);
+		vec3 c = vec3(model.modelMat[triangle.w] * vertexBuf.vert[triangle.z].pos);
+
+		vec3 triMin = min(a, min(b, c));
+		vec3 triMax = max(a, max(b, c));
+
+		if (!RayAabbIntersect(start, dir, triMin, triMax))
+			continue;
+
+		float t;
+		vec2 baryUV;
+		if (RayTriIntersect(start, dir, i, a, b, c, t, baryUV) && t < closestT)
+		{
+			closestT = t;
+			hit = true;
+
+			hitPos = start + dir * t;
+			normal = normalize(cross(b - a, c - a));
+
+			vec2 uvA = vertexBuf.vert[triangle.x].uv.xy;
+			vec2 uvB = vertexBuf.vert[triangle.y].uv.xy;
+			vec2 uvC = vertexBuf.vert[triangle.z].uv.xy;
+			uv = (1.0 - baryUV.x - baryUV.y) * uvA + baryUV.x * uvB + baryUV.y * uvC;
+		}
+	}
+	
+	if (!hit)
+		return false;
+	
+	bool inShadow = false;
+	vec3 lightDir = lightPos - hitPos;
+	vec3 shadowOrigin = hitPos + normal * 0.001;
+	float lightDist = length(lightDir);
+	lightDir = normalize(lightDir);
+
+	for (int g = 0; g < totalTriCount; g++)
+	{
+		ivec4 triangleS = GetIndexGlobal(g);
+
+		vec3 aS = vec3(model.modelMat[triangleS.w] * vertexBuf.vert[triangleS.x].pos);
+		vec3 bS = vec3(model.modelMat[triangleS.w] * vertexBuf.vert[triangleS.y].pos);
+		vec3 cS = vec3(model.modelMat[triangleS.w] * vertexBuf.vert[triangleS.z].pos);
+
+		vec3 triMinS = min(aS, min(bS, cS));
+		vec3 triMaxS = max(aS, max(bS, cS));
+
+		if (!RayAabbIntersect(shadowOrigin, lightDir, triMinS, triMaxS))
+			continue;
+
+		float tShadow;
+		vec2 shadowBary;
+		if (RayTriIntersect(shadowOrigin, lightDir, g, aS, bS, cS, tShadow, shadowBary))
+		{
+			if (tShadow < lightDist)
+			{
+				inShadow = true;
+				break;
+			}
+		}
+	}
+	
+	if (inShadow)
+		lighting = vec4(0.1, 0.1, 0.1, 1.0);
+	else
+		lighting = vec4(0.5, 0.5, 0.5, 1.0);
+
+	return true;
 }
 
 void main()
@@ -69,57 +169,11 @@ void main()
 	vec4 target = inverse(uProj) * vec4(fragPos, 1.0, 1.0);
 	vec3 rayDir = vec3(inverse(uView) * vec4(normalize(vec3(target) / target.w), 0.0));
 
-	float closestT = 1e20;
-	vec3 lighting;
-	bool hit = false;
-
-	for (int i = 0; i < triCount; i++)
+	vec4 lighting;
+	if(RayTrace(rayDir, ucamPos, lighting))
 	{
-		ivec3 triangle = getIndex(i);
-		//skip if facing away from camera
-		vec3 a = vec3(model.modelMat[uindex] * vertexBuf.vert[triangle.x].pos);
-		vec3 b = vec3(model.modelMat[uindex] * vertexBuf.vert[triangle.y].pos);
-		vec3 c = vec3(model.modelMat[uindex] * vertexBuf.vert[triangle.z].pos);
-		vec3 normal = normalize(cross(b - a, c - a));
-
-		if(dot(normal, rayDir) > 0.0)
-			continue;
-
-		float t;
-		vec2 uv;
-		if (rayTriIntersect(ucamPos, rayDir, i, a, b, c, t, uv) && t < closestT)
-		{
-			closestT = t;
-
-			vec2 uvA = vertexBuf.vert[triangle.x].uv.xy;
-			vec2 uvB = vertexBuf.vert[triangle.y].uv.xy;
-			vec2 uvC = vertexBuf.vert[triangle.z].uv.xy;
-			uv = (1.0 - uv.x - uv.y) * uvA + uv.x * uvB + uv.y * uvC;
-
-			vec3 hitPos = ucamPos + rayDir * t;
-			vec3 color = texture(diffuseTexture, uv).rgb;
-			vec3 lightColor = vec3(1.0);
-			float lightPower = 2.0;
-			float distance = length(lightPos - hitPos);
-			// ambient
-			vec3 ambient = 0.15 * lightColor;
-			// diffuse
-			vec3 lightDir = normalize(lightPos - hitPos);
-			float diff = max(dot(lightDir, normal), 0.0);
-			vec3 diffuse = diff * lightColor;
-			// specular
-			vec3 viewDir = normalize(ucamPos - hitPos);
-			float spec = 0.0;
-			vec3 halfwayDir = normalize(lightDir + viewDir);
-			spec = pow(max(dot(normal, halfwayDir), 0.0), 128.0);
-			vec3 specular = spec * lightColor;
-			lighting = (ambient + (1.0) * (diffuse + specular)) * color;
-			hit = true;
-		}
+		out_color = lighting;
 	}
-
-	if (hit)
-		out_color = vec4(lighting, 1.0);
-	else
+	else 
 		discard;
 }

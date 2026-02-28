@@ -9,18 +9,16 @@ namespace SpatialEngine.Networking.Packets
         public int id;
         public Vector3 Position;
         public Quaternion Rotation;
-        public string ModelLocation;
 
         public PlayerJoinPacket()
         {
         }
 
-        public PlayerJoinPacket(int id, Vector3 position, Quaternion rotation, string modelLocation)
+        public PlayerJoinPacket(int id, Vector3 position, Quaternion rotation)
         {
             this.id = id;
             this.Position = position;
             this.Rotation = rotation;
-            this.ModelLocation = modelLocation;
         }
 
         public override byte[] ConvertToByte()
@@ -40,8 +38,6 @@ namespace SpatialEngine.Networking.Packets
             writer.Write(Rotation.Y);
             writer.Write(Rotation.Z);
             writer.Write(Rotation.W);
-            //modellocation
-            writer.Write(ModelLocation);
             stream.Close();
             writer.Close();
 
@@ -65,7 +61,6 @@ namespace SpatialEngine.Networking.Packets
             float rotZ = reader.ReadSingle();
             float rotW = reader.ReadSingle();
             Rotation = new Quaternion(rotX, rotY, rotZ, rotW);
-            ModelLocation = reader.ReadString();
             stream.Close();
             reader.Close();
         }

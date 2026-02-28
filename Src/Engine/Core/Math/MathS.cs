@@ -88,5 +88,26 @@ namespace SpatialEngine.SpatialMath
             float yaw = MathF.Atan2(t3, t4);
             return new Vector3(yaw, pitch, roll);
         }
+
+        /// <summary>
+        /// In radians
+        /// </summary>
+        public static Vector3 RotateVec3(Vector3 vec, Vector3 rotation)
+        {
+            Quaternion rotationQuat = Vec3ToQuat(rotation);
+            return Vector3.Transform(vec, rotationQuat);
+        }
+
+        /// <summary>
+        /// In radians
+        /// </summary>
+        public static Vector3 GetRotDir(Vector2 rotation)
+        {
+            Vector3 target;
+            target.X = -MathF.Sin(rotation.X) * MathF.Cos(rotation.Y);
+            target.Y = -MathF.Sin(rotation.Y);
+            target.Z = MathF.Cos(rotation.X) * MathF.Cos(rotation.Y);
+            return Vector3.Normalize(target);
+        }
     }
 }

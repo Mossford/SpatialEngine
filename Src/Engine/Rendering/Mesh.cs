@@ -18,20 +18,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace SpatialEngine.Rendering
 {
-    public struct Vertex
-    {
-        public Vector3 position;
-        public Vector3 normal;
-        public Vector2 uv;
-
-        public Vertex(Vector3 pos, Vector3 nor, Vector2 tex)
-        {
-            position = pos;
-            normal = nor;
-            uv = tex;
-        }
-    }
-
     public enum MeshType
     {
         CubeMesh,
@@ -43,7 +29,7 @@ namespace SpatialEngine.Rendering
         Last = FileMesh
     };
 
-    public class Mesh : IDisposable
+    public struct Mesh : IDisposable
     {
         public Vertex[] vertexes;
         public uint[] indices;
@@ -52,7 +38,7 @@ namespace SpatialEngine.Rendering
         /// </summary>
         public string modelLocation;
         public Vector3 position = Vector3.Zero; 
-        public float scale = 1f;
+        public Vector3 scale = Vector3.One;
         public Quaternion rotation = Quaternion.Identity;
         public Matrix4x4 modelMat;
 
@@ -62,7 +48,7 @@ namespace SpatialEngine.Rendering
             this.indices = indices;
             this.position = position;
             this.rotation = rotation;
-            this.scale = scale;
+            this.scale = new Vector3(scale);
         }
 
         public Mesh(string modelLocation, Vertex[] vertexes, uint[] indices, Vector3 position, Quaternion rotation, float scale = 1.0f)
@@ -72,14 +58,14 @@ namespace SpatialEngine.Rendering
             this.indices = indices;
             this.position = position;
             this.rotation = rotation;
-            this.scale = scale;
+            this.scale = new Vector3(scale);
         }
 
         public Mesh(string modelLocation, Vector3 position, Quaternion rotation, float scale = 1.0f)
         {
             this.modelLocation = modelLocation;
             LoadModel(position, rotation, modelLocation);
-            this.scale = scale;
+            this.scale = new Vector3(scale);
         }
 
         /// <summary>
@@ -91,9 +77,20 @@ namespace SpatialEngine.Rendering
             indices = new uint[0];
         }
 
+        public Mesh(Mesh other)
+        {
+            this.vertexes = other.vertexes;
+            this.indices = other.indices;
+            this.modelLocation = other.modelLocation;
+            this.position = other.position;
+            this.scale = other.scale;
+            this.rotation = other.rotation;
+            this.modelMat = other.modelMat;
+        }
+
         public void SetModelMatrix()
         {
-            modelMat = Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateScale(scale) * Matrix4x4.CreateTranslation(position);
+            modelMat = Matrix4x4.Identity * Matrix4x4.CreateScale(scale) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
         }
 
         /// <summary>
@@ -266,7 +263,7 @@ namespace SpatialEngine.Rendering
             modelLocation = ((int)MeshType.TriangleMesh).ToString();
             this.position = position;
             this.rotation = rotation;
-            scale = 1;
+            scale = Vector3.One;
         }
 
         /// <summary>
@@ -304,7 +301,7 @@ namespace SpatialEngine.Rendering
             modelLocation = ((int)MeshType.CubeMesh).ToString();
             this.position = position;
             this.rotation = rotation;
-            scale = 1;
+            scale = Vector3.One;
         }
 
         /// <summary>
@@ -405,7 +402,7 @@ namespace SpatialEngine.Rendering
             modelLocation = ((int)MeshType.IcoSphereMesh).ToString();
             this.position = position;
             this.rotation = rotation;
-            scale = 1;
+            scale = Vector3.One;
         }
 
         /// <summary>
@@ -506,7 +503,7 @@ namespace SpatialEngine.Rendering
             modelLocation = ((int)MeshType.IcoSphereMesh).ToString();
             this.position = position;
             this.rotation = rotation;
-            scale = 1;
+            scale = Vector3.One;
         }
 
         /// <summary>
@@ -624,7 +621,7 @@ namespace SpatialEngine.Rendering
             modelLocation = name;
             this.position = position;
             this.rotation = rotation;
-            scale = 1f;
+            scale = Vector3.One;
         }
 
     }
@@ -644,6 +641,25 @@ namespace SpatialEngine.Rendering
             };
             return new Mesh(((int)MeshType.TriangleMesh).ToString(), vertxes, indices, position, rotation, 1);
         }
+        
+        public static Mesh Create2DQuad(Vector3 position, Quaternion rotation)
+        {
+            Vertex[] vertxes = new Vertex[5];
+            vertxes[0] = new Vertex(new Vector3(-1.0f, -1.0f, 0.0f), new Vector3(0.0f, 0.0f, 1.0f), new Vector2(0, 0));
+            vertxes[1] = new Vertex(new Vector3(1.0f, -1.0f, 0.0f), new Vector3(0.0f, 0.0f, 1.0f), new Vector2(1, 0));
+            vertxes[2] = new Vertex(new Vector3(-1.0f, 1.0f, 0.0f), new Vector3(0.0f, 0.0f, 1.0f), new Vector2(0, 1));
+            vertxes[3] = new Vertex(new Vector3(1.0f, -1.0f, 0.0f), new Vector3(0.0f, 0.0f, 1.0f), new Vector2(1, 0));
+            vertxes[4] = new Vertex(new Vector3(1.0f, 1.0f, 0.0f), new Vector3(0.0f, 0.0f, 1.0f), new Vector2(1, 1));
+            //same as vertex 3
+            //vertxes[5] = new Vertex(new Vector3(-1.0f, 1.0f, 0.0f), new Vector3(0.0f, 0.0f, 1.0f), new Vector2(0, 1));
+            
+            uint[] indices =
+            {
+                0, 1, 2, 3, 4, 2
+            };
+            return new Mesh(((int)MeshType.TriangleMesh).ToString(), vertxes, indices, position, rotation, 1);
+        }
+
 
         public static Mesh CreateCubeMesh(Vector3 position, Quaternion rotation)
         {
@@ -902,32 +918,41 @@ namespace SpatialEngine.Rendering
             return new Mesh(((int)MeshType.IcoSphereMesh).ToString(), vertexes, indices, position, rotation, 1.0f);
         }
 
-        public static Mesh LoadModel(Vector3 position, Quaternion rotation, string name)
+        public static Mesh LoadModel(Vector3 position, Quaternion rotation, string name, Vector3 scale)
         {
             string loc = Resources.ModelPath + name;
             if (loc == "")
-                return null;
+                return new Mesh();
             if (!File.Exists(loc))
             {
-                if(int.TryParse(loc, out int modelType))
+                if(int.TryParse(loc.Substring(loc.LastIndexOf('/') + 1), out int modelType))
                 {
+                    Mesh meshPrim = new Mesh();
+                    
                     switch (modelType)
                     {
                         case (int)MeshType.CubeMesh:
-                            return CreateCubeMesh(position, rotation);
+                            meshPrim = CreateCubeMesh(position, rotation);
+                            break;
                         case (int)MeshType.IcoSphereMesh:
-                            return CreateSphereMesh(position, rotation, 3);
+                            meshPrim = CreateSphereMesh(position, rotation, 2);
+                            break;
                         case (int)MeshType.TriangleMesh:
-                            return Create2DTriangle(position, rotation);
+                            meshPrim = Create2DTriangle(position, rotation);
+                            break;
                         case (int)MeshType.SpikerMesh:
-                            return CreateSpikerMesh(position, rotation, 0.3f);
+                            meshPrim = CreateSpikerMesh(position, rotation, 0.3f);
+                            break;
                     }
+                    
+                    meshPrim.scale = scale;
+                    return meshPrim;
                 }
                 else
                 {
                     //could not find the model even though an input file location was provided
                     Console.WriteLine("cannot find model at " + loc);
-                    return null;
+                    return new Mesh();
                 }
             }
 
@@ -1005,7 +1030,10 @@ namespace SpatialEngine.Rendering
                 indices.Add((uint)i);
                 vertexes.Add(vertex);
             }
-            return new Mesh(name, vertexes.ToArray(), indices.ToArray(), position, rotation, 1.0f);
+
+            Mesh mesh = new Mesh(name, vertexes.ToArray(), indices.ToArray(), position, rotation);
+            mesh.scale = scale;
+            return mesh;
         }
     }
 }

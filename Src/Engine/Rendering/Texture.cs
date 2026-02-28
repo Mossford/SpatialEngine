@@ -13,10 +13,10 @@ using Silk.NET.Vulkan;
 namespace SpatialEngine.Rendering
 {
 
-    public static class MissingTexture
+    public static class MissingTextureData
     {
         public static byte[,,] pixels { get; private set; }
-        public static int size = 128;
+        public static int size = 48;
         static bool created = false;
 
         public static void Create()
@@ -60,6 +60,11 @@ namespace SpatialEngine.Rendering
         public Vector2 size;
         public InternalFormat internalFormat;
         public GLEnum format;
+
+        public Texture()
+        {
+            
+        }
         
         public unsafe void CreateTextureImage2D(int width, int height, InternalFormat internalFormat, GLEnum format, uint location)
         {
@@ -108,7 +113,7 @@ namespace SpatialEngine.Rendering
             if (!File.Exists(Resources.ImagePath + location))
             {
                 noImage = true;
-                MissingTexture.Create();
+                MissingTextureData.Create();
                 gl.TextureParameter(id, GLEnum.TextureMinFilter, (int)GLEnum.Nearest);
                 gl.TextureParameter(id, GLEnum.TextureMagFilter, (int)GLEnum.Nearest);
                 gl.TextureParameter(id, GLEnum.TextureWrapS, (int)GLEnum.MirroredRepeat);
@@ -125,12 +130,12 @@ namespace SpatialEngine.Rendering
 
             if (noImage)
             {
-                fixed (byte* data = MissingTexture.pixels)
+                fixed (byte* data = MissingTextureData.pixels)
                 {
-                    gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgb, (uint)MissingTexture.size, (uint)MissingTexture.size, 0, GLEnum.Rgb, PixelType.UnsignedByte, data);
+                    gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgb, (uint)MissingTextureData.size, (uint)MissingTextureData.size, 0, GLEnum.Rgb, PixelType.UnsignedByte, data);
                     internalFormat = InternalFormat.Rgb;
                     format = GLEnum.Rgb;
-                    size = new Vector2(MissingTexture.size, MissingTexture.size);
+                    size = new Vector2(MissingTextureData.size, MissingTextureData.size);
                 }
             }
             else

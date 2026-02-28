@@ -31,8 +31,7 @@ public class UiElement : IDisposable
 
     public UiElement(string textureLoc, Vector2 pos, float rot = 0f, float scale = 1f, float length = 100, float height = 100, UiElementType type = UiElementType.image)
     {
-        texture = new Texture();
-        texture.LoadTexture(textureLoc);
+        texture = TextureManager.RetrieveTexture(textureLoc);
         this.position = pos / Window.size;
         this.rotation = rot;
         this.scale = scale;

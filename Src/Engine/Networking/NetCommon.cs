@@ -37,6 +37,11 @@ namespace SpatialEngine.Networking
         public abstract ushort GetPacketType();
     }
 
+    public class OtherClientConnectEvent : EventArgs
+    {
+        public int client { get; set; }
+    }
+
 
     //Connection packets
 

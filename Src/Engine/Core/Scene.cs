@@ -11,147 +11,176 @@ using static SpatialEngine.Globals;
 using SpatialEngine.Rendering;
 using System.IO;
 using System.Linq;
-using Shader = SpatialEngine.Rendering.Shader;
 
 namespace SpatialEngine
 {
-    public struct SpatialObject
-    {
-        public Mesh SO_mesh;
-        public RigidBody SO_rigidbody;
-        public Shader SO_shader;
-        public uint SO_id;
-
-        public SpatialObject(Mesh mesh, uint id)
-        {
-            SO_mesh = mesh;
-            SO_id = id;
-        }
-
-        public SpatialObject(RigidBody rigidBody, Mesh mesh, uint id)
-        {
-            SO_rigidbody = rigidBody;
-            SO_mesh = mesh;
-            SO_id = id;
-        }
-
-        public SpatialObject(RigidBody rigidBody, Mesh mesh, Shader shader, uint id)
-        {
-            SO_rigidbody = rigidBody;
-            SO_shader = shader;
-            SO_mesh = mesh;
-            SO_id = id;
-        }
-
-        public SpatialObject(RigidBody rigidBody, Mesh mesh, string vertPath, string fragPath, uint id)
-        {
-            SO_rigidbody = rigidBody;
-            SO_shader = new Shader(gl, vertPath, fragPath);
-            SO_mesh = mesh;
-            SO_id = id;
-        }
-
-        public SpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, uint id)
-        {
-            SO_mesh = mesh;
-            SO_rigidbody = new RigidBody(SO_mesh, (int)SO_id, SO_mesh.position, SO_mesh.rotation, motion, layer);
-            SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
-            SO_id = id;
-        }
-
-        public SpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, string vertPath, string fragPath, uint id)
-        {
-            SO_mesh = mesh;
-            SO_rigidbody = new RigidBody(SO_mesh, (int)SO_id, SO_mesh.position, SO_mesh.rotation, motion, layer);
-            SO_shader = new Shader(gl, vertPath, fragPath);
-            SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
-            SO_id = id;
-        }
-
-        public uint GetSizeUsage()
-        {
-            uint total = 0;
-            total += (uint)(8 * sizeof(float) * SO_mesh.vertexes.Length);
-            total += (uint)(sizeof(uint) * SO_mesh.indices.Length);
-            return total;
-        }
-    }
-
     public class Scene
     {
 
         public List<SpatialObject> SpatialObjects;
-        public List<uint> idList;
+        public List<int> idList;
+        Stack<int> freeIds;
 
         public Scene()
         {
             SpatialObjects = new List<SpatialObject>();
-            idList = new List<uint>();
+            idList = new List<int>();
+            freeIds = new Stack<int>();
         }
 
-        public void AddSpatialObject(Mesh mesh)
+        public int AddSpatialObject(Mesh mesh)
         {
-            if(mesh == null)
-                return;
-            int id = SpatialObjects.Count;
-            SpatialObjects.Add(new SpatialObject(mesh, (uint)id));
-            idList.Add((uint)id);
-        }
-
-        public void AddSpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
-        {
-            if (mesh == null)
-                return;
-            int id = SpatialObjects.Count;
-            SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_rigidbody = new RigidBody(obj.SO_mesh, id, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer, mass);
-            SpatialObjects.Add(obj);
-            idList.Add((uint)id);
-            SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
+            int id = 0;
+            if (freeIds.Count != 0)
+            {
+                id = freeIds.Pop();
+                idList[id] = SpatialObjects.Count;
+            }
+            else
+            {
+                id = idList.Count;
+                idList.Add(SpatialObjects.Count);
+            }
             
-            vertCount += (uint)scene.SpatialObjects[^1].SO_mesh.vertexes.Length;
-            indCount += (uint)scene.SpatialObjects[^1].SO_mesh.indices.Length;
+            SpatialObjects.Add(new SpatialObject(mesh, id));
+            
+            vertCount += (uint)SpatialObjects[^1].mesh.vertexes.Length;
+            indCount += (uint)SpatialObjects[^1].mesh.indices.Length;
+
+            return id;
         }
 
-        public void AddSpatialObject(Mesh mesh, Vector3 halfBoxSize, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
+        public int AddSpatialObject(Mesh mesh, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
         {
-            if (mesh == null)
-                return;
-            int id = SpatialObjects.Count;
-            SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_rigidbody = new RigidBody(halfBoxSize, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer, mass);
-            SpatialObjects.Add(obj);
-            idList.Add((uint)id);
-            SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
+            int id = 0;
+            if (freeIds.Count != 0)
+            {
+                id = freeIds.Pop();
+                idList[id] = SpatialObjects.Count;
+            }
+            else
+            {
+                id = idList.Count;
+                idList.Add(SpatialObjects.Count);
+            }
             
-            vertCount += (uint)scene.SpatialObjects[^1].SO_mesh.vertexes.Length;
-            indCount += (uint)scene.SpatialObjects[^1].SO_mesh.indices.Length;
+            SpatialObject obj = new SpatialObject(mesh, id);
+            obj.rigidbody = new RigidBody(obj.mesh, id, obj.mesh.position, obj.mesh.rotation, motion, layer, mass);
+            SpatialObjects.Add(obj);
+            SpatialObjects[^1].rigidbody.AddToPhysics(ref bodyInterface, activation);
+            
+            vertCount += (uint)SpatialObjects[^1].mesh.vertexes.Length;
+            indCount += (uint)SpatialObjects[^1].mesh.indices.Length;
+            
+            return id;
         }
 
-        public void AddSpatialObject(Mesh mesh, float radius, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
+        public int AddSpatialObject(Mesh mesh, Vector3 halfBoxSize, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
         {
-            if (mesh == null)
-                return;
-            int id = SpatialObjects.Count;
-            SpatialObject obj = new SpatialObject(mesh, (uint)id);
-            obj.SO_rigidbody = new RigidBody(radius, obj.SO_mesh.position, obj.SO_mesh.rotation, motion, layer, mass);
-            SpatialObjects.Add(obj);
-            idList.Add((uint)id);
-            SpatialObjects[id].SO_rigidbody.AddToPhysics(ref bodyInterface, activation);
+            int id = 0;
+            if (freeIds.Count != 0)
+            {
+                id = freeIds.Pop();
+                idList[id] = SpatialObjects.Count;
+            }
+            else
+            {
+                id = idList.Count;
+                idList.Add(SpatialObjects.Count);
+            }
             
-            vertCount += (uint)scene.SpatialObjects[^1].SO_mesh.vertexes.Length;
-            indCount += (uint)scene.SpatialObjects[^1].SO_mesh.indices.Length;
+            SpatialObject obj = new SpatialObject(mesh, id);
+            obj.rigidbody = new RigidBody(halfBoxSize, obj.mesh.position, obj.mesh.rotation, motion, layer, mass);
+            SpatialObjects.Add(obj);
+            SpatialObjects[^1].rigidbody.AddToPhysics(ref bodyInterface, activation);
+            
+            vertCount += (uint)SpatialObjects[^1].mesh.vertexes.Length;
+            indCount += (uint)SpatialObjects[^1].mesh.indices.Length;
+            
+            return id;
+        }
+
+        public int AddSpatialObject(Mesh mesh, float radius, MotionType motion, ObjectLayer layer, Activation activation, float mass = -1)
+        {
+            int id = 0;
+            if (freeIds.Count != 0)
+            {
+                id = freeIds.Pop();
+                idList[id] = SpatialObjects.Count;
+            }
+            else
+            {
+                id = idList.Count;
+                idList.Add(SpatialObjects.Count);
+            }
+            
+            SpatialObject obj = new SpatialObject(mesh, id);
+            obj.rigidbody = new RigidBody(radius, obj.mesh.position, obj.mesh.rotation, motion, layer, mass);
+            SpatialObjects.Add(obj);
+            SpatialObjects[^1].rigidbody.AddToPhysics(ref bodyInterface, activation);
+            
+            vertCount += (uint)SpatialObjects[^1].mesh.vertexes.Length;
+            indCount += (uint)SpatialObjects[^1].mesh.indices.Length;
+            
+            return id;
+        }
+
+        public void RemoveSpatialObject(int id)
+        {
+            if (id < 0 || id >= idList.Count)
+                return;
+            
+            //grab id for object to delete
+            int objectId = idList[id];
+            
+            if (objectId != SpatialObjects.Count)
+            {
+                //swap object with end
+                SpatialObjects[objectId] = SpatialObjects[^1];
+                //set swapped end object id ref to object id
+                idList[SpatialObjects[objectId].id] = objectId;
+            }
+            
+            //add id to be reused
+            freeIds.Push(id);
+            idList[id] = -1;
+            
+            //delete end object
+            vertCount -= (uint)SpatialObjects[^1].mesh.vertexes.Length;
+            indCount -= (uint)SpatialObjects[^1].mesh.indices.Length;
+            
+            SpatialObjects[^1].rigidbody.Dispose();
+            SpatialObjects[^1].mesh.Dispose();
+            SpatialObjects[^1].shader?.Dispose();
+            SpatialObjects.RemoveAt(SpatialObjects.Count - 1);
+        }
+
+        public void Update()
+        {
+            for (int i = 0; i < SpatialObjects.Count; i++)
+            {
+                SpatialObjects[i].mesh.SetModelMatrix();
+            }
         }
 
         public void Clear()
         {
             for (int i = 0; i < SpatialObjects.Count; i++)
             {
-                bodyInterface.DestroyBody(SpatialObjects[i].SO_rigidbody.rbID);
+                bodyInterface.DestroyBody(SpatialObjects[i].rigidbody.rbID);
             }
 
             SpatialObjects.Clear();
             idList.Clear();
+            freeIds.Clear();
+        }
+
+        public SpatialObject GetSpatialObject(int id)
+        {
+            if (id < 0 || id >= idList.Count || idList[id] == -1)
+                return null;
+            
+            return SpatialObjects[idList[id]];
         }
 
         public void SaveScene(string location, string name)
@@ -189,24 +218,18 @@ namespace SpatialEngine
 
             for (int i = 0; i < SpatialObjects.Count; i++)
             {
-                writer.WriteLine("SO " + SpatialObjects[i].SO_id);
-                if (SpatialObjects[i].SO_mesh is not null)
-                {
-                    writer.WriteLine("ML " + SpatialObjects[i].SO_mesh.modelLocation);
-                    writer.WriteLine("MP " + SpatialObjects[i].SO_mesh.position.X + "/" + SpatialObjects[i].SO_mesh.position.Y + "/" + SpatialObjects[i].SO_mesh.position.Z);
-                    writer.WriteLine("MR " + SpatialObjects[i].SO_mesh.rotation.X + "/" + SpatialObjects[i].SO_mesh.rotation.Y + "/" + SpatialObjects[i].SO_mesh.rotation.Z + "/" + SpatialObjects[i].SO_mesh.rotation.W);
-                    writer.WriteLine("MS " + SpatialObjects[i].SO_mesh.scale);
-                }
+                writer.WriteLine("SO " + SpatialObjects[i].id);
+                writer.WriteLine("ML " + SpatialObjects[i].mesh.modelLocation);
+                writer.WriteLine("MP " + SpatialObjects[i].mesh.position.X + "/" + SpatialObjects[i].mesh.position.Y + "/" + SpatialObjects[i].mesh.position.Z);
+                writer.WriteLine("MR " + SpatialObjects[i].mesh.rotation.X + "/" + SpatialObjects[i].mesh.rotation.Y + "/" + SpatialObjects[i].mesh.rotation.Z + "/" + SpatialObjects[i].mesh.rotation.W);
+                writer.WriteLine("MS " + SpatialObjects[i].mesh.scale);
                 //writer.Write("TL " + SpatialObjects[i].SO_texture.textLocation);
-                if (SpatialObjects[i].SO_rigidbody is not null)
+                Vector3 vel = SpatialObjects[i].rigidbody.GetVelocity();
+                writer.WriteLine("RV " + vel.X.ToString("G30") + "/" + vel.Y.ToString("G30") + "/" + vel.Z.ToString("G30"));
+                if (SpatialObjects[i].shader is not null)
                 {
-                    Vector3 vel = SpatialObjects[i].SO_rigidbody.GetVelocity();
-                    writer.WriteLine("RV " + vel.X.ToString("G30") + "/" + vel.Y.ToString("G30") + "/" + vel.Z.ToString("G30"));
-                }
-                if (SpatialObjects[i].SO_shader is not null)
-                {
-                    writer.WriteLine("SLV " + SpatialObjects[i].SO_shader.vertPath);
-                    writer.WriteLine("SLF " + SpatialObjects[i].SO_shader.fragPath);
+                    writer.WriteLine("SLV " + SpatialObjects[i].shader.vertPath);
+                    writer.WriteLine("SLF " + SpatialObjects[i].shader.fragPath);
                 }
             }
 
