@@ -11,14 +11,11 @@
 
 ## TODO
 
-* ### Add to physics
-> * Put physics in the Physics namespace
 * ### framebuffer color has no depth test
-* ### Player needs a mesh
 * ### Documentation
-* ### Refactor shader system
 * ### Cascading Shadows
-* ### refactoring of systems?
+* ### Material system
+* ### Renderset divides by same material so they support multiple textures
 
 
 # How it works
